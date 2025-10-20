@@ -145,14 +145,14 @@ class Ui {
       figure.classList.add("menu-item");
       figure.setAttribute("data-sku", JSON.stringify(item));
       figure.innerHTML = `
-  <img src="${item.image}" alt="${item.description}" class="menu-image">
-  <div class="menu-item-content">
-    <div class="title">${item.description}</div>
-    <div class="sku">${item.sku}</div>
-    <div class="price">${Utilities.convertFloatToString(item.price)}</div>
-  </div>
-`;
-    frag.appendChild(figure);
+        <img src="${item.image}" alt="${item.description}" class="menu-image">
+        <div class="menu-item-content">
+          <div class="title">${item.description}</div>
+          <div class="sku">${item.sku}</div>
+          <div class="price">${Utilities.convertFloatToString(item.price)}</div>
+        </div>
+      `;
+      frag.appendChild(figure);
     });
     menuContainer.appendChild(frag);
   }
@@ -229,9 +229,55 @@ class Ui {
   }
 }
 
+// ---------- Drawer Setup ----------
+function setupProductDrawer() {
+  const drawer = document.querySelector(".menu-payment");
+  if (!drawer) return;
+
+  // Add handle bar
+  let handle = drawer.querySelector(".drawer-handle");
+  if (!handle) {
+    handle = document.createElement("div");
+    handle.className = "drawer-handle";
+    drawer.prepend(handle);
+  }
+
+  const openDrawer = () => {
+    drawer.classList.add("expanded");
+    document.body.classList.add("menu-expanded");
+  };
+  const closeDrawer = () => {
+    drawer.classList.remove("expanded");
+    document.body.classList.remove("menu-expanded");
+  };
+
+  // Tap toggle
+  handle.addEventListener("click", () => {
+    if (window.innerWidth > 900) return;
+    drawer.classList.toggle("expanded");
+    document.body.classList.toggle("menu-expanded");
+  });
+
+  // Swipe detection (on handle only)
+  let startY = 0;
+  handle.addEventListener("touchstart", e => (startY = e.touches[0].clientY));
+  handle.addEventListener("touchend", e => {
+    const diff = startY - e.changedTouches[0].clientY;
+    if (diff > 50) openDrawer();
+    if (diff < -50) closeDrawer();
+  });
+
+  // Prevent close when adding products
+  drawer.addEventListener("click", e => {
+    if (e.target.closest(".menu-item")) {
+      // keep open
+      openDrawer();
+    }
+  });
+}
+
 // ---------- Initialization ----------
 document.addEventListener("DOMContentLoaded", async () => {
-  // Header Date
   const dateEl = document.getElementById("current-date");
   if (dateEl) {
     const now = new Date();
@@ -253,39 +299,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   const menuData = await loadMenuFromSheet(sheetCsvUrl);
   order.menu = menuData;
   Ui.renderMenu(order);
+  setupProductDrawer();
 
-  // ---------- Swipe Up Expand / Collapse for Mobile ----------
-  const menuSection = document.querySelector(".menu-payment");
-  let startY = 0;
-  let currentY = 0;
-  let isSwiping = false;
-
-  if (menuSection) {
-    menuSection.addEventListener("touchstart", (e) => {
-      if (window.innerWidth > 900) return;
-      startY = e.touches[0].clientY;
-      isSwiping = true;
-    });
-
-    menuSection.addEventListener("touchmove", (e) => {
-      if (!isSwiping) return;
-      currentY = e.touches[0].clientY;
-    });
-
-    menuSection.addEventListener("touchend", () => {
-      if (!isSwiping) return;
-      const diff = startY - currentY;
-      isSwiping = false;
-
-      if (diff > 50 && !menuSection.classList.contains("expanded")) {
-        menuSection.classList.add("expanded");
-      } else if (diff < -50 && menuSection.classList.contains("expanded")) {
-        menuSection.classList.remove("expanded");
-      }
-    });
-  }
-
-  // ---------- Return Toggle ----------
   if (returnButton) {
     returnButton.addEventListener("click", () => {
       isReturnMode = !isReturnMode;
@@ -293,7 +308,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // ---------- Add Item ----------
   document.addEventListener("click", e => {
     const card = e.target.closest(".menu-item");
     if (!card) return;
@@ -301,7 +315,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     order.addOrderLine(1, data, isReturnMode);
   });
 
-  // ---------- Initialize UI ----------
   updatePaymentUI();
   toggleSubmitVisibility();
 });
