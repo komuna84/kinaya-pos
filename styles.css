@@ -823,51 +823,64 @@ figcaption {
   }
 }
 
-/* ================= IMAGE STRIP UNDER PRODUCTS ================= */
+/* ================= IMAGE STRIP UNDER PRODUCTS (FINAL) ================= */
 .image-gallery {
-  position: relative; /* ✅ stays in normal page flow */
+  position: relative;
   width: 100%;
-  background: transparent;
+  background: linear-gradient(to bottom, rgba(18,18,18,0.98) 0%, rgba(18,18,18,1) 100%);
   border-top: 1px solid rgba(191,216,193,0.2);
-  padding: 2rem 0;
+  padding: 3rem 0 5rem;
   display: flex;
   justify-content: center;
+  align-items: center;
+  z-index: 1; /* ✅ ensure it's not layered above main */
 }
 
 .image-scroll {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 1.5rem;
+  align-items: center; /* ✅ true centering */
+  gap: 1.8rem;
   width: 90%;
-  max-width: 800px;
+  max-width: 850px;
 }
 
 .image-scroll a {
   display: block;
+  text-decoration: none;
 }
 
 .image-scroll img {
-  width: 140px;
+  width: 150px;
+  height: auto;
   border-radius: 10px;
-  box-shadow: 0 0 10px rgba(255,255,255,0.1);
+  object-fit: cover;
+  box-shadow: 0 0 12px rgba(255,255,255,0.08);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: block;
+  margin: 0 auto;
 }
 
 .image-scroll img:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 18px rgba(167,225,238,0.4);
+  transform: scale(1.06);
+  box-shadow: 0 0 18px rgba(167,225,238,0.35);
 }
 
 /* --- Mobile tweaks --- */
 @media (max-width: 768px) {
+  .image-gallery {
+    padding: 2rem 0 3rem;
+  }
+
   .image-scroll {
-    gap: 1rem;
+    gap: 1.2rem;
   }
 
   .image-scroll img {
-    width: 110px;
+    width: 120px;
   }
 }
+
 
 
