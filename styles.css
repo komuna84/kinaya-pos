@@ -782,10 +782,137 @@ figcaption {
   }
 }
 
-/* Smaller phones (≤430px) */
+/* ---------- MOBILE LAYOUT (phones & tablets) ---------- */
+@media (max-width: 768px) {
+  header {
+    text-align: center;
+    padding: 1rem 0;
+    background-color: rgba(255,255,255,0.08);
+    text-shadow: 0 0 12px rgba(167,225,238,0.6);
+    backdrop-filter: blur(4px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  header h1 {
+    font-family: "Audiowide", cursive;
+    font-size: clamp(1.3rem, 5vw, 1.8rem);
+    margin: 0 auto;
+  }
+
+  main {
+    flex-direction: column;
+    align-items: stretch;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* Order panel on top */
+  .order {
+    width: 100%;
+    flex: 0 0 60vh;
+    overflow-y: auto;
+    border: none;
+    background: #fff;
+    color: #000;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+    z-index: 2;
+  }
+
+  .receipt {
+    background-color: #fff;
+    color: #000;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    margin: 10px;
+    padding: 6px 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  /* Toolbar styles */
+  .toolbar {
+    background: rgba(250,250,250,0.95);
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+    margin: 12px auto;
+    padding: 16px 0;
+    gap: 32px;
+    border-radius: 0 0 8px 8px;
+  }
+
+  /* Menu section scrolls vertically */
+  .menu-payment {
+    width: 100%;
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem 0.5rem 2rem;
+    background: rgba(255, 255, 255, 0.04);
+    border: none;
+    border-radius: 0;
+  }
+
+  /* Product list vertical */
+  .menu {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  /* Product tile (image left, text right) */
+  .menu-item {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    width: 95%;
+    max-width: 480px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 10px;
+    padding: 0.6rem;
+    gap: 0.8rem;
+    box-shadow: 0 0 6px rgba(167,225,238,0.25);
+  }
+
+  .menu-image {
+    flex-shrink: 0;
+    width: 90px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 0 5px rgba(167,225,238,0.3);
+  }
+
+  .menu-item figcaption {
+    text-align: left;
+    color: #aef0d0;
+    font-size: 0.9rem;
+    line-height: 1.3;
+  }
+
+  .menu-item figcaption:first-of-type {
+    font-weight: 600;
+    color: #fff;
+    font-size: 1rem;
+    margin-bottom: 2px;
+  }
+
+  .menu-item figcaption:last-of-type {
+    color: #a7e1ee;
+    font-size: 0.85rem;
+  }
+
+  /* Hide thank-you footer */
+  .receipt-footer {
+    display: none !important;
+  }
+}
+
+/* ---------- SMALL PHONES (<430px) ---------- */
 @media (max-width: 430px) {
   .menu-item {
-    flex-direction: column;  /* stack image over text */
+    flex-direction: column;
     align-items: center;
     text-align: center;
   }
@@ -800,3 +927,4 @@ figcaption {
     text-align: center;
   }
 }
+
