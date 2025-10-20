@@ -491,3 +491,40 @@ function submitSale() {
 // ---------- Initialize ----------
 updatePaymentUI();
 toggleSubmitVisibility();
+
+// =======================================================
+// MOBILE SWIPE-UP PRODUCT DRAWER
+// =======================================================
+function setupProductDrawer() {
+  const drawer = document.querySelector(".menu-payment");
+  if (!drawer) return;
+
+  let startY = 0;
+  let isDragging = false;
+
+  drawer.addEventListener("touchstart", e => {
+    if (window.innerWidth > 768) return; // only mobile
+    startY = e.touches[0].clientY;
+    isDragging = true;
+  });
+
+  drawer.addEventListener("touchend", e => {
+    if (!isDragging) return;
+    isDragging = false;
+    const diff = startY - e.changedTouches[0].clientY;
+
+    // swipe up to expand
+    if (diff > 50 && !drawer.classList.contains("expanded")) {
+      drawer.classList.add("expanded");
+      document.body.classList.add("menu-expanded");
+    }
+    // swipe down to collapse
+    if (diff < -50 && drawer.classList.contains("expanded")) {
+      drawer.classList.remove("expanded");
+      document.body.classList.remove("menu-expanded");
+    }
+  });
+}
+
+document.addEventListener("DOMContentLoaded", setupProductDrawer);
+
