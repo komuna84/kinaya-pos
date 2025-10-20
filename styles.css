@@ -638,116 +638,106 @@ figcaption {
   width: 100px;
 }
 
-/* ---------- PRODUCT DRAWER (Swipe-Up) WITH CENTERED CARDS ---------- */
+/* ---------- SWIPE-UP PRODUCT DRAWER (MOBILE FIX) ---------- */
 @media (max-width: 900px) {
-  /* Drawer base */
   .menu-payment {
     position: fixed;
-    left: 0; right: 0; bottom: 0;
+    bottom: 0;
+    left: 0;
     width: 100%;
-    height: 88vh;
-    background: rgba(0,0,0,0.96);
+    height: 20vh; /* collapsed peek */
+    background: rgba(10, 10, 10, 0.96);
     border-radius: 16px 16px 0 0;
-    border-top: 1px solid rgba(174,240,208,0.3);
-    box-shadow: 0 -8px 24px rgba(0,0,0,0.6);
-    transform: translateY(calc(100% - 64px)); /* collapsed */
-    transition: transform 0.35s ease;
-    z-index: 1000;
+    border-top: 1px solid rgba(174, 240, 208, 0.3);
+    box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.6);
+    transition: transform 0.35s ease, height 0.35s ease;
+    transform: translateY(75%);
     overflow: hidden;
+    z-index: 1000;
   }
+
   .menu-payment.expanded {
     transform: translateY(0);
+    height: 88vh;
     overflow-y: auto;
-    padding-bottom: 2rem;
+    background: rgba(0, 0, 0, 0.96);
   }
 
-  /* handle bar */
-  .drawer-handle {
-    position: sticky;
-    top: 0;
-    width: 100%;
-    height: 44px;
-    display: grid;
-    place-items: center;
-    cursor: grab;
-    z-index: 2;
-  }
-  .drawer-handle::before {
+  .menu-payment::before {
     content: "";
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
     width: 48px;
-    height: 5px;
-    border-radius: 4px;
-    background: rgba(174,240,208,0.55);
-    box-shadow: 0 0 10px rgba(174,240,208,0.45);
+    height: 4px;
+    border-radius: 3px;
+    background: rgba(174, 240, 208, 0.5);
   }
 
-  /* Scrollable grid */
+  /* Background blur when expanded */
+  body.menu-expanded main {
+    filter: blur(4px);
+    transition: filter 0.3s ease;
+  }
+
+  /* ---------- Product Grid (now vertical scroll) ---------- */
   .menu {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 18px;
-    padding: 12px 0 48px;
+    gap: 1rem;
+    padding: 1rem;
     overflow-x: hidden;
-    overflow-y: auto;
   }
 
-  /* Product card */
   .menu-item {
-    width: 90%;
-    max-width: 340px;
-    background: rgba(255,255,255,0.07);
-    border-radius: 14px;
-    padding: 16px 12px 14px;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    text-align: center;
-    transition: transform 0.2s ease, box-shadow 0.3s ease;
+    gap: 1rem;
+    width: 94%;
+    max-width: 520px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    box-shadow: 0 0 10px rgba(174, 240, 208, 0.2);
+    padding: 0.8rem;
+    transition: background 0.3s ease;
   }
+
   .menu-item:hover {
-    transform: scale(1.03);
-    box-shadow: 0 0 12px rgba(167,225,238,0.3);
+    background: rgba(255, 255, 255, 0.15);
   }
 
-  /* Image */
   .menu-image {
-    width: 150px;
-    height: 200px;
+    width: 100px;
+    height: 140px;
     object-fit: cover;
-    border-radius: 10px;
-    margin-bottom: 10px;
+    border-radius: 8px;
+    flex-shrink: 0;
   }
 
-  /* Text block */
   .menu-item-content {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 4px;
-  }
-  .menu-item-content .title {
-    font-weight: 600;
-    font-size: 1.05rem;
-    color: #fff;
-  }
-  .menu-item-content .sku {
-    font-size: 0.9rem;
-    color: rgba(255,255,255,0.75);
-  }
-  .menu-item-content .price {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #7fd7e6;
+    justify-content: center;
+    gap: 0.3rem;
+    flex-grow: 1;
   }
 
-  /* lock background when open */
-  body.menu-expanded {
-    overflow: hidden;
-    height: 100vh;
+  .menu-item-content .title {
+    font-weight: 600;
+    color: #aef0d0;
+    line-height: 1.2;
   }
-  body.menu-expanded main {
-    filter: blur(4px);
-    transition: filter 0.25s ease;
+
+  .menu-item-content .sku {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .menu-item-content .price {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #7fd7e6;
   }
 }
