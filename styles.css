@@ -17,28 +17,30 @@ body {
   flex-direction: column;
 }
 
-main {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: row;
-  margin-top: 10px;
-  height: 92%;
-}
-
 /* ---------- HEADER ---------- */
 header {
   background-color: rgba(255, 255, 255, 0.1);
   color: #BFD8C1;
-  text-shadow: 0 0 8px rgba(191, 216, 193, 0.3);
+  text-shadow: 0 0 10px rgba(191, 216, 193, 0.4);
   font-size: 1.2rem;
+  text-align: center;
   padding: 12px 0;
 }
 
 header h1 {
   font-family: "Audiowide", cursive;
-  margin-left: 15px;
   font-size: 2rem;
   letter-spacing: 1px;
+}
+
+/* ---------- MAIN LAYOUT ---------- */
+main {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  padding: 10px;
+  height: 92%;
 }
 
 /* ---------- ORDER SECTION ---------- */
@@ -53,6 +55,7 @@ header h1 {
   box-shadow: 0 0 15px rgba(255, 255, 255, 0.15);
   display: flex;
   flex-direction: column;
+  z-index: 3;
 }
 
 .company-info {
@@ -218,6 +221,8 @@ th, td {
   border-radius: 10px;
   margin: 0 10px 5px 10px;
   height: calc(100% - 10px);
+  backdrop-filter: blur(8px);
+  z-index: 2;
 }
 
 .menu {
@@ -422,60 +427,15 @@ figcaption {
     width: 95%;
     max-width: 800px;
     margin-bottom: 25px;
-    transform: scale(1.05);
-    transition: transform 0.3s ease;
   }
   .menu-payment {
     width: 100%;
     padding: 10px 0 20px 10px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    position: relative;
-    scrollbar-width: thin;
-    scrollbar-color: #a7e1ee transparent;
-    scroll-behavior: smooth;
-  }
-  .menu {
-    display: flex;
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    gap: 18px;
-    width: max-content;
-    padding: 10px;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-  }
-  .menu-item {
-    flex: 0 0 auto;
-    width: 220px;
-    border-radius: 14px;
-    text-align: center;
-    padding: 10px;
-    scroll-snap-align: start;
-  }
-  .menu-image {
-    width: 100%;
-    aspect-ratio: 1 / 1;
-    object-fit: cover;
-    border-radius: 10px;
-    margin-bottom: 8px;
-    background-color: #222;
-  }
-  .menu-payment::after {
-    content: "";
-    position: absolute;
-    right: 0;
-    top: 0;
-    width: 40px;
-    height: 100%;
-    background: linear-gradient(to left, rgba(18,18,18,1), transparent);
-    pointer-events: none;
   }
 }
 
-/* ---------- MOBILE & TABLET (≤768px) ---------- */
+/* ---------- MOBILE (≤768px) ---------- */
 @media (max-width: 768px) {
-  /* --- Layout reset --- */
   header {
     text-align: center;
     padding: 0.8rem 0;
@@ -483,6 +443,7 @@ figcaption {
 
   header h1 {
     font-size: clamp(1.3rem, 5vw, 1.8rem);
+    text-shadow: 0 0 10px rgba(167, 225, 238, 0.4);
   }
 
   main {
@@ -492,7 +453,6 @@ figcaption {
     overflow: hidden;
   }
 
-  /* --- Order section (top receipt) --- */
   .order {
     width: 100%;
     flex: 0 0 65vh;
@@ -506,22 +466,22 @@ figcaption {
 
   .receipt-footer { display: none !important; }
 
-  /* --- Swipe-up Drawer --- */
+  /* Drawer styling */
   .menu-payment {
     position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
     height: 20vh;
-    background: rgba(10, 10, 10, 0.96);
+    background: rgba(18, 18, 18, 0.7);
+    backdrop-filter: blur(6px);
     border-radius: 16px 16px 0 0;
     border-top: 1px solid rgba(174, 240, 208, 0.3);
     box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.6);
     transform: translateY(80%);
-    transition: transform 0.35s ease;
-    z-index: 50; /* stays below toolbar */
+    transition: transform 0.35s ease, background 0.3s ease;
+    z-index: 50;
     overflow: hidden;
-    touch-action: pan-y;
   }
 
   .menu-payment.expanded {
@@ -542,105 +502,13 @@ figcaption {
     background: rgba(174, 240, 208, 0.7);
   }
 
-  /* --- Drawer background blur when open --- */
-  body.menu-expanded main {
-    filter: blur(3px);
-    transition: filter 0.3s ease;
-  }
-  body.menu-expanded {
-    overflow: hidden;
-  }
-
-  /* --- Product cards (2-column grid) --- */
-  .menu {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(150px, 1fr));
-    gap: 1rem;
-    padding: 1rem;
-    justify-items: center;
-  }
-
-  .menu-item {
-    width: 100%;
-    max-width: 180px;
-    background: rgba(255, 255, 255, 0.07);
-    border-radius: 12px;
-    padding: 10px;
-    text-align: center;
-    color: #fff;
-    transition: transform 0.2s ease, box-shadow 0.3s ease;
-  }
-
-  .menu-item:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 10px rgba(167, 225, 238, 0.3);
-  }
-
-  .menu-image {
-    width: 100%;
-    height: 120px;
-    object-fit: cover;
-    border-radius: 10px;
-    margin-bottom: 8px;
-  }
-
-  .menu-item figcaption:first-of-type {
-    font-weight: 600;
-    color: #fff;
-    font-size: 0.95rem;
-  }
-
-  .menu-item figcaption:last-of-type {
-    color: #a7e1ee;
-    font-size: 0.85rem;
-  }
-
-  /* --- Toolbar visible & clickable --- */
-  .toolbar {
+  /* Keep everything visible */
+  .menu-payment * {
     position: relative;
-    z-index: 200;
-    background: rgba(255, 255, 255, 0.98);
-    color: #000;
-    border-top: 1px dotted #ccc;
-    border-bottom: 1px dotted #ccc;
+    z-index: 2;
   }
 
-  /* --- Click passthrough fix when drawer collapsed --- */
-  .menu-payment {
-    pointer-events: none;
-  }
-  .menu-payment.expanded {
-    pointer-events: auto;
-  }
-}
-
-/* ---------- SMALL PHONES (≤430px) ---------- */
-@media (max-width: 430px) {
-  .menu {
-    grid-template-columns: 1fr;
-  }
-  .menu-image {
-    height: 100px;
-  }
-}
-/* ---------- FIX: Keep working swipe layout, remove black box ---------- */
-@media (max-width: 768px) {
-  /* Keep your drawer appearance and height */
-  .menu-payment {
-    z-index: 50 !important; /* Lower than toolbar */
-  }
-
-  /* Toolbar sits above everything and no longer darkened */
-  .toolbar {
-    position: relative;
-    z-index: 200 !important;
-    background: rgba(255, 255, 255, 0.98);
-    color: #000;
-    border-top: 1px dotted #ccc;
-    border-bottom: 1px dotted #ccc;
-  }
-
-  /* Two-column grid inside drawer — keeps your existing image size */
+  /* Two-column grid inside drawer */
   .menu {
     display: grid !important;
     grid-template-columns: repeat(2, minmax(160px, 1fr));
@@ -666,8 +534,29 @@ figcaption {
     margin-bottom: 0.5rem;
   }
 
-  /* Disable blur effect that was covering the drawer */
+  /* Toolbar on top */
+  .toolbar {
+    position: relative;
+    z-index: 200;
+    background: rgba(255, 255, 255, 0.98);
+    color: #000;
+    border-top: 1px dotted #ccc;
+    border-bottom: 1px dotted #ccc;
+  }
+
+  /* Disable main blur when expanded */
   body.menu-expanded main {
     filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
+
+/* ---------- SMALL PHONES (≤430px) ---------- */
+@media (max-width: 430px) {
+  .menu {
+    grid-template-columns: 1fr;
+  }
+  .menu-image {
+    height: 100px;
   }
 }
