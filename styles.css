@@ -824,11 +824,6 @@ figcaption {
 }
 
 /* ================= IMAGE STRIP UNDER PRODUCTS (FINAL) ================= */
-.image-gallery {
-  position: relative;
-  width: 100%;
-  z-index: 1; /* ✅ ensure it's not layered above main */
-}
 
 .image-scroll {
   display: flex;
