@@ -895,27 +895,50 @@ figcaption {
   }
 }
 
-/* ----- Desktop: disable overlay behavior ----- */
-@media (min-width: 769px) {
-  .image-gallery {
-    position: static;
-    transform: none;
-    height: auto;
-    background: transparent;
-    backdrop-filter: none;
-    border: none;
-    box-shadow: none;
-    overflow: visible;
-  }
+/* ================= IMAGE STRIP UNDER PRODUCTS ================= */
+.image-gallery {
+  position: relative; /* ✅ stays in normal page flow */
+  width: 100%;
+  background: transparent;
+  border-top: 1px solid rgba(191,216,193,0.2);
+  padding: 2rem 0;
+  display: flex;
+  justify-content: center;
+}
 
+.image-scroll {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.5rem;
+  width: 90%;
+  max-width: 800px;
+}
+
+.image-scroll a {
+  display: block;
+}
+
+.image-scroll img {
+  width: 140px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(255,255,255,0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.image-scroll img:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 18px rgba(167,225,238,0.4);
+}
+
+/* --- Mobile tweaks --- */
+@media (max-width: 768px) {
   .image-scroll {
-    flex-direction: row;
-    justify-content: center;
-    gap: 2rem;
+    gap: 1rem;
   }
 
   .image-scroll img {
-    width: 180px;
+    width: 110px;
   }
 }
 
