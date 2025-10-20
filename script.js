@@ -145,13 +145,13 @@ class Ui {
       figure.classList.add("menu-item");
       figure.setAttribute("data-sku", JSON.stringify(item));
       figure.innerHTML = `
-  <img src="${item.image}" alt="${item.description}" class="menu-image">
-  <div class="menu-item-content">
-    <div class="title">${item.description}</div>
-    <div class="sku">${item.sku}</div>
-    <div class="price">${Utilities.convertFloatToString(item.price)}</div>
-  </div>
-`;
+        <img src="${item.image}" alt="${item.description}" class="menu-image">
+        <div class="menu-item-content">
+          <div class="title">${item.description}</div>
+          <div class="sku">${item.sku}</div>
+          <div class="price">${Utilities.convertFloatToString(item.price)}</div>
+        </div>
+      `;
       frag.appendChild(figure);
     });
     menuContainer.appendChild(frag);
@@ -229,7 +229,7 @@ class Ui {
   }
 }
 
-// ---------- Simplified Swipe Drawer ----------
+// ---------- Swipe Drawer ----------
 function setupProductDrawer() {
   const drawer = document.querySelector(".menu-payment");
   if (!drawer) return;
@@ -243,25 +243,25 @@ function setupProductDrawer() {
     isDragging = true;
   });
 
-  drawer.addEventListener("touchmove", e => {
-    if (!isDragging) return;
-  });
-
   drawer.addEventListener("touchend", e => {
     if (!isDragging) return;
     isDragging = false;
     const diff = startY - e.changedTouches[0].clientY;
 
+    // swipe up
     if (diff > 50 && !drawer.classList.contains("expanded")) {
       drawer.classList.add("expanded");
       document.body.classList.add("menu-expanded");
-    } else if (diff < -50 && drawer.classList.contains("expanded")) {
+    }
+
+    // swipe down
+    if (diff < -50 && drawer.classList.contains("expanded")) {
       drawer.classList.remove("expanded");
       document.body.classList.remove("menu-expanded");
     }
   });
 
-  // Don’t auto-close when clicking a product
+  // optional: tap product keeps drawer open
   drawer.addEventListener("click", e => {
     if (e.target.closest(".menu-item")) {
       drawer.classList.add("expanded");
@@ -306,6 +306,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!card) return;
     const data = card.getAttribute("data-sku");
     order.addOrderLine(1, data, isReturnMode);
+
+    // close drawer after adding (for your workflow)
+    const drawer = document.querySelector(".menu-payment");
+    if (drawer && drawer.classList.contains("expanded")) {
+      drawer.classList.remove("expanded");
+      document.body.classList.remove("menu-expanded");
+    }
   });
 
   updatePaymentUI();
