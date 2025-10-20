@@ -145,14 +145,13 @@ class Ui {
       figure.classList.add("menu-item");
       figure.setAttribute("data-sku", JSON.stringify(item));
       figure.innerHTML = `
-        <img src="${item.image}" alt="${item.description}" class="menu-image"
-             style="width:150px;height:150px;object-fit:cover;border-radius:12px;">
-        <figcaption style="font-weight:bold;margin-top:8px;">${item.description}</figcaption>
-        <figcaption style="font-size:0.9em;opacity:0.8;">${item.sku}</figcaption>
-        <figcaption style="color:#A7E1EE;margin-top:4px;">
-          ${Utilities.convertFloatToString(item.price)}
-        </figcaption>
-      `;
+  <img src="${item.image}" alt="${item.description}" class="menu-image">
+  <div class="menu-item-content">
+    <div class="title">${item.description}</div>
+    <div class="sku">${item.sku}</div>
+    <div class="price">${Utilities.convertFloatToString(item.price)}</div>
+  </div>
+`;
       frag.appendChild(figure);
     });
     menuContainer.appendChild(frag);
