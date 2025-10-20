@@ -461,7 +461,7 @@ function submitSale() {
     SplitPayment: splitDetails,
   }));
 
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzaGpZ1uVAKh_nSGatGRO-9lth_OPAvrbxw9ZKMT5dB6cacQL52aNA1D4j3-pTVaiFUhQ/exec";
+  const WEB_APP_URL = "https://komuna84.github.io/kinaya-pos/";
 
 
   fetch(WEB_APP_URL, {
