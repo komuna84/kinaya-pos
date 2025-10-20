@@ -817,13 +817,12 @@ figcaption {
   }
 }
 
-/* ---------- FINAL PRODUCT GRID FIX: VERTICAL CARDS ---------- */
-@media (max-width: 768px) {
+/* ---------- PRODUCT LIST: IMAGE LEFT, TEXT RIGHT ---------- */
+@media (max-width: 900px) {
   .receipt-footer {
-    display: none !important; /* Hide Thank You section */
+    display: none !important;
   }
 
-  /* Menu container scrolls vertically */
   .menu-payment {
     display: flex;
     flex-direction: column;
@@ -831,81 +830,98 @@ figcaption {
     justify-content: flex-start;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 0.75rem 0.5rem;
-    background: rgba(255, 255, 255, 0.04);
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.03);
     height: auto;
     scroll-behavior: smooth;
   }
 
-  /* Each product card is vertical */
+  /* Product card container */
   .menu-item {
     display: flex;
-    flex-direction: column; /* vertical stack */
+    flex-direction: row;
     align-items: center;
     justify-content: flex-start;
-    width: 90%;
-    max-width: 320px;
-    background: rgba(255, 255, 255, 0.07);
+    gap: 1rem;
+    width: 95%;
+    max-width: 600px;
+    background: rgba(255, 255, 255, 0.06);
     border-radius: 12px;
-    padding: 0.75rem;
+    padding: 0.8rem;
     margin-bottom: 1rem;
-    text-align: center;
-    box-shadow: 0 0 10px rgba(167, 225, 238, 0.2);
+    box-shadow: 0 0 10px rgba(174, 240, 208, 0.25);
     transition: transform 0.2s ease, box-shadow 0.3s ease;
   }
 
   .menu-item:hover {
     transform: scale(1.02);
-    box-shadow: 0 0 12px rgba(174, 240, 208, 0.4);
+    box-shadow: 0 0 15px rgba(174, 240, 208, 0.4);
   }
 
-  /* Image centered and smaller */
+  /* Bigger image — visually dominant */
   .menu-image {
-    width: 120px;
-    height: 120px;
-    border-radius: 10px;
+    flex-shrink: 0;
+    width: 140px;
+    height: 200px;
     object-fit: cover;
-    margin-bottom: 0.6rem;
-    box-shadow: 0 0 6px rgba(174, 240, 208, 0.25);
+    border-radius: 10px;
+    box-shadow: 0 0 8px rgba(174, 240, 208, 0.25);
   }
 
-  /* Text below image, centered */
+  /* Text on right, vertically centered */
   .menu-item figcaption {
     color: #aef0d0;
     font-size: 0.95rem;
-    line-height: 1.3;
-    margin: 0.1rem 0;
+    line-height: 1.4;
+    text-align: left;
   }
 
   .menu-item figcaption:first-of-type {
     font-weight: 600;
     color: #fff;
-    font-size: 1.05rem;
-    margin-top: 0.3rem;
+    font-size: 1.1rem;
+    margin-bottom: 4px;
   }
 
-  .menu-item figcaption:last-of-type {
-    color: #a7e1ee;
+  .menu-item figcaption:nth-of-type(2) {
+    color: #ccc;
     font-size: 0.9rem;
   }
 
-  /* Fix scroll behavior */
-  body, main {
+  .menu-item figcaption:last-of-type {
+    color: #7fd7e6;
+    font-size: 1.05rem;
+    font-weight: 500;
+    margin-top: 5px;
+  }
+
+  /* Keep vertical scrolling only */
+  .menu {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: 1rem;
+    overflow-y: auto;
     overflow-x: hidden;
+    padding-bottom: 2rem;
   }
 }
 
-/* Tiny phones (≤430px) */
-@media (max-width: 430px) {
+/* For small phones */
+@media (max-width: 480px) {
   .menu-item {
-    width: 95%;
-    padding: 0.6rem;
+    flex-direction: column;
+    text-align: center;
+    padding: 0.8rem;
   }
   .menu-image {
-    width: 100px;
-    height: 100px;
+    width: 100%;
+    max-width: 240px;
+    height: auto;
+    margin-bottom: 0.6rem;
   }
   .menu-item figcaption {
-    font-size: 0.85rem;
+    text-align: center;
   }
 }
