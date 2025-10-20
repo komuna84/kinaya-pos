@@ -257,6 +257,49 @@ loadMenuFromSheet(sheetCsvUrl).then(menuData => {
   Ui.renderMenu(order);
 });
 
+// ===========================================================
+// Kinaya Rising POS (Stable) - script.js
+// ===========================================================
+
+document.addEventListener("DOMContentLoaded", () => {
+  // ---------- Header Date ----------
+  const dateEl = document.getElementById("current-date");
+  if (dateEl) {
+    const now = new Date();
+    dateEl.textContent = now.toLocaleDateString("en-US", {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  }
+
+  // ---------- Your existing order/menu setup here ----------
+  // (ex: Order class, menu population, etc.)
+
+  // ---------- Expand / Collapse Product Section on Mobile ----------
+  const menuSection = document.querySelector(".menu-payment");
+
+  if (menuSection) {
+    // Expand on tap (only on mobile)
+    menuSection.addEventListener("click", (e) => {
+      if (e.target === menuSection && window.innerWidth <= 900) {
+        menuSection.classList.add("expanded");
+      }
+    });
+
+    // Collapse when tapping background or “×”
+    document.addEventListener("click", (e) => {
+      if (menuSection.classList.contains("expanded")) {
+        const closeX = window.getComputedStyle(menuSection, "::after").content.replace(/['"]/g, "");
+        if (e.target === menuSection || e.target.textContent === closeX) {
+          menuSection.classList.remove("expanded");
+        }
+      }
+    });
+  }
+});
+
 if (returnButton) {
   returnButton.addEventListener("click", () => {
     isReturnMode = !isReturnMode;
