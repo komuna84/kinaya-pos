@@ -255,34 +255,39 @@ document.addEventListener("DOMContentLoaded", async () => {
   order.menu = menuData;
   Ui.renderMenu(order);
 
-  // ---------- Swipe Up Expand / Collapse for Mobile ----------
+  // 🩵 FIX: Swipe Up Expand / Collapse for Mobile
   const menuSection = document.querySelector(".menu-payment");
   let startY = 0;
-  let currentY = 0;
-  let isSwiping = false;
+  let isDragging = false;
 
   if (menuSection) {
-    menuSection.addEventListener("touchstart", (e) => {
+    menuSection.addEventListener("touchstart", e => {
       if (window.innerWidth > 900) return;
       startY = e.touches[0].clientY;
-      isSwiping = true;
+      isDragging = true;
     });
 
-    menuSection.addEventListener("touchmove", (e) => {
-      if (!isSwiping) return;
-      currentY = e.touches[0].clientY;
-    });
+    menuSection.addEventListener("touchend", e => {
+      if (!isDragging) return;
+      isDragging = false;
+      const diff = startY - e.changedTouches[0].clientY;
 
-    menuSection.addEventListener("touchend", () => {
-      if (!isSwiping) return;
-      const diff = startY - currentY;
-      isSwiping = false;
-
-      if (diff > 50 && !menuSection.classList.contains("expanded")) {
+      if (diff > 40) {
         menuSection.classList.add("expanded");
-      } else if (diff < -50 && menuSection.classList.contains("expanded")) {
+        document.body.classList.add("menu-expanded");
+      } else if (diff < -40) {
         menuSection.classList.remove("expanded");
+        document.body.classList.remove("menu-expanded");
       }
+    });
+
+    // 🩵 Tap toggle support
+    menuSection.addEventListener("click", e => {
+      if (window.innerWidth > 900) return;
+      // Ignore if clicking a button or card
+      if (e.target.closest(".menu-item")) return;
+      menuSection.classList.toggle("expanded");
+      document.body.classList.toggle("menu-expanded");
     });
   }
 
@@ -295,9 +300,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // ---------- Add Item ----------
+  // 🩵 FIX: Prevent drawer close when adding item
   document.addEventListener("click", e => {
     const card = e.target.closest(".menu-item");
     if (!card) return;
+    e.stopPropagation(); // prevent bubbling to drawer click
     const data = card.getAttribute("data-sku");
     order.addOrderLine(1, data, isReturnMode);
   });
