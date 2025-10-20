@@ -638,146 +638,116 @@ figcaption {
   width: 100px;
 }
 
-/* ---------- EXTRA MOBILE REFINEMENTS ---------- */
-@media (max-width: 768px) {
-  header {
-    text-align: center;
-    padding: 1rem 0;
-  }
-
-  header h1 {
-    font-size: clamp(1.2rem, 5vw, 1.8rem);
-    margin: 0 auto;
-  }
-
-  main {
-    flex-direction: column;
-    align-items: stretch;
-    height: auto;
-    margin: 0;
-  }
-
-  .order {
-    width: 100% !important;
-    min-width: unset !important;
-    max-width: unset !important;
-    border-radius: 0;
-    border: none;
-    box-shadow: none;
-    background: #fff;
-    color: #000;
-  }
-
-  .receipt {
-    margin: 8px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  }
-
-  table {
-    font-size: 0.9rem;
-  }
-
-  .toolbar {
-    flex-wrap: wrap;
-    gap: 1.2rem;
-    padding: 1rem 0.5rem;
-  }
-
-  .toolbar-btn {
-    font-size: 1.3rem;
-  }
-
-  .menu-payment {
-    width: 100%;
-    margin: 0;
-    border-radius: 0;
-    border: none;
-    height: auto;
-    padding: 1rem 0.5rem 2rem;
-  }
-
-  .menu {
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 1rem;
-  }
-
-  .menu-item {
-    width: 45%;
-    min-width: 140px;
-  }
-
-  .menu-item figcaption {
-    font-size: 0.9rem;
-  }
-}
-
-/* ---------- FIX PATCH: Drawer + Calculator ---------- */
-
-/* Fix drawer position and transitions */
+/* ---------- PRODUCT DRAWER (Swipe-Up) WITH CENTERED CARDS ---------- */
 @media (max-width: 900px) {
+  /* Drawer base */
   .menu-payment {
-    will-change: transform;
-    transition: transform 0.35s ease-in-out;
-    transform-origin: bottom center;
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    width: 100%;
+    height: 88vh;
+    background: rgba(0,0,0,0.96);
+    border-radius: 16px 16px 0 0;
+    border-top: 1px solid rgba(174,240,208,0.3);
+    box-shadow: 0 -8px 24px rgba(0,0,0,0.6);
+    transform: translateY(calc(100% - 64px)); /* collapsed */
+    transition: transform 0.35s ease;
+    z-index: 1000;
+    overflow: hidden;
   }
   .menu-payment.expanded {
-    overflow-y: auto;
     transform: translateY(0);
+    overflow-y: auto;
+    padding-bottom: 2rem;
+  }
+
+  /* handle bar */
+  .drawer-handle {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    cursor: grab;
+    z-index: 2;
   }
   .drawer-handle::before {
-    margin-top: 6px;
+    content: "";
+    width: 48px;
+    height: 5px;
+    border-radius: 4px;
+    background: rgba(174,240,208,0.55);
+    box-shadow: 0 0 10px rgba(174,240,208,0.45);
   }
-  /* prevent content jump on iOS */
+
+  /* Scrollable grid */
+  .menu {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    padding: 12px 0 48px;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  /* Product card */
+  .menu-item {
+    width: 90%;
+    max-width: 340px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 14px;
+    padding: 16px 12px 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+  }
+  .menu-item:hover {
+    transform: scale(1.03);
+    box-shadow: 0 0 12px rgba(167,225,238,0.3);
+  }
+
+  /* Image */
+  .menu-image {
+    width: 150px;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 10px;
+  }
+
+  /* Text block */
+  .menu-item-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .menu-item-content .title {
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: #fff;
+  }
+  .menu-item-content .sku {
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.75);
+  }
+  .menu-item-content .price {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #7fd7e6;
+  }
+
+  /* lock background when open */
   body.menu-expanded {
-    height: 100vh;
     overflow: hidden;
-    touch-action: none;
+    height: 100vh;
   }
   body.menu-expanded main {
     filter: blur(4px);
-    transform: scale(0.99);
-    transition: filter 0.25s ease, transform 0.25s ease;
-  }
-
-  /* menu cards remain readable inside expanded drawer */
-  .menu-item {
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(174,240,208,0.25);
-    transition: background 0.2s ease, transform 0.2s ease;
-  }
-  .menu-item:active {
-    background: rgba(174,240,208,0.15);
-    transform: scale(0.97);
-  }
-}
-
-/* Fix paypad on mobile (centered, scaled, above drawer) */
-#payment-overlay {
-  z-index: 3000 !important;     /* always above drawer */
-}
-.paypad {
-  max-width: 95vw;
-  transform: scale(0.95);
-}
-@media (max-width: 600px) {
-  .paypad {
-    grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: auto repeat(4, 80px);
-    gap: 8px;
-    padding: 16px;
-    transform: scale(1);
-  }
-  .paypad-display {
-    font-size: 1.6rem;
-  }
-  .paypad-btn {
-    font-size: 1.4rem;
-    border-radius: 8px;
-  }
-  .paypad-btn.span3-col {
-    font-size: 1.2rem;
-    padding: 10px 0;
+    transition: filter 0.25s ease;
   }
 }
