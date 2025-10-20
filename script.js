@@ -491,3 +491,30 @@ function submitSale() {
 // ---------- Initialize ----------
 updatePaymentUI();
 toggleSubmitVisibility();
+
+// =======================================================
+// SWIPE-UP IMAGE GALLERY LOGIC
+// =======================================================
+const gallery = document.getElementById("image-gallery");
+if (gallery) {
+  let startY = 0;
+
+  // --- Touch gesture for mobile swipe ---
+  gallery.addEventListener("touchstart", e => {
+    startY = e.touches[0].clientY;
+  });
+
+  gallery.addEventListener("touchmove", e => {
+    const endY = e.touches[0].clientY;
+    if (startY - endY > 50) gallery.classList.add("active");   // swipe up
+    if (endY - startY > 50) gallery.classList.remove("active"); // swipe down
+  });
+
+  // --- Auto-open when a product is clicked ---
+  document.addEventListener("click", e => {
+    const card = e.target.closest(".menu-item");
+    if (!card) return;
+    gallery.classList.add("active");
+  });
+}
+
