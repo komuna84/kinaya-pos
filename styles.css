@@ -473,69 +473,83 @@ figcaption {
   }
 }
 
-/* ---------- FIX: Toolbar visibility & 2-column drawer layout ---------- */
+/* ---------- MOBILE SWIPE-UP DRAWER (FINAL FIX) ---------- */
 @media (max-width: 768px) {
-  /* Drawer sits UNDER toolbar */
   .menu-payment {
-    z-index: 50 !important; /* below toolbar */
+    position: fixed !important;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 22vh;
+    background: rgba(10, 10, 10, 0.96);
+    border-radius: 18px 18px 0 0;
+    border-top: 1px solid rgba(174, 240, 208, 0.3);
+    box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.6);
+    transform: translateY(78%);
+    transition: transform 0.35s ease-in-out;
+    z-index: 90; /* below toolbar / pay buttons */
+    overflow: hidden;
+    touch-action: pan-y;
   }
 
-  /* Toolbar always above everything */
-  .toolbar {
-    position: relative;
-    z-index: 2000 !important;
-    background: #fff;
-    color: #000;
-    border-top: 1px dotted #ccc;
-    border-bottom: 1px dotted #ccc;
-  }
-
-  /* Expand drawer height a bit more for comfort */
   .menu-payment.expanded {
-    height: 90vh !important;
+    transform: translateY(0);
+    height: 92vh; /* nearly full screen */
     overflow-y: auto;
+    padding-bottom: 5rem;
   }
 
-  /* Two-column grid inside the drawer */
+  .menu-payment::before {
+    content: "";
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 48px;
+    height: 5px;
+    border-radius: 4px;
+    background: rgba(174, 240, 208, 0.6);
+  }
+
+  /* --- make 2-column grid inside drawer --- */
   .menu {
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(160px, 1fr)) !important;
-    gap: 1rem !important;
-    padding: 1rem !important;
-    justify-items: center !important;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    padding: 1rem;
   }
 
   .menu-item {
-    width: 100% !important;
-    max-width: 180px !important;
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.07);
+    border-radius: 12px;
     padding: 0.8rem;
     text-align: center;
-    color: #fff;
-    transition: transform 0.2s ease, box-shadow 0.3s ease;
+    box-shadow: 0 0 10px rgba(167, 225, 238, 0.25);
   }
 
   .menu-image {
     width: 100%;
-    height: 130px;
-    object-fit: cover;
     border-radius: 10px;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.4rem;
   }
 
-  /* Fix interaction blocking while collapsed */
-  .menu-payment {
-    pointer-events: none;
+  .menu-item figcaption:first-of-type {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.2rem;
   }
-  .menu-payment.expanded {
-    pointer-events: auto;
+
+  .menu-item figcaption:last-of-type {
+    font-size: 0.9rem;
+    color: #a7e1ee;
   }
-}
-.menu-payment::before {
-  width: 60px;
-  height: 6px;
-  border-radius: 5px;
-  background: rgba(174, 240, 208, 0.8);
 }
 
+/* Fix toolbar visibility (remove black overlay) */
+.toolbar {
+  position: relative;
+  z-index: 100;
+}
+.paypad {
+  z-index: 200;
+}
