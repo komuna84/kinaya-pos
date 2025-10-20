@@ -817,146 +817,91 @@ figcaption {
   }
 }
 
-/* ---------- KINAYA MOBILE POLISH (FINAL PASS) ---------- */
+/* ---------- CLEAN MOBILE GRID + HIDE THANK YOU ---------- */
 @media (max-width: 768px) {
-  body {
-    background: #0b0b0b;
-    color: #eee;
-  }
-
-  header {
-    background: #111;
-    border-bottom: 1px solid rgba(174, 240, 208, 0.2);
-    padding: 1rem 0 0.8rem;
-  }
-
-  header h1 {
-    font-family: "Audiowide", cursive;
-    font-size: clamp(1.3rem, 5vw, 1.9rem);
-    text-align: center;
-    color: #aef0d0;
-    text-shadow: 0 0 8px #aef0d0;
-    letter-spacing: 1px;
-  }
-
-  main {
-    flex-direction: column;
-    gap: 0;
-    align-items: stretch;
-    margin: 0;
-    padding: 0;
-  }
-
-  /* Receipt box */
-  .order {
-    background: #111;
-    color: #fff;
-    border: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: inset 0 0 8px rgba(174, 240, 208, 0.25);
-    border-radius: 0;
-    width: 100%;
-    overflow: visible;
-    padding-bottom: 1rem;
-  }
-
-  .company-info p {
-    color: #aef0d0;
-  }
-
-  table {
-    width: 100%;
-    font-size: 0.9rem;
-    color: #ddd;
-  }
-
-  th {
-    color: #aef0d0;
-    font-weight: 600;
-    border-bottom: 1px solid rgba(174, 240, 208, 0.25);
-  }
-
-  td {
-    border-bottom: 1px dotted rgba(255, 255, 255, 0.1);
-  }
-
-  /* Input + Summary fields */
-  #amount-paid-input,
-  #customer-email {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(174, 240, 208, 0.2);
-    color: #aef0d0;
-    border-radius: 6px;
-    padding: 6px 8px;
-  }
-
-  #amount-paid-input::placeholder,
-  #customer-email::placeholder {
-    color: rgba(174, 240, 208, 0.5);
-  }
-
-  #customer-email:focus {
-    outline: none;
-    border-color: #aef0d0;
-    box-shadow: 0 0 6px #aef0d0;
-  }
-
+  /* Hide thank-you message */
   .receipt-footer {
-    color: #aef0d0;
-    text-shadow: 0 0 4px #aef0d0;
-    margin-top: 0.5rem;
-    font-size: 1rem;
+    display: none !important;
   }
 
-  /* Toolbar refinement */
-  .toolbar {
-    background: rgba(17, 17, 17, 0.95);
-    border-top: 1px solid rgba(174, 240, 208, 0.25);
-    border-bottom: 1px solid rgba(174, 240, 208, 0.25);
-    border-radius: 0;
-    padding: 0.8rem 0;
-    gap: 2rem;
-    justify-content: center;
+  /* Product grid becomes vertical */
+  .menu {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.5rem;
   }
 
-  .toolbar-btn {
-    color: #aef0d0;
-    font-size: 1.4rem;
-    transition: transform 0.2s ease, color 0.2s ease;
-  }
-  .toolbar-btn:hover {
-    transform: scale(1.15);
-    color: #fff;
-  }
-
-  /* Footer bar */
-  .footer-bar {
-    background: #111;
-    color: #aef0d0;
-    border-top: 1px solid rgba(174, 240, 208, 0.25);
-    font-size: 0.9rem;
+  /* Each product tile */
+  .menu-item {
+    display: flex;
+    flex-direction: row;              /* image left, text right */
+    align-items: center;
+    justify-content: flex-start;
+    width: 95%;
+    max-width: 480px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
     padding: 0.6rem;
-    text-shadow: 0 0 6px rgba(174, 240, 208, 0.4);
-  }
-}
-
-/* Ultra-small phones */
-@media (max-width: 430px) {
-  th, td {
-    font-size: 0.8rem;
-    padding: 4px 3px;
+    gap: 0.8rem;
+    box-shadow: 0 0 6px rgba(167,225,238,0.2);
   }
 
-  #customer-email {
+  /* Smaller image */
+  .menu-image {
+    flex-shrink: 0;
+    width: 90px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 0 5px rgba(167,225,238,0.25);
+  }
+
+  /* Text next to image */
+  .menu-item figcaption {
+    text-align: left;
+    color: #aef0d0;
+    line-height: 1.3;
+    font-size: 0.9rem;
+  }
+
+  .menu-item figcaption:first-of-type {
+    font-weight: 600;
+    color: #fff;
+    font-size: 1rem;
+    margin-bottom: 2px;
+  }
+
+  .menu-item figcaption:last-of-type {
+    color: #a7e1ee;
     font-size: 0.85rem;
   }
 
-  .toolbar-btn {
-    font-size: 1.2rem;
-  }
-
-  .footer-bar {
-    font-size: 0.8rem;
+  /* Make scroll feel like a neat product list */
+  .menu-payment {
+    background: rgba(255, 255, 255, 0.04);
+    padding: 0.5rem;
+    overflow-y: auto;
   }
 }
+
+/* Smaller phones (≤430px) */
+@media (max-width: 430px) {
+  .menu-item {
+    flex-direction: column;  /* stack image over text */
+    align-items: center;
+    text-align: center;
+  }
+
+  .menu-image {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 0.4rem;
+  }
+
+  .menu-item figcaption {
+    text-align: center;
+  }
+}
+
