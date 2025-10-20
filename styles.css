@@ -473,147 +473,69 @@ figcaption {
   }
 }
 
-/* ---------- MOBILE / TABLET (≤ 768px) ---------- */
+/* ---------- FIX: Toolbar visibility & 2-column drawer layout ---------- */
 @media (max-width: 768px) {
-  /* Keep header readable */
-  header {
-    text-align: center;
-    padding: 0.8rem 0;
+  /* Drawer sits UNDER toolbar */
+  .menu-payment {
+    z-index: 50 !important; /* below toolbar */
   }
 
-  header h1 {
-    font-size: clamp(1.2rem, 5vw, 1.8rem);
-  }
-
-  /* Stack layout: receipt above drawer */
-  main {
-    flex-direction: column;
-    align-items: stretch;
-    height: 100vh;
-    overflow: hidden;
-  }
-
-  .order {
-    width: 100%;
-    flex: 0 0 65vh;
-    border: none;
+  /* Toolbar always above everything */
+  .toolbar {
+    position: relative;
+    z-index: 2000 !important;
     background: #fff;
     color: #000;
-    overflow-y: auto;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    z-index: 2;
+    border-top: 1px dotted #ccc;
+    border-bottom: 1px dotted #ccc;
   }
 
-  /* Hide "Thank You" */
-  .receipt-footer {
-    display: none !important;
-  }
-
-  /* Swipe-Up Drawer (products) */
-  .menu-payment {
-    position: fixed !important;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 20vh !important;
-    background: rgba(10, 10, 10, 0.95);
-    border-radius: 16px 16px 0 0;
-    border-top: 1px solid rgba(174, 240, 208, 0.3);
-    box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.6);
-    transform: translateY(80%);
-    transition: transform 0.4s ease;
-    z-index: 999;
-    overflow: hidden;
-    touch-action: pan-y;
-  }
-
+  /* Expand drawer height a bit more for comfort */
   .menu-payment.expanded {
-    transform: translateY(0);
-    height: 85vh !important;
+    height: 90vh !important;
     overflow-y: auto;
   }
 
-  .menu-payment::before {
-    content: "";
-    position: absolute;
-    top: 8px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 48px;
-    height: 5px;
-    border-radius: 4px;
-    background: rgba(174, 240, 208, 0.6);
-  }
-
-  /* Dim background when expanded */
-  body.menu-expanded main {
-    filter: blur(3px);
-    transition: filter 0.3s ease;
-  }
-  body.menu-expanded {
-    overflow: hidden;
-  }
-
-  /* Card layout inside drawer */
+  /* Two-column grid inside the drawer */
   .menu {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(160px, 1fr));
-    gap: 1rem;
-    padding: 1rem;
-    justify-items: center;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(160px, 1fr)) !important;
+    gap: 1rem !important;
+    padding: 1rem !important;
+    justify-items: center !important;
   }
 
   .menu-item {
-    width: 95%;
-    max-width: 180px;
-    background: rgba(255, 255, 255, 0.07);
-    border-radius: 12px;
-    padding: 10px;
+    width: 100% !important;
+    max-width: 180px !important;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 0.8rem;
     text-align: center;
     color: #fff;
     transition: transform 0.2s ease, box-shadow 0.3s ease;
   }
 
-  .menu-item:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 10px rgba(167, 225, 238, 0.3);
-  }
-
   .menu-image {
     width: 100%;
-    height: 120px;
-    border-radius: 10px;
+    height: 130px;
     object-fit: cover;
-    margin-bottom: 8px;
+    border-radius: 10px;
+    margin-bottom: 0.5rem;
   }
 
-  .menu-item figcaption:first-of-type {
-    font-weight: 600;
-    color: #fff;
-    font-size: 0.95rem;
+  /* Fix interaction blocking while collapsed */
+  .menu-payment {
+    pointer-events: none;
   }
-
-  .menu-item figcaption:last-of-type {
-    color: #a7e1ee;
-    font-size: 0.85rem;
-  }
-
-  /* Toolbar sticky at top of drawer */
-  .toolbar {
-    position: sticky;
-    top: 0;
-    background: rgba(10,10,10,0.95);
-    border-bottom: 1px solid rgba(174,240,208,0.2);
-    z-index: 5;
+  .menu-payment.expanded {
+    pointer-events: auto;
   }
 }
-
-/* ---------- SMALL PHONES (≤ 430px) ---------- */
-@media (max-width: 430px) {
-  .menu {
-    grid-template-columns: 1fr;
-  }
-  .menu-image {
-    height: 100px;
-  }
+.menu-payment::before {
+  width: 60px;
+  height: 6px;
+  border-radius: 5px;
+  background: rgba(174, 240, 208, 0.8);
 }
+
