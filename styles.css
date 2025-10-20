@@ -340,3 +340,61 @@ figcaption {
   header { padding-top: max(12px, env(safe-area-inset-top)); }
   body { padding-top: env(safe-area-inset-top); }
 }
+/* === SWIPE RESTORE PATCH (paste at very end) === */
+
+/* Desktop & tablet: horizontal swipe with snap */
+@media (min-width: 769px) {
+  .menu-payment {
+    position: relative;
+    overflow: hidden;                /* keep the nice right fade */
+  }
+  .menu {
+    display: flex;
+    flex-wrap: nowrap !important;    /* cards in one row */
+    overflow-x: auto !important;     /* enable horizontal scroll */
+    overflow-y: hidden;
+    width: 100% !important;          /* key: container stays 100% width */
+    max-width: 100% !important;
+    scroll-snap-type: x mandatory;   /* snap effect */
+    -webkit-overflow-scrolling: touch;
+    gap: 18px;
+    padding: 10px;
+  }
+  .menu-item {
+    flex: 0 0 auto !important;       /* don’t shrink; sit side-by-side */
+    scroll-snap-align: start;
+    width: 220px;
+  }
+  /* right fade edge */
+  .menu-payment::after {
+    content: "";
+    position: absolute;
+    right: 0; top: 0;
+    width: 40px; height: 100%;
+    background: linear-gradient(to left, rgba(18,18,18,1), transparent);
+    pointer-events: none;
+  }
+}
+
+/* Mobile: keep the vertical list look you liked */
+@media (max-width: 768px) {
+  .menu {
+    flex-direction: column !important;
+    overflow-x: hidden !important;
+    gap: 0.8rem;
+  }
+  .menu-item {
+    width: 95%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: row;
+  }
+  /* safety: make sure taps & swipes are allowed */
+  .menu-payment {
+    pointer-events: auto !important;
+  }
+}
+
+/* Safety: kill any stray rules that disabled swipe previously */
+.menu-payment,
+.menu { pointer-events: auto !important; }
