@@ -152,7 +152,7 @@ class Ui {
     <div class="price">${Utilities.convertFloatToString(item.price)}</div>
   </div>
 `;
-      frag.appendChild(figure);
+    frag.appendChild(figure);
     });
     menuContainer.appendChild(frag);
   }
