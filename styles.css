@@ -638,91 +638,165 @@ figcaption {
   width: 100px;
 }
 
-/* ---------- MOBILE SWIPE-UP DRAWER (KEEP DESKTOP CARD STYLE) ---------- */
+/* ---------- EXTRA MOBILE REFINEMENTS ---------- */
 @media (max-width: 768px) {
+  header {
+    text-align: center;
+    padding: 1rem 0;
+  }
+
+  header h1 {
+    font-size: clamp(1.2rem, 5vw, 1.8rem);
+    margin: 0 auto;
+  }
+
+  main {
+    flex-direction: column;
+    align-items: stretch;
+    height: auto;
+    margin: 0;
+  }
+
+  .order {
+    width: 100% !important;
+    min-width: unset !important;
+    max-width: unset !important;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+    background: #fff;
+    color: #000;
+  }
+
+  .receipt {
+    margin: 8px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  table {
+    font-size: 0.9rem;
+  }
+
+  .toolbar {
+    flex-wrap: wrap;
+    gap: 1.2rem;
+    padding: 1rem 0.5rem;
+  }
+
+  .toolbar-btn {
+    font-size: 1.3rem;
+  }
+
   .menu-payment {
-    position: fixed;
-    bottom: 0;
-    left: 0;
     width: 100%;
-    height: 20vh; /* collapsed peek */
-    background: rgba(10, 10, 10, 0.95);
-    border-radius: 16px 16px 0 0;
-    border-top: 1px solid rgba(174, 240, 208, 0.3);
-    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.7);
-    transform: translateY(80%);
-    transition: transform 0.35s ease;
-    z-index: 1000;
-    overflow: hidden;
+    margin: 0;
+    border-radius: 0;
+    border: none;
+    height: auto;
+    padding: 1rem 0.5rem 2rem;
   }
 
-  .menu-payment.expanded {
-    transform: translateY(0);
-    height: 85vh;
-    overflow-y: auto;
-  }
-
-  /* handle bar */
-  .menu-payment::before {
-    content: "";
-    position: absolute;
-    top: 8px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 48px;
-    height: 5px;
-    border-radius: 4px;
-    background: rgba(174, 240, 208, 0.6);
-  }
-
-  /* blur the background when expanded */
-  body.menu-expanded main {
-    filter: blur(4px);
-    transition: filter 0.3s ease;
-  }
-
-  /* keep desktop-style cards inside the drawer */
   .menu {
-    display: flex;
-    flex-flow: row wrap;
     justify-content: center;
-    gap: 16px;
-    padding: 1rem;
+    flex-wrap: wrap;
+    gap: 1rem;
   }
 
   .menu-item {
-    width: 200px;
-    background: rgba(255, 255, 255, 0.07);
-    border-radius: 12px;
-    padding: 12px;
-    text-align: center;
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    width: 45%;
+    min-width: 140px;
   }
 
-  .menu-item:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 15px rgba(167, 225, 238, 0.3);
+  .menu-item figcaption {
+    font-size: 0.9rem;
+  }
+}
+
+/* ---------- CLEAN MOBILE GRID + HIDE THANK YOU ---------- */
+@media (max-width: 768px) {
+  /* Hide thank-you message */
+  .receipt-footer {
+    display: none !important;
   }
 
-  .menu-image {
-    width: 100%;
-    height: auto;
+  /* Product grid becomes vertical */
+  .menu {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.5rem;
+  }
+
+  /* Each product tile */
+  .menu-item {
+    display: flex;
+    flex-direction: row;              /* image left, text right */
+    align-items: center;
+    justify-content: flex-start;
+    width: 95%;
+    max-width: 480px;
+    background: rgba(255, 255, 255, 0.05);
     border-radius: 10px;
-    margin-bottom: 10px;
+    padding: 0.6rem;
+    gap: 0.8rem;
+    box-shadow: 0 0 6px rgba(167,225,238,0.2);
   }
 
-  figcaption {
-    color: white;
-    font-size: 1rem;
-    line-height: 1.2;
+  /* Smaller image */
+  .menu-image {
+    flex-shrink: 0;
+    width: 90px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 0 5px rgba(167,225,238,0.25);
+  }
+
+  /* Text next to image */
+  .menu-item figcaption {
+    text-align: left;
+    color: #aef0d0;
+    line-height: 1.3;
+    font-size: 0.9rem;
   }
 
   .menu-item figcaption:first-of-type {
-    font-weight: bold;
+    font-weight: 600;
     color: #fff;
+    font-size: 1rem;
+    margin-bottom: 2px;
   }
 
   .menu-item figcaption:last-of-type {
     color: #a7e1ee;
+    font-size: 0.85rem;
+  }
+
+  /* Make scroll feel like a neat product list */
+  .menu-payment {
+    background: rgba(255, 255, 255, 0.04);
+    padding: 0.5rem;
+    overflow-y: auto;
+  }
+}
+
+/* Smaller phones (≤430px) */
+@media (max-width: 430px) {
+  .menu-item {
+    flex-direction: column;  /* stack image over text */
+    align-items: center;
+    text-align: center;
+  }
+
+  .menu-image {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 0.4rem;
+  }
+
+  .menu-item figcaption {
+    text-align: center;
   }
 }
