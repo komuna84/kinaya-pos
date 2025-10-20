@@ -1021,3 +1021,117 @@ figcaption {
     border-radius: 8px;
   }
 }
+/* =========================
+   MOBILE: vertical image scroll + working toolbar/return
+   ========================= */
+@media (max-width: 768px) {
+  /* Let the page lay out in two panels stacked */
+  main {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;                  /* lock viewport height */
+    overflow: hidden;               /* we will scroll inside the panels */
+  }
+
+  /* --- Order/receipt panel --- */
+  .order {
+    flex: 0 0 60vh;                 /* ~top 60% of screen */
+    min-height: 52vh;               /* don’t collapse on short phones */
+    max-height: 70vh;
+    overflow-y: auto;               /* its own scroll */
+    z-index: 3;                     /* stays above menu panel */
+    border: none;
+    box-shadow: none;
+    background: #fff;
+    color: #000;
+  }
+
+  /* keep toolbar visible & tappable */
+  .toolbar {
+    position: sticky;
+    bottom: 0;                      /* sticks to bottom of the order panel */
+    background: rgba(250,250,250,0.98);
+    border-top: 1px solid #ddd;
+    border-bottom: 0;
+    z-index: 5;                     /* above anything below */
+    pointer-events: auto;
+  }
+
+  /* Make sure the Return button isn’t covered */
+  #toggle-return { pointer-events: auto; z-index: 6; }
+
+  /* --- Products panel (images) --- */
+  .menu-payment {
+    flex: 1 1 auto;                 /* takes remaining space */
+    min-height: 28vh;               /* always visible */
+    overflow-y: auto;               /* ✅ vertical swipe here */
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;   /* stop page bounce */
+    border: none;
+    border-radius: 0;
+    background: rgba(255,255,255,0.04);
+    position: relative;
+    z-index: 1;                     /* below toolbar */
+    padding: 0.75rem 0.5rem 1rem;
+  }
+
+  /* product list as a clean vertical list */
+  .menu {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+    height: auto;                   /* no internal scroll fighting */
+    overflow: visible;
+  }
+
+  .menu-item {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 95%;
+    max-width: 480px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 10px;
+    padding: 0.6rem;
+    gap: 0.8rem;
+    box-shadow: 0 0 6px rgba(167,225,238,0.25);
+  }
+
+  .menu-image {
+    flex-shrink: 0;
+    width: 90px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+
+  /* tidy receipt table text on small screens */
+  table { font-size: 0.95rem; }
+  th, td { padding: 10px 8px; }
+}
+
+/* Desktop/tablet keep your horizontal swipe cards */
+@media (min-width: 769px) {
+  .menu-payment { overflow: hidden; position: relative; }
+  .menu {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    gap: 18px;
+    padding: 10px;
+    width: 100%;
+    max-width: 100%;
+  }
+  .menu-item { flex: 0 0 auto; width: 220px; scroll-snap-align: start; }
+  .menu-payment::after {
+    content: "";
+    position: absolute; right: 0; top: 0; width: 40px; height: 100%;
+    background: linear-gradient(to left, rgba(18,18,18,1), transparent);
+    pointer-events: none;
+  }
+}
