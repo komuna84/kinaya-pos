@@ -351,7 +351,7 @@ figcaption {
   }
 }
 
-/* ---------- MOBILE (Vertical swipe + working toolbar) ---------- */
+/* ---------- MOBILE (Vertical swipe list + hidden footer) ---------- */
 @media (max-width: 768px) {
   html, body {
     height: auto;
@@ -406,11 +406,13 @@ figcaption {
     border-radius: 0;
   }
 
+  /* --- Product list: vertical, image left text right --- */
   .menu {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 0.8rem;
+    padding-bottom: 1rem;
   }
 
   .menu-item {
@@ -433,6 +435,7 @@ figcaption {
     height: 90px;
     object-fit: cover;
     border-radius: 8px;
+    box-shadow: 0 0 5px rgba(167,225,238,0.25);
   }
 
   .menu-item figcaption {
@@ -448,8 +451,9 @@ figcaption {
     font-size: 1rem;
   }
 
-  /* Hide footer */
+  /* --- Hide thank-you footer on phones --- */
   .receipt-footer {
     display: none !important;
   }
 }
+
