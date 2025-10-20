@@ -822,78 +822,6 @@ figcaption {
     -webkit-overflow-scrolling: touch;
   }
 }
-/* ================= SWIPE-UP IMAGE GALLERY ================= */
-.image-gallery {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 45vh;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(12px);
-  border-top: 2px solid rgba(191, 216, 193, 0.25);
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
-  overflow-y: auto;
-  display: flex;
-  justify-content: center;  /* ✅ horizontally center gallery */
-  align-items: center;      /* ✅ vertically center small sets */
-  transform: translateY(65%);
-  transition: transform 0.45s ease-in-out;
-  z-index: 9999;
-}
-
-.image-gallery.active {
-  transform: translateY(0%);
-}
-
-.image-scroll {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.4rem;
-  padding: 1.5rem;
-}
-
-.image-scroll a {
-  display: block;
-  text-decoration: none;
-}
-
-.image-scroll img {
-  width: 160px;
-  border-radius: 10px;
-  box-shadow: 0 0 12px rgba(255,255,255,0.15);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-  display: block;
-  margin: 0 auto;
-}
-
-.image-scroll img:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 18px rgba(167,225,238,0.4);
-}
-
-/* ----- Mobile refinements ----- */
-@media (max-width: 768px) {
-  .image-gallery {
-    height: 50vh;
-    transform: translateY(70%);
-  }
-
-  .image-gallery.active {
-    transform: translateY(0);
-  }
-
-  .image-scroll {
-    gap: 1rem;
-    padding: 1rem;
-  }
-
-  .image-scroll img {
-    width: 120px;
-    border-radius: 8px;
-  }
-}
 
 /* ================= IMAGE STRIP UNDER PRODUCTS ================= */
 .image-gallery {
@@ -941,4 +869,5 @@ figcaption {
     width: 110px;
   }
 }
+
 
