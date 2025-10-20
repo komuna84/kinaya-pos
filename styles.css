@@ -817,110 +817,109 @@ figcaption {
   }
 }
 
-/* ---------- PRODUCT LIST: IMAGE LEFT, TEXT RIGHT ---------- */
+/* ---------- FIX: FULL-VIEW VERTICAL PRODUCT LIST ---------- */
 @media (max-width: 900px) {
-  .receipt-footer {
-    display: none !important;
+  /* Make main container stack vertically */
+  main {
+    flex-direction: column;
+    align-items: stretch;
+    height: auto;
+    overflow: visible;
   }
 
+  /* Let order take only content height */
+  .order {
+    width: 100%;
+    max-width: none;
+    min-width: unset;
+    flex: none;
+    border: none;
+    box-shadow: none;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Make product section fill screen and scroll */
   .menu-payment {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
+    flex-grow: 1;
+    height: auto;
+    max-height: none;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 0.75rem;
+    padding: 1rem;
     background: rgba(255, 255, 255, 0.03);
-    height: auto;
-    scroll-behavior: smooth;
   }
 
-  /* Product card container */
-  .menu-item {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 1rem;
-    width: 95%;
-    max-width: 600px;
-    background: rgba(255, 255, 255, 0.06);
-    border-radius: 12px;
-    padding: 0.8rem;
-    margin-bottom: 1rem;
-    box-shadow: 0 0 10px rgba(174, 240, 208, 0.25);
-    transition: transform 0.2s ease, box-shadow 0.3s ease;
-  }
-
-  .menu-item:hover {
-    transform: scale(1.02);
-    box-shadow: 0 0 15px rgba(174, 240, 208, 0.4);
-  }
-
-  /* Bigger image — visually dominant */
-  .menu-image {
-    flex-shrink: 0;
-    width: 140px;
-    height: 200px;
-    object-fit: cover;
-    border-radius: 10px;
-    box-shadow: 0 0 8px rgba(174, 240, 208, 0.25);
-  }
-
-  /* Text on right, vertically centered */
-  .menu-item figcaption {
-    color: #aef0d0;
-    font-size: 0.95rem;
-    line-height: 1.4;
-    text-align: left;
-  }
-
-  .menu-item figcaption:first-of-type {
-    font-weight: 600;
-    color: #fff;
-    font-size: 1.1rem;
-    margin-bottom: 4px;
-  }
-
-  .menu-item figcaption:nth-of-type(2) {
-    color: #ccc;
-    font-size: 0.9rem;
-  }
-
-  .menu-item figcaption:last-of-type {
-    color: #7fd7e6;
-    font-size: 1.05rem;
-    font-weight: 500;
-    margin-top: 5px;
-  }
-
-  /* Keep vertical scrolling only */
+  /* Product list layout (vertical scroll) */
   .menu {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 100%;
     gap: 1rem;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding-bottom: 2rem;
+    width: 100%;
+  }
+
+  /* Product card: image left, text right */
+  .menu-item {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 0.75rem;
+    width: 95%;
+    max-width: 600px;
+    box-shadow: 0 0 8px rgba(174, 240, 208, 0.25);
+  }
+
+  .menu-image {
+    flex-shrink: 0;
+    width: 130px;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 10px;
+  }
+
+  .menu-item figcaption {
+    text-align: left;
+    color: #aef0d0;
+    line-height: 1.4;
+    font-size: 0.95rem;
+  }
+
+  .menu-item figcaption:first-of-type {
+    color: #fff;
+    font-weight: 600;
+    font-size: 1.05rem;
+    margin-bottom: 4px;
+  }
+
+  .menu-item figcaption:last-of-type {
+    color: #7fd7e6;
+    font-size: 1rem;
+    font-weight: 500;
+    margin-top: 3px;
+  }
+
+  /* Hide thank-you footer */
+  .receipt-footer {
+    display: none !important;
   }
 }
 
-/* For small phones */
+/* Tiny phones (≤480px): stack vertically */
 @media (max-width: 480px) {
   .menu-item {
     flex-direction: column;
     text-align: center;
-    padding: 0.8rem;
   }
+
   .menu-image {
     width: 100%;
-    max-width: 240px;
+    max-width: 250px;
     height: auto;
-    margin-bottom: 0.6rem;
   }
+
   .menu-item figcaption {
     text-align: center;
   }
