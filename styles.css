@@ -800,3 +800,26 @@ figcaption {
     text-align: center;
   }
 }
+
+/* ---------- FIX: Enable swipe-up scrolling on mobile ---------- */
+@media (max-width: 768px) {
+  html, body {
+    height: auto;
+    min-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto; /* ✅ allows vertical swipe */
+    -webkit-overflow-scrolling: touch;
+  }
+
+  main {
+    flex-direction: column;
+    height: auto;
+    overflow-y: auto; /* ✅ scroll up and down */
+  }
+
+  .menu-payment {
+    overflow-y: auto;  /* ✅ ensures image area scrolls */
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
