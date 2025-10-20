@@ -834,10 +834,12 @@ figcaption {
   border-top: 2px solid rgba(191, 216, 193, 0.25);
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
   overflow-y: auto;
-  scroll-snap-type: y mandatory;
+  display: flex;
+  justify-content: center;  /* ✅ horizontally center gallery */
+  align-items: center;      /* ✅ vertically center small sets */
   transform: translateY(65%);
   transition: transform 0.45s ease-in-out;
-  z-index: 9999; /* sits above everything */
+  z-index: 9999;
 }
 
 .image-gallery.active {
@@ -852,16 +854,23 @@ figcaption {
   padding: 1.5rem;
 }
 
+.image-scroll a {
+  display: block;
+  text-decoration: none;
+}
+
 .image-scroll img {
   width: 160px;
   border-radius: 10px;
   box-shadow: 0 0 12px rgba(255,255,255,0.15);
-  scroll-snap-align: start;
-  transition: transform 0.25s ease;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  display: block;
+  margin: 0 auto;
 }
 
 .image-scroll img:hover {
   transform: scale(1.05);
+  box-shadow: 0 0 18px rgba(167,225,238,0.4);
 }
 
 /* ----- Mobile refinements ----- */
@@ -877,7 +886,7 @@ figcaption {
 
   .image-scroll {
     gap: 1rem;
-    padding: 1rem 0.8rem;
+    padding: 1rem;
   }
 
   .image-scroll img {
@@ -886,7 +895,7 @@ figcaption {
   }
 }
 
-/* ----- Disable overlay behavior on desktop ----- */
+/* ----- Desktop: disable overlay behavior ----- */
 @media (min-width: 769px) {
   .image-gallery {
     position: static;
