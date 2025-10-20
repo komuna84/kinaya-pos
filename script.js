@@ -2,20 +2,6 @@
 // Kinaya Rising POS (Stable October 2025) - script.js
 // ===========================================================
 
-// ---------- Header Date ----------
-document.addEventListener("DOMContentLoaded", () => {
-  const dateEl = document.getElementById("current-date");
-  if (dateEl) {
-    const now = new Date();
-    dateEl.textContent = now.toLocaleDateString("en-US", {
-      weekday: "short",
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  }
-});
-
 // ---------- Core Models ----------
 class Order {
   constructor() {
@@ -94,8 +80,8 @@ class Order {
 
     Ui.receiptDetails(this);
     Ui.updateTotals(this);
-    updatePaymentUI();            
-    toggleSubmitVisibility();     
+    updatePaymentUI();
+    toggleSubmitVisibility();
   }
 }
 
@@ -244,287 +230,79 @@ class Ui {
   }
 }
 
-// ---------- Init ----------
-const sheetCsvUrl =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vT8TYrKVClp5GXP5Sx7NYGpfRvEMCCNuL40vbcyhdwP6bnvQeQRqJ4xTv6BZUnC5nm7N2N_KwQlHZ2H/pub?gid=30403628&single=true&output=csv";
+// ---------- Initialization ----------
+document.addEventListener("DOMContentLoaded", async () => {
+  // Header Date
+  const dateEl = document.getElementById("current-date");
+  if (dateEl) {
+    const now = new Date();
+    dateEl.textContent = now.toLocaleDateString("en-US", {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  }
 
-let isReturnMode = false;
-const returnButton = document.getElementById("toggle-return");
-const order = new Order();
+  const sheetCsvUrl =
+    "https://docs.google.com/spreadsheets/d/e/2PACX-1vT8TYrKVClp5GXP5Sx7NYGpfRvEMCCNuL40vbcyhdwP6bnvQeQRqJ4xTv6BZUnC5nm7N2N_KwQlHZ2H/pub?gid=30403628&single=true&output=csv";
 
-loadMenuFromSheet(sheetCsvUrl).then(menuData => {
+  const order = new Order();
+  const returnButton = document.getElementById("toggle-return");
+  let isReturnMode = false;
+
+  const menuData = await loadMenuFromSheet(sheetCsvUrl);
   order.menu = menuData;
   Ui.renderMenu(order);
-});
 
-if (returnButton) {
-  returnButton.addEventListener("click", () => {
-    isReturnMode = !isReturnMode;
-    returnButton.classList.toggle("active");
-  });
-}
+  // ---------- Swipe Up Expand / Collapse for Mobile ----------
+  const menuSection = document.querySelector(".menu-payment");
+  let startY = 0;
+  let currentY = 0;
+  let isSwiping = false;
 
-document.addEventListener("click", e => {
-  const card = e.target.closest(".menu-item");
-  if (!card) return;
-  const data = card.getAttribute("data-sku");
-  order.addOrderLine(1, data, isReturnMode);
-});
+  if (menuSection) {
+    menuSection.addEventListener("touchstart", (e) => {
+      if (window.innerWidth > 900) return;
+      startY = e.touches[0].clientY;
+      isSwiping = true;
+    });
 
-// =======================================================
-// PAYMENT & SPLIT LOGIC
-// =======================================================
-const paymentOverlay = document.getElementById("payment-overlay");
-const closePaypadIcon = document.querySelector(".paypad-close");
-const cashBtn = document.getElementById("cash-btn");
-const cardBtn = document.getElementById("card-btn");
-const clearBtn = document.getElementById("clear-btn");
-const manualAmountInput = document.getElementById("amount-paid-input");
-const paymentTypeEl = document.getElementById("payment-type");
-const changeEl = document.getElementById("change-amount");
-const splitInfoEl = document.getElementById("split-info");
+    menuSection.addEventListener("touchmove", (e) => {
+      if (!isSwiping) return;
+      currentY = e.touches[0].clientY;
+    });
 
-let activeMethod = null;
-let currentInput = "";
+    menuSection.addEventListener("touchend", () => {
+      if (!isSwiping) return;
+      const diff = startY - currentY;
+      isSwiping = false;
 
-function openPaypad(method) {
-  activeMethod = method;
-  currentInput = "";
-  const display = document.getElementById("paypad-display");
-  if (display) display.textContent = "$0.00";
-  paymentOverlay.classList.add("active");
-  paymentTypeEl.textContent = method[0].toUpperCase() + method.slice(1);
-}
-function closePaypad() {
-  activeMethod = null;
-  currentInput = "";
-  paymentOverlay.classList.remove("active");
-}
-
-if (closePaypadIcon) closePaypadIcon.addEventListener("click", closePaypad);
-if (cashBtn) cashBtn.addEventListener("click", () => openPaypad("cash"));
-if (cardBtn) cardBtn.addEventListener("click", () => openPaypad("card"));
-
-if (clearBtn) {
-  clearBtn.addEventListener("click", () => {
-    if (!confirm("Clear current order?")) return;
-    order._order = [];
-    order._payment = { cash: 0, card: 0 };
-    Ui.receiptDetails(order);
-    Ui.updateTotals(order);
-    updatePaymentUI(true);
-    toggleSubmitVisibility();
-  });
-}
-
-// Paypad buttons
-document.querySelectorAll(".paypad-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const id = btn.getAttribute("data-id");
-    if (!id) return;
-
-    if (id === "clear") currentInput = "";
-    else if (id === "back") currentInput = currentInput.slice(0, -1);
-    else if (id === "close-sale") finalizePaypadAmount();
-    else if (!isNaN(id)) currentInput += id;
-
-    const display = document.getElementById("paypad-display");
-    const cents = parseFloat(currentInput);
-    const numeric = isNaN(cents) ? 0 : cents / 100;
-    if (display) display.textContent = `$${numeric.toFixed(2)}`;
-  });
-});
-
-function finalizePaypadAmount() {
-  const cents = parseFloat(currentInput);
-  const amount = isNaN(cents) ? 0 : cents / 100;
-  if (amount <= 0 || !activeMethod) {
-    alert("Enter a valid amount");
-    return;
+      if (diff > 50 && !menuSection.classList.contains("expanded")) {
+        menuSection.classList.add("expanded");
+      } else if (diff < -50 && menuSection.classList.contains("expanded")) {
+        menuSection.classList.remove("expanded");
+      }
+    });
   }
 
-  order._payment[activeMethod] = Utilities.roundToTwo(order._payment[activeMethod] + amount);
-  const paid = totalPaid();
-  if (manualAmountInput) manualAmountInput.value = paid.toFixed(2);
+  // ---------- Return Toggle ----------
+  if (returnButton) {
+    returnButton.addEventListener("click", () => {
+      isReturnMode = !isReturnMode;
+      returnButton.classList.toggle("active");
+    });
+  }
 
+  // ---------- Add Item ----------
+  document.addEventListener("click", e => {
+    const card = e.target.closest(".menu-item");
+    if (!card) return;
+    const data = card.getAttribute("data-sku");
+    order.addOrderLine(1, data, isReturnMode);
+  });
+
+  // ---------- Initialize UI ----------
   updatePaymentUI();
   toggleSubmitVisibility();
-  closePaypad();
-}
-
-if (manualAmountInput) {
-  manualAmountInput.addEventListener("input", () => {
-    const typed = parseFloat(manualAmountInput.value);
-    const total = isNaN(typed) ? 0 : Math.max(0, typed);
-    const bucket = activeMethod || "cash";
-    const other = bucket === "cash" ? "card" : "cash";
-    order._payment[bucket] = Utilities.roundToTwo(total);
-    order._payment[other] = 0;
-    paymentTypeEl.textContent = bucket[0].toUpperCase() + bucket.slice(1);
-    updatePaymentUI();
-    toggleSubmitVisibility();
-  });
-}
-
-function orderTotal() {
-  return order._order.reduce((a, l) => a + l.subtotal + l.tax, 0);
-}
-function totalPaid() {
-  return Object.values(order._payment).reduce((a, b) => a + b, 0);
-}
-
-function updatePaymentUI(reset = false) {
-  const total = orderTotal();
-  const paid = reset ? 0 : totalPaid();
-  const change = Math.max(0, paid - total);
-
-  if (manualAmountInput && !reset) {
-    manualAmountInput.value = paid ? paid.toFixed(2) : "";
-  }
-  if (changeEl) {
-    changeEl.textContent = Utilities.convertFloatToString(change);
-  }
-
-  // ---- Split Payment Display ----
-  const cash = order._payment.cash;
-  const card = order._payment.card;
-  if (splitInfoEl) {
-    if (cash > 0 && card > 0) {
-      splitInfoEl.textContent = `${Utilities.convertFloatToString(cash)} Cash + ${Utilities.convertFloatToString(card)} Card`;
-    } else if (cash > 0) {
-      splitInfoEl.textContent = `${Utilities.convertFloatToString(cash)} Cash`;
-    } else if (card > 0) {
-      splitInfoEl.textContent = `${Utilities.convertFloatToString(card)} Card`;
-    } else {
-      splitInfoEl.textContent = "None";
-    }
-  }
-
-  let statusEl = document.getElementById("payment-status");
-  if (!statusEl) {
-    statusEl = document.createElement("div");
-    statusEl.id = "payment-status";
-    statusEl.style.position = "fixed";
-    statusEl.style.bottom = "6px";
-    statusEl.style.left = "50%";
-    statusEl.style.transform = "translateX(-50%)";
-    statusEl.style.fontWeight = "600";
-    statusEl.style.color = "#A7E1EE";
-    document.body.appendChild(statusEl);
-  }
-  statusEl.textContent = `Paid: ${Utilities.convertFloatToString(paid)} / ${Utilities.convertFloatToString(total)} ${paid >= total ? "✔︎" : ""}`;
-}
-
-// =======================================================
-// SUBMIT SALE (FINAL VERSION - works from GitHub Pages)
-// =======================================================
-const submitRow = document.getElementById("submit-row");
-const submitBtn = document.getElementById("submit-sale");
-const emailInput = document.getElementById("customer-email");
-const modal = document.getElementById("submit-modal");
-const modalCancel = document.getElementById("modal-cancel");
-const modalOk = document.getElementById("modal-ok");
-
-function toggleSubmitVisibility() {
-  const ready = totalPaid() >= orderTotal();
-  const hasEmail = !!(emailInput && emailInput.value.trim());
-  if (submitRow)
-    submitRow.style.display = ready && hasEmail && order._order.length
-      ? "table-row"
-      : "none";
-}
-
-if (emailInput) emailInput.addEventListener("input", toggleSubmitVisibility);
-
-if (submitBtn) submitBtn.addEventListener("click", () => modal.classList.remove("hidden"));
-if (modalCancel) modalCancel.addEventListener("click", () => modal.classList.add("hidden"));
-if (modalOk) modalOk.addEventListener("click", () => {
-  modal.classList.add("hidden");
-  submitSale();
 });
-
-function submitSale() {
-  const email = (emailInput && emailInput.value.trim()) || "";
-  const date = new Date().toLocaleDateString("en-US");
-  const inv = document.getElementById("invoice-number");
-  const transactionID = inv
-    ? inv.textContent.replace(/^\s*Invoice\s*#\s*/i, "").trim()
-    : "";
-  const splitDetails = splitInfoEl ? splitInfoEl.textContent : "";
-
-  const rows = order._order.map(line => ({
-    Date: date,
-    Sku: line.sku,
-    ProductTitle: line.description,
-    Quantity: line.quantity,
-    Price: line.price,
-    Subtotal: line.subtotal,
-    Tax: line.tax,
-    Total: Utilities.roundToTwo(line.subtotal + line.tax),
-    TransactionID: transactionID,
-    Email: email,
-    SplitPayment: splitDetails,
-  }));
-
-  // ✅ Use your Google Apps Script endpoint, not GitHub Pages
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwR4o7kNq6Ne0w3vwOFdUxnnHC39LAcad4X8rD4sdMz7Y5J5vQPQleCGV9IQYwAZI2pQA/exec";
-
-  fetch(WEB_APP_URL, {
-    method: "POST",
-    mode: "no-cors", // ✅ important for GitHub + phone
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(rows),
-  })
-    .then(() => {
-      // no-cors doesn’t return response text, so we just assume success
-      alert("✅ Sale submitted successfully! Check your Google Sheet for confirmation.");
-      // Optionally clear the order
-      order._order = [];
-      Ui.receiptDetails(order);
-      Ui.updateTotals(order);
-      updatePaymentUI(true);
-      toggleSubmitVisibility();
-    })
-    .catch(err => alert("⚠️ Error submitting sale: " + err));
-}
-
-// ---------- Initialize ----------
-updatePaymentUI();
-toggleSubmitVisibility();
-
-// =======================================================
-// MOBILE SWIPE-UP PRODUCT DRAWER
-// =======================================================
-function setupProductDrawer() {
-  const drawer = document.querySelector(".menu-payment");
-  if (!drawer) return;
-
-  let startY = 0;
-  let isDragging = false;
-
-  drawer.addEventListener("touchstart", e => {
-    if (window.innerWidth > 768) return; // only mobile
-    startY = e.touches[0].clientY;
-    isDragging = true;
-  });
-
-  drawer.addEventListener("touchend", e => {
-    if (!isDragging) return;
-    isDragging = false;
-    const diff = startY - e.changedTouches[0].clientY;
-
-    // swipe up to expand
-    if (diff > 50 && !drawer.classList.contains("expanded")) {
-      drawer.classList.add("expanded");
-      document.body.classList.add("menu-expanded");
-    }
-    // swipe down to collapse
-    if (diff < -50 && drawer.classList.contains("expanded")) {
-      drawer.classList.remove("expanded");
-      document.body.classList.remove("menu-expanded");
-    }
-  });
-}
-
-document.addEventListener("DOMContentLoaded", setupProductDrawer);
-
