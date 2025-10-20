@@ -188,6 +188,7 @@ th, td {
   color: #fff;
 }
 
+/* ---------- RETURN BUTTON ---------- */
 #toggle-return {
   background: none;
   border: none;
@@ -502,36 +503,10 @@ figcaption {
     background: rgba(174, 240, 208, 0.7);
   }
 
-  /* Keep everything visible */
+  /* Keep content visible */
   .menu-payment * {
     position: relative;
     z-index: 2;
-  }
-
-  /* Two-column grid inside drawer */
-  .menu {
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(160px, 1fr));
-    gap: 1rem;
-    padding: 1rem;
-    justify-items: center;
-  }
-
-  .menu-item {
-    width: 100%;
-    max-width: 200px;
-    background: rgba(255, 255, 255, 0.07);
-    border-radius: 12px;
-    padding: 0.8rem;
-    text-align: center;
-    color: #fff;
-  }
-
-  .menu-image {
-    width: 100%;
-    height: auto;
-    border-radius: 10px;
-    margin-bottom: 0.5rem;
   }
 
   /* Toolbar on top */
@@ -558,5 +533,38 @@ figcaption {
   }
   .menu-image {
     height: 100px;
+  }
+}
+
+/* ---------- MOBILE HORIZONTAL SCROLL RESTORE ---------- */
+@media (max-width: 768px) {
+  .menu {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    justify-content: flex-start !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    gap: 18px;
+    padding: 10px;
+  }
+
+  .menu-item {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+    width: 200px;
+    min-width: 180px;
+  }
+
+  .menu-payment::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 40px;
+    height: 100%;
+    background: linear-gradient(to left, rgba(18,18,18,0.9), transparent);
+    pointer-events: none;
   }
 }
