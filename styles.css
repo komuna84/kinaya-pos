@@ -713,106 +713,97 @@ figcaption {
   }
 }
 
-/* ---------- SWIPE-UP PRODUCT DRAWER (MOBILE FIX) ---------- */
+/* ---------- PRODUCT DRAWER + CARDS (MOBILE) ---------- */
 @media (max-width: 900px) {
+  /* Drawer */
   .menu-payment {
     position: fixed;
-    bottom: 0;
-    left: 0;
+    left: 0; right: 0; bottom: 0;
     width: 100%;
-    height: 20vh; /* collapsed peek */
-    background: rgba(10, 10, 10, 0.96);
+    height: 88vh;                 /* full height; we "collapse" using transform */
+    background: rgba(0,0,0,0.96);
     border-radius: 16px 16px 0 0;
-    border-top: 1px solid rgba(174, 240, 208, 0.3);
-    box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.6);
-    transition: transform 0.35s ease, height 0.35s ease;
-    transform: translateY(75%);
-    overflow: hidden;
+    border-top: 1px solid rgba(174,240,208,0.3);
+    box-shadow: 0 -8px 24px rgba(0,0,0,0.6);
+    transform: translateY(calc(100% - 64px));   /* collapsed: show ~64px with handle */
+    transition: transform 0.35s ease;
+    overflow: hidden;             /* content hidden when collapsed */
     z-index: 1000;
   }
-
   .menu-payment.expanded {
     transform: translateY(0);
-    height: 88vh;
-    overflow-y: auto;
-    background: rgba(0, 0, 0, 0.96);
+    overflow-y: auto;             /* scroll when expanded */
   }
 
-  .menu-payment::before {
+  /* Handle bar (tap or swipe here only) */
+  .drawer-handle {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    background: transparent;
+    border: 0;
+    outline: 0;
+    cursor: grab;
+    z-index: 2;
+  }
+  .drawer-handle::before {
     content: "";
-    position: absolute;
-    top: 8px;
-    left: 50%;
-    transform: translateX(-50%);
     width: 48px;
-    height: 4px;
-    border-radius: 3px;
-    background: rgba(174, 240, 208, 0.5);
+    height: 5px;
+    border-radius: 4px;
+    background: rgba(174,240,208,0.55);
+    box-shadow: 0 0 10px rgba(174,240,208,0.45);
   }
 
-  /* Background blur when expanded */
-  body.menu-expanded main {
-    filter: blur(4px);
-    transition: filter 0.3s ease;
-  }
+  /* Blur background when expanded */
+  body.menu-expanded main { filter: blur(4px); transition: filter 0.25s ease; }
 
-  /* ---------- Product Grid (now vertical scroll) ---------- */
+  /* Vertical list */
   .menu {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem;
-    overflow-x: hidden;
+    gap: 12px;
+    padding: 8px 12px 24px;
+    overflow: visible;
   }
 
+  /* Card: image left, stacked text right */
   .menu-item {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    width: 94%;
-    max-width: 520px;
-    background: rgba(255, 255, 255, 0.08);
+    gap: 12px;
+    width: 96%;
+    max-width: 540px;
+    margin: 0 auto;
+    padding: 10px;
+    background: rgba(255,255,255,0.08);
     border-radius: 12px;
-    box-shadow: 0 0 10px rgba(174, 240, 208, 0.2);
-    padding: 0.8rem;
-    transition: background 0.3s ease;
-  }
-
-  .menu-item:hover {
-    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 10px rgba(174,240,208,0.22);
   }
 
   .menu-image {
-    width: 100px;
-    height: 140px;
-    object-fit: cover;
-    border-radius: 8px;
     flex-shrink: 0;
+    width: 110px;
+    height: 150px;
+    object-fit: cover;            /* prevents stretching */
+    border-radius: 8px;
   }
 
   .menu-item-content {
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    gap: 0.3rem;
-    flex-grow: 1;
+    gap: 4px;
+    min-width: 0;
   }
+  .menu-item-content .title { color: #aef0d0; font-weight: 600; line-height: 1.2; }
+  .menu-item-content .sku   { color: rgba(255,255,255,0.75); font-size: 0.9rem; }
+  .menu-item-content .price { color: #7fd7e6; font-weight: 600; font-size: 1.05rem; }
+}
 
-  .menu-item-content .title {
-    font-weight: 600;
-    color: #aef0d0;
-    line-height: 1.2;
-  }
-
-  .menu-item-content .sku {
-    font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.7);
-  }
-
-  .menu-item-content .price {
-    font-size: 1rem;
-    font-weight: 500;
-    color: #7fd7e6;
-  }
+/* Tiny phones */
+@media (max-width: 430px) {
+  .menu-image { width: 96px; height: 132px; }
 }
