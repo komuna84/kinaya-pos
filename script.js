@@ -248,26 +248,27 @@ function setupProductDrawer() {
     isDragging = false;
     const diff = startY - e.changedTouches[0].clientY;
 
-    // swipe up
     if (diff > 50 && !drawer.classList.contains("expanded")) {
       drawer.classList.add("expanded");
       document.body.classList.add("menu-expanded");
     }
 
-    // swipe down
     if (diff < -50 && drawer.classList.contains("expanded")) {
       drawer.classList.remove("expanded");
       document.body.classList.remove("menu-expanded");
     }
   });
 
-  // optional: tap product keeps drawer open
   drawer.addEventListener("click", e => {
     if (e.target.closest(".menu-item")) {
       drawer.classList.add("expanded");
     }
   });
 }
+
+// ---------- Safe placeholders for undefined functions ----------
+function updatePaymentUI() {}
+function toggleSubmitVisibility() {}
 
 // ---------- Initialization ----------
 document.addEventListener("DOMContentLoaded", async () => {
@@ -307,7 +308,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const data = card.getAttribute("data-sku");
     order.addOrderLine(1, data, isReturnMode);
 
-    // close drawer after adding (for your workflow)
     const drawer = document.querySelector(".menu-payment");
     if (drawer && drawer.classList.contains("expanded")) {
       drawer.classList.remove("expanded");
