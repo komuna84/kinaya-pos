@@ -713,114 +713,63 @@ figcaption {
   }
 }
 
-/* ---------- CLEAN MOBILE GRID + HIDE THANK YOU ---------- */
+/* ---------- MOBILE / TABLET (≤ 768px) ---------- */
 @media (max-width: 768px) {
-  /* Hide thank-you message */
+  /* Keep header readable */
+  header {
+    text-align: center;
+    padding: 0.8rem 0;
+  }
+
+  header h1 {
+    font-size: clamp(1.2rem, 5vw, 1.8rem);
+  }
+
+  /* Stack layout: receipt above drawer */
+  main {
+    flex-direction: column;
+    align-items: stretch;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .order {
+    width: 100%;
+    flex: 0 0 65vh;
+    border: none;
+    background: #fff;
+    color: #000;
+    overflow-y: auto;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    z-index: 2;
+  }
+
+  /* Hide "Thank You" */
   .receipt-footer {
     display: none !important;
   }
 
-  /* Product grid becomes vertical */
-  .menu {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.8rem;
-    padding: 0.5rem;
-  }
-
-  /* Each product tile */
-  .menu-item {
-    display: flex;
-    flex-direction: row;              /* image left, text right */
-    align-items: center;
-    justify-content: flex-start;
-    width: 95%;
-    max-width: 480px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    padding: 0.6rem;
-    gap: 0.8rem;
-    box-shadow: 0 0 6px rgba(167,225,238,0.2);
-  }
-
-  /* Smaller image */
-  .menu-image {
-    flex-shrink: 0;
-    width: 90px;
-    height: 90px;
-    object-fit: cover;
-    border-radius: 8px;
-    box-shadow: 0 0 5px rgba(167,225,238,0.25);
-  }
-
-  /* Text next to image */
-  .menu-item figcaption {
-    text-align: left;
-    color: #aef0d0;
-    line-height: 1.3;
-    font-size: 0.9rem;
-  }
-
-  .menu-item figcaption:first-of-type {
-    font-weight: 600;
-    color: #fff;
-    font-size: 1rem;
-    margin-bottom: 2px;
-  }
-
-  .menu-item figcaption:last-of-type {
-    color: #a7e1ee;
-    font-size: 0.85rem;
-  }
-
-  /* Make scroll feel like a neat product list */
+  /* Swipe-Up Drawer (products) */
   .menu-payment {
-    background: rgba(255, 255, 255, 0.04);
-    padding: 0.5rem;
-    overflow-y: auto;
-  }
-}
-
-/* Smaller phones (≤430px) */
-@media (max-width: 430px) {
-  .menu-item {
-    flex-direction: column;  /* stack image over text */
-    align-items: center;
-    text-align: center;
-  }
-
-  .menu-image {
-    width: 80px;
-    height: 80px;
-    margin-bottom: 0.4rem;
-  }
-
-  .menu-item figcaption {
-    text-align: center;
-  }
-}
-/* ---------- MOBILE SWIPE-UP DRAWER ---------- */
-@media (max-width: 768px) {
-  .menu-payment {
-    position: fixed;
+    position: fixed !important;
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 20vh;
+    height: 20vh !important;
     background: rgba(10, 10, 10, 0.95);
     border-radius: 16px 16px 0 0;
     border-top: 1px solid rgba(174, 240, 208, 0.3);
     box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.6);
     transform: translateY(80%);
-    transition: transform 0.35s ease;
+    transition: transform 0.4s ease;
     z-index: 999;
     overflow: hidden;
+    touch-action: pan-y;
   }
 
   .menu-payment.expanded {
     transform: translateY(0);
-    height: 85vh;
+    height: 85vh !important;
     overflow-y: auto;
   }
 
@@ -836,35 +785,75 @@ figcaption {
     background: rgba(174, 240, 208, 0.6);
   }
 
+  /* Dim background when expanded */
   body.menu-expanded main {
-    filter: blur(4px);
+    filter: blur(3px);
     transition: filter 0.3s ease;
   }
+  body.menu-expanded {
+    overflow: hidden;
+  }
 
-  /* preserve your card layout inside */
+  /* Card layout inside drawer */
   .menu {
-    display: flex;
-    flex-flow: row wrap;
-    justify-content: center;
-    gap: 16px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(160px, 1fr));
+    gap: 1rem;
     padding: 1rem;
+    justify-items: center;
   }
 
   .menu-item {
-    width: 200px;
+    width: 95%;
+    max-width: 180px;
     background: rgba(255, 255, 255, 0.07);
     border-radius: 12px;
-    padding: 12px;
+    padding: 10px;
     text-align: center;
+    color: #fff;
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
   }
 
   .menu-item:hover {
     transform: scale(1.05);
-    box-shadow: 0 0 15px rgba(167, 225, 238, 0.3);
+    box-shadow: 0 0 10px rgba(167, 225, 238, 0.3);
   }
 
   .menu-image {
     width: 100%;
+    height: 120px;
     border-radius: 10px;
+    object-fit: cover;
+    margin-bottom: 8px;
+  }
+
+  .menu-item figcaption:first-of-type {
+    font-weight: 600;
+    color: #fff;
+    font-size: 0.95rem;
+  }
+
+  .menu-item figcaption:last-of-type {
+    color: #a7e1ee;
+    font-size: 0.85rem;
+  }
+
+  /* Toolbar sticky at top of drawer */
+  .toolbar {
+    position: sticky;
+    top: 0;
+    background: rgba(10,10,10,0.95);
+    border-bottom: 1px solid rgba(174,240,208,0.2);
+    z-index: 5;
+  }
+}
+
+/* ---------- SMALL PHONES (≤ 430px) ---------- */
+@media (max-width: 430px) {
+  .menu {
+    grid-template-columns: 1fr;
+  }
+  .menu-image {
+    height: 100px;
   }
 }
