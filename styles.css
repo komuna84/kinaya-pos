@@ -21,9 +21,9 @@ body {
 header {
   background-color: rgba(255, 255, 255, 0.1);
   color: #BFD8C1;
-  text-shadow: 0 0 8px rgba(191,216,193,0.3),
-               0 0 12px rgba(167,225,238,0.7),
-               0 0 24px rgba(167,225,238,0.4);
+  text-shadow: 0 0 8px rgba(191, 216, 193, 0.3),
+               0 0 12px rgba(167, 225, 238, 0.7),
+               0 0 24px rgba(167, 225, 238, 0.4);
   text-align: center;
   font-size: 1.2rem;
   padding: 16px 0 14px;
@@ -38,8 +38,8 @@ header h1 {
   font-size: 2rem;
   letter-spacing: 1px;
   line-height: 1.3;
-  text-shadow: 0 0 12px rgba(167,225,238,0.9),
-               0 0 25px rgba(167,225,238,0.4);
+  text-shadow: 0 0 12px rgba(167, 225, 238, 0.9),
+               0 0 25px rgba(167, 225, 238, 0.4);
 }
 
 /* ---------- MAIN ---------- */
@@ -59,7 +59,7 @@ main {
   min-width: 540px;
   max-width: 35%;
   border: 2px solid #333;
-  box-shadow: 0 0 15px rgba(255,255,255,0.15);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.15);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -83,7 +83,7 @@ main {
 .receipt {
   border: solid 0.5px #444;
   margin: 10px 15px;
-  box-shadow: 3px 3px 2px rgb(3,3,3);
+  box-shadow: 3px 3px 2px rgb(3, 3, 3);
   flex-grow: 1;
   overflow-y: auto;
 }
@@ -99,7 +99,10 @@ th, td {
   border-bottom: 1px dotted #ccc;
 }
 
-.quantity, .price, .subtotal, .delete {
+.quantity,
+.price,
+.subtotal,
+.delete {
   text-align: right;
 }
 
@@ -149,9 +152,9 @@ th, td {
   transform: scale(1.2);
 }
 
-/* ---------- MENU SECTION ---------- */
+/* ---------- MENU SECTION (SWIPE SCROLL) ---------- */
 .menu-payment {
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);
   flex-grow: 1;
   display: flex;
   flex-direction: column;
@@ -161,40 +164,63 @@ th, td {
   margin: 0 10px 5px 10px;
   height: calc(100% - 10px);
   overflow: hidden;
+  position: relative;
 }
 
 .menu {
   display: flex;
-  flex-flow: row wrap;
-  justify-content: center;
-  align-content: flex-start;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 18px;
+  width: max-content;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding: 10px;
+}
+
+.menu::-webkit-scrollbar {
+  height: 6px;
+}
+.menu::-webkit-scrollbar-thumb {
+  background: rgba(167,225,238,0.4);
+  border-radius: 3px;
+}
+
+.menu-payment::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 40px;
   height: 100%;
-  overflow: auto;
-  gap: 20px;
+  background: linear-gradient(to left, rgba(18,18,18,1), transparent);
+  pointer-events: none;
 }
 
 .menu-item {
-  display: flex;
-  flex-direction: column;
-  background: rgba(255,255,255,0.07);
+  flex: 0 0 auto;
   width: 220px;
-  border-radius: 16px;
-  padding: 12px;
+  border-radius: 14px;
   text-align: center;
+  background: rgba(255,255,255,0.07);
+  padding: 10px;
   transition: transform 0.2s ease, box-shadow 0.3s ease;
+  scroll-snap-align: start;
 }
 .menu-item:hover {
   transform: scale(1.05);
-  box-shadow: 0 0 15px rgba(167,225,238,0.3);
+  box-shadow: 0 0 15px rgba(167, 225, 238, 0.3);
 }
 
 .menu-image {
-  border-radius: 10px;
-  max-width: 200px;
   width: 100%;
-  height: auto;
+  aspect-ratio: 1 / 1;
   object-fit: cover;
-  margin: 0 auto 10px auto;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  background-color: #222;
 }
 
 figcaption {
@@ -202,32 +228,31 @@ figcaption {
   text-align: center;
   font-size: 1.05rem;
 }
+
 .menu-item figcaption:first-of-type {
   font-weight: bold;
   margin-top: 5px;
 }
+
 .menu-item figcaption:last-of-type {
   font-size: 1rem;
   color: #a7e1ee;
 }
 
-/* ---------- MOBILE (CLEAN COLUMN SCROLL) ---------- */
+/* ---------- MOBILE ---------- */
 @media (max-width: 768px) {
   header {
     text-align: center;
-    background-color: rgba(255,255,255,0.08);
-    color: #BFD8C1;
     padding-top: max(18px, env(safe-area-inset-top));
     padding-bottom: 14px;
+    background-color: rgba(255,255,255,0.08);
     text-shadow: 0 0 12px rgba(167,225,238,0.6);
-    font-weight: 500;
     backdrop-filter: blur(4px);
   }
 
   header h1 {
     font-size: clamp(1.3rem, 5vw, 1.8rem);
     line-height: 1.2;
-    text-shadow: 0 0 14px rgba(167,225,238,0.7);
   }
 
   main {
@@ -248,17 +273,21 @@ figcaption {
   }
 
   .menu-payment {
+    width: 100%;
+    padding: 1rem 0.5rem 2rem;
+    border: none;
+    border-radius: 0;
+    height: auto;
     background: rgba(255,255,255,0.04);
-    padding: 0.5rem;
     overflow-y: auto;
   }
 
+  /* Convert to vertical list */
   .menu {
-    display: flex;
     flex-direction: column;
     align-items: center;
     gap: 0.8rem;
-    padding: 0.5rem;
+    overflow-x: hidden;
   }
 
   .menu-item {
@@ -268,8 +297,8 @@ figcaption {
     justify-content: flex-start;
     width: 95%;
     max-width: 480px;
-    background: rgba(255,255,255,0.05);
     border-radius: 10px;
+    background: rgba(255,255,255,0.05);
     padding: 0.6rem;
     gap: 0.8rem;
     box-shadow: 0 0 6px rgba(167,225,238,0.2);
@@ -290,27 +319,9 @@ figcaption {
     line-height: 1.3;
     font-size: 0.9rem;
   }
-  .menu-item figcaption:first-of-type {
-    font-weight: 600;
-    color: #fff;
-    font-size: 1rem;
-  }
-  .menu-item figcaption:last-of-type {
-    color: #a7e1ee;
-    font-size: 0.85rem;
-  }
-
-  .receipt-footer { display: none !important; }
-
-  .toolbar {
-    flex-wrap: wrap;
-    gap: 1.2rem;
-    padding: 1rem 0.5rem;
-    background: rgba(250,250,250,0.95);
-  }
 }
 
-/* ---------- SMALLER PHONES ---------- */
+/* ---------- SMALL PHONES ---------- */
 @media (max-width: 430px) {
   .menu-item {
     flex-direction: column;
@@ -322,10 +333,9 @@ figcaption {
     height: 80px;
     margin-bottom: 0.4rem;
   }
-  .menu-item figcaption { text-align: center; }
 }
 
-/* ---------- SAFE AREA FIX ---------- */
+/* ---------- SAFE AREA ---------- */
 @supports (padding: max(0px)) {
   header { padding-top: max(12px, env(safe-area-inset-top)); }
   body { padding-top: env(safe-area-inset-top); }
