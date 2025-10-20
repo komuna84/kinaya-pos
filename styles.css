@@ -473,69 +473,73 @@ figcaption {
   }
 }
 
-/* ---------- MOBILE SWIPE-UP DRAWER (FINAL FIX) ---------- */
+/* ---------- FULLER MOBILE SWIPE-UP DRAWER ---------- */
 @media (max-width: 768px) {
   .menu-payment {
     position: fixed !important;
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 22vh;
+    height: 22vh !important;
     background: rgba(10, 10, 10, 0.96);
     border-radius: 18px 18px 0 0;
     border-top: 1px solid rgba(174, 240, 208, 0.3);
-    box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.65);
     transform: translateY(78%);
-    transition: transform 0.35s ease-in-out;
-    z-index: 90; /* below toolbar / pay buttons */
+    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    z-index: 150;
     overflow: hidden;
-    touch-action: pan-y;
+    touch-action: none;
   }
 
   .menu-payment.expanded {
     transform: translateY(0);
-    height: 92vh; /* nearly full screen */
+    height: 95vh !important; /* 🩵 almost full screen */
     overflow-y: auto;
-    padding-bottom: 5rem;
+    padding-bottom: 5rem; /* leaves space at bottom for comfort */
   }
 
   .menu-payment::before {
     content: "";
     position: absolute;
-    top: 8px;
+    top: 10px;
     left: 50%;
     transform: translateX(-50%);
-    width: 48px;
+    width: 50px;
     height: 5px;
     border-radius: 4px;
-    background: rgba(174, 240, 208, 0.6);
+    background: rgba(174, 240, 208, 0.7);
   }
 
-  /* --- make 2-column grid inside drawer --- */
   .menu {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 1rem;
     padding: 1rem;
   }
 
   .menu-item {
+    width: 45%;
+    min-width: 160px;
+    max-width: 200px;
     background: rgba(255, 255, 255, 0.07);
     border-radius: 12px;
     padding: 0.8rem;
     text-align: center;
-    box-shadow: 0 0 10px rgba(167, 225, 238, 0.25);
+    box-shadow: 0 0 12px rgba(167, 225, 238, 0.25);
   }
 
   .menu-image {
     width: 100%;
+    height: auto;
     border-radius: 10px;
-    margin-bottom: 0.4rem;
+    margin-bottom: 0.5rem;
   }
 
   .menu-item figcaption:first-of-type {
     font-size: 1rem;
-    font-weight: 600;
+    font-weight: bold;
     margin-bottom: 0.2rem;
   }
 
@@ -543,13 +547,4 @@ figcaption {
     font-size: 0.9rem;
     color: #a7e1ee;
   }
-}
-
-/* Fix toolbar visibility (remove black overlay) */
-.toolbar {
-  position: relative;
-  z-index: 100;
-}
-.paypad {
-  z-index: 200;
 }
