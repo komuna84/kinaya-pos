@@ -27,6 +27,9 @@ header {
   font-size: 1.2rem;
   padding: 16px 0 14px;
   backdrop-filter: blur(4px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 header h1 {
@@ -38,7 +41,7 @@ header h1 {
                0 0 25px rgba(167, 225, 238, 0.4);
 }
 
-/* ---------- MAIN ---------- */
+/* ---------- MAIN LAYOUT ---------- */
 main {
   flex-grow: 1;
   display: flex;
@@ -95,10 +98,7 @@ th, td {
   border-bottom: 1px dotted #ccc;
 }
 
-.quantity,
-.price,
-.subtotal,
-.delete {
+.quantity, .price, .subtotal, .delete {
   text-align: right;
 }
 
@@ -185,7 +185,6 @@ th, td {
   color: #fff;
 }
 
-/* ---------- RETURN BUTTON ---------- */
 #toggle-return {
   background: none;
   border: none;
@@ -206,7 +205,7 @@ th, td {
   transform: scale(1.2);
 }
 
-/* ---------- MENU SECTION ---------- */
+/* ---------- MENU SECTION (SWIPE SCROLL) ---------- */
 .menu-payment {
   background: rgba(255, 255, 255, 0.05);
   flex-grow: 1;
@@ -223,23 +222,33 @@ th, td {
 
 .menu {
   display: flex;
-  flex-flow: row wrap;
-  justify-content: center;
-  align-content: flex-start;
-  height: 100%;
-  overflow: auto;
-  gap: 20px;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 18px;
+  width: max-content;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding: 10px;
+}
+.menu::-webkit-scrollbar {
+  height: 6px;
+}
+.menu::-webkit-scrollbar-thumb {
+  background: rgba(167,225,238,0.4);
+  border-radius: 3px;
 }
 
 .menu-item {
-  display: flex;
-  flex-direction: column;
-  background: rgba(255, 255, 255, 0.07);
+  flex: 0 0 auto;
   width: 220px;
-  border-radius: 16px;
-  padding: 12px;
+  border-radius: 14px;
   text-align: center;
+  background: rgba(255,255,255,0.07);
+  padding: 10px;
   transition: transform 0.2s ease, box-shadow 0.3s ease;
+  scroll-snap-align: start;
 }
 .menu-item:hover {
   transform: scale(1.05);
@@ -247,10 +256,12 @@ th, td {
 }
 
 .menu-image {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
   border-radius: 10px;
-  max-width: 200px;
-  height: auto;
-  margin: 0 auto 10px auto;
+  margin-bottom: 8px;
+  background-color: #222;
 }
 
 figcaption {
@@ -269,125 +280,22 @@ figcaption {
   color: #a7e1ee;
 }
 
-/* ---------- PAYMENT OVERLAY ---------- */
-#payment-overlay {
-  display: none;
-  position: fixed;
+/* right fade edge for swipe area */
+.menu-payment::after {
+  content: "";
+  position: absolute;
+  right: 0;
   top: 0;
-  left: 0;
-  width: 100%;
+  width: 40px;
   height: 100%;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(4px);
-  z-index: 1000;
-  justify-content: center;
-  align-items: center;
-  transition: opacity 0.3s ease;
-  opacity: 0;
+  background: linear-gradient(to left, rgba(18,18,18,1), transparent);
   pointer-events: none;
-}
-#payment-overlay.active {
-  display: flex;
-  opacity: 1;
-  pointer-events: all;
-}
-
-/* ---------- MODAL ---------- */
-.modal.hidden { display: none; }
-
-.modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.7);
-  display: grid;
-  place-items: center;
-  z-index: 2000;
-}
-.modal-content {
-  background: #111;
-  border-radius: 12px;
-  padding: 30px 40px;
-  text-align: center;
-  color: #A7E1EE;
-  font-size: 1.2rem;
-  box-shadow: 0 0 20px rgba(167,225,238,0.4);
-}
-.modal-buttons {
-  margin-top: 20px;
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-}
-.modal-buttons button {
-  background: #000;
-  color: #A7E1EE;
-  border: 1px solid #444;
-  padding: 10px 20px;
-  border-radius: 6px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease;
-}
-.modal-buttons button:hover {
-  background: #1b1b1b;
-  color: #66d0ff;
-}
-
-/* ---------- RESPONSIVE ---------- */
-@media (max-width: 1200px) {
-  main {
-    flex-direction: column;
-    align-items: center;
-    height: auto;
-  }
-  .order {
-    width: 95%;
-    max-width: 800px;
-    margin-bottom: 25px;
-  }
-  .menu-payment {
-    width: 100%;
-    padding: 10px 0 20px 10px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    position: relative;
-    scrollbar-width: thin;
-    scrollbar-color: #a7e1ee transparent;
-    scroll-behavior: smooth;
-  }
-  .menu {
-    display: flex;
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    gap: 18px;
-    width: max-content;
-    padding: 10px;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-  }
-  .menu-item {
-    flex: 0 0 auto;
-    width: 220px;
-    border-radius: 14px;
-    text-align: center;
-    padding: 10px;
-    scroll-snap-align: start;
-  }
-  .menu-payment::after {
-    content: "";
-    position: absolute;
-    right: 0;
-    top: 0;
-    width: 40px;
-    height: 100%;
-    background: linear-gradient(to left, rgba(18,18,18,1), transparent);
-    pointer-events: none;
-  }
 }
 
 /* ---------- MOBILE ---------- */
 @media (max-width: 768px) {
   header {
+    text-align: center;
     padding-top: max(20px, env(safe-area-inset-top));
     padding-bottom: 16px;
   }
@@ -414,22 +322,25 @@ figcaption {
 
   .menu-payment {
     width: 100%;
-    margin: 0;
     border-radius: 0;
-    border: none;
     height: auto;
-    padding: 1rem 0.5rem 2rem;
+    padding: 1rem;
+    overflow-x: auto;
   }
 
   .menu {
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 1rem;
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    gap: 18px;
+    width: max-content;
+    scroll-snap-type: x mandatory;
   }
 
   .menu-item {
-    width: 45%;
-    min-width: 140px;
+    flex: 0 0 auto;
+    width: 180px;
+    padding: 10px;
   }
 
   .toolbar {
@@ -437,14 +348,5 @@ figcaption {
     gap: 1.2rem;
     padding: 1rem 0.5rem;
     background: rgba(250,250,250,0.95);
-  }
-}
-
-/* ---------- SMALLER PHONES ---------- */
-@media (max-width: 430px) {
-  .menu-item {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
   }
 }
