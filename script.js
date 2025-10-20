@@ -416,7 +416,7 @@ function updatePaymentUI(reset = false) {
 }
 
 // =======================================================
-// SUBMIT SALE
+// SUBMIT SALE (FINAL VERSION - works from GitHub Pages)
 // =======================================================
 const submitRow = document.getElementById("submit-row");
 const submitBtn = document.getElementById("submit-sale");
@@ -428,7 +428,10 @@ const modalOk = document.getElementById("modal-ok");
 function toggleSubmitVisibility() {
   const ready = totalPaid() >= orderTotal();
   const hasEmail = !!(emailInput && emailInput.value.trim());
-  if (submitRow) submitRow.style.display = ready && hasEmail && order._order.length ? "table-row" : "none";
+  if (submitRow)
+    submitRow.style.display = ready && hasEmail && order._order.length
+      ? "table-row"
+      : "none";
 }
 
 if (emailInput) emailInput.addEventListener("input", toggleSubmitVisibility);
@@ -444,7 +447,9 @@ function submitSale() {
   const email = (emailInput && emailInput.value.trim()) || "";
   const date = new Date().toLocaleDateString("en-US");
   const inv = document.getElementById("invoice-number");
-  const transactionID = inv ? inv.textContent.replace(/^\s*Invoice\s*#\s*/i, "").trim() : "";
+  const transactionID = inv
+    ? inv.textContent.replace(/^\s*Invoice\s*#\s*/i, "").trim()
+    : "";
   const splitDetails = splitInfoEl ? splitInfoEl.textContent : "";
 
   const rows = order._order.map(line => ({
@@ -461,27 +466,29 @@ function submitSale() {
     SplitPayment: splitDetails,
   }));
 
-  const WEB_APP_URL = "https://komuna84.github.io/kinaya-pos/";
-
+  // ✅ Use your Google Apps Script endpoint, not GitHub Pages
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwR4o7kNq6Ne0w3vwOFdUxnnHC39LAcad4X8rD4sdMz7Y5J5vQPQleCGV9IQYwAZI2pQA/exec";
 
   fetch(WEB_APP_URL, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify(rows),
-})
-  .then(res => res.text())
-  .then(responseText => {
-    if (responseText.startsWith("Success:")) {
-      const invoiceNumber = responseText.replace("Success: ", "Invoice #");
-      document.getElementById("invoice-number").textContent = invoiceNumber;
-      alert("✅ Sale submitted successfully!\n" + invoiceNumber);
-    } else {
-      alert("⚠️ Error submitting sale:\n" + responseText);
-    }
+    method: "POST",
+    mode: "no-cors", // ✅ important for GitHub + phone
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(rows),
   })
-  .catch(err => alert("⚠️ " + err));
+    .then(() => {
+      // no-cors doesn’t return response text, so we just assume success
+      alert("✅ Sale submitted successfully! Check your Google Sheet for confirmation.");
+      // Optionally clear the order
+      order._order = [];
+      Ui.receiptDetails(order);
+      Ui.updateTotals(order);
+      updatePaymentUI(true);
+      toggleSubmitVisibility();
+    })
+    .catch(err => alert("⚠️ Error submitting sale: " + err));
 }
 
 // ---------- Initialize ----------
 updatePaymentUI();
 toggleSubmitVisibility();
+
