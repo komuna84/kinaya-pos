@@ -713,54 +713,42 @@ figcaption {
   }
 }
 
-/* ---------- FULLSCREEN PRODUCT SECTION ON MOBILE ---------- */
+/* ---------- SWIPE-UP EXPAND ANIMATION ---------- */
 @media (max-width: 900px) {
   .menu-payment {
-    transition: all 0.35s ease;
-    cursor: pointer;
-    position: relative;
+    transition: transform 0.35s ease, background 0.35s ease;
+    transform: translateY(65vh);
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.9);
+    border-radius: 16px 16px 0 0;
+    overflow-y: hidden;
+    z-index: 100;
+    cursor: grab;
   }
 
-  /* When active, take over the screen */
   .menu-payment.expanded {
-    position: fixed;
-    inset: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 3000;
-    background: rgba(0, 0, 0, 0.95);
+    transform: translateY(0);
     overflow-y: auto;
-    padding: 1rem;
     cursor: default;
   }
 
-  /* Add a subtle glow at the top */
-  .menu-payment.expanded::before {
+  .menu-payment::before {
     content: "";
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 6px;
-    background: linear-gradient(to right, #aef0d0, #7fd7e6, #aef0d0);
-    opacity: 0.6;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(174, 240, 208, 0.6);
   }
 
-  /* Close button */
-  .menu-payment.expanded::after {
-    content: "×";
-    position: fixed;
-    top: 1rem;
-    right: 1rem;
-    font-size: 2rem;
-    color: #aef0d0;
-    text-shadow: 0 0 6px #aef0d0;
-    cursor: pointer;
-    z-index: 4000;
-  }
-
-  /* Product cards inside expanded view */
-  .menu-payment.expanded .menu-item {
+  .menu-item {
     width: 95%;
     max-width: 600px;
     background: rgba(255, 255, 255, 0.07);
@@ -774,15 +762,11 @@ figcaption {
     padding: 0.8rem;
   }
 
-  .menu-payment.expanded .menu-image {
-    width: 140px;
-    height: 200px;
-    border-radius: 10px;
+  .menu-image {
+    width: 120px;
+    height: 180px;
     object-fit: cover;
-  }
-
-  .menu-payment.expanded .menu-item figcaption {
-    color: #aef0d0;
-    text-align: left;
+    border-radius: 10px;
   }
 }
+
