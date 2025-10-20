@@ -21,9 +21,9 @@ body {
 header {
   background-color: rgba(255, 255, 255, 0.1);
   color: #BFD8C1;
-  text-shadow: 0 0 8px rgba(191, 216, 193, 0.3),
-               0 0 12px rgba(167, 225, 238, 0.7),
-               0 0 24px rgba(167, 225, 238, 0.4);
+  text-shadow: 0 0 8px rgba(191,216,193,0.3),
+               0 0 12px rgba(167,225,238,0.7),
+               0 0 24px rgba(167,225,238,0.4);
   text-align: center;
   font-size: 1.2rem;
   padding: 16px 0 14px;
@@ -38,8 +38,8 @@ header h1 {
   font-size: 2rem;
   letter-spacing: 1px;
   line-height: 1.3;
-  text-shadow: 0 0 12px rgba(167, 225, 238, 0.9),
-               0 0 25px rgba(167, 225, 238, 0.4);
+  text-shadow: 0 0 12px rgba(167,225,238,0.9),
+               0 0 25px rgba(167,225,238,0.4);
 }
 
 /* ---------- MAIN ---------- */
@@ -59,7 +59,7 @@ main {
   min-width: 540px;
   max-width: 35%;
   border: 2px solid #333;
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 15px rgba(255,255,255,0.15);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -83,7 +83,7 @@ main {
 .receipt {
   border: solid 0.5px #444;
   margin: 10px 15px;
-  box-shadow: 3px 3px 2px rgb(3, 3, 3);
+  box-shadow: 3px 3px 2px rgb(3,3,3);
   flex-grow: 1;
   overflow-y: auto;
 }
@@ -99,10 +99,7 @@ th, td {
   border-bottom: 1px dotted #ccc;
 }
 
-.quantity,
-.price,
-.subtotal,
-.delete {
+.quantity, .price, .subtotal, .delete {
   text-align: right;
 }
 
@@ -123,7 +120,6 @@ th, td {
   border: none;
   color: #A7E1EE;
   font-size: 1.5em;
-  margin: 0 8px;
   cursor: pointer;
   transition: transform 0.2s, color 0.2s;
 }
@@ -155,7 +151,7 @@ th, td {
 
 /* ---------- MENU SECTION ---------- */
 .menu-payment {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255,255,255,0.05);
   flex-grow: 1;
   display: flex;
   flex-direction: column;
@@ -177,11 +173,10 @@ th, td {
   gap: 20px;
 }
 
-/* ---------- PRODUCT ITEM ---------- */
 .menu-item {
   display: flex;
   flex-direction: column;
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(255,255,255,0.07);
   width: 220px;
   border-radius: 16px;
   padding: 12px;
@@ -190,7 +185,7 @@ th, td {
 }
 .menu-item:hover {
   transform: scale(1.05);
-  box-shadow: 0 0 15px rgba(167, 225, 238, 0.3);
+  box-shadow: 0 0 15px rgba(167,225,238,0.3);
 }
 
 .menu-image {
@@ -207,12 +202,10 @@ figcaption {
   text-align: center;
   font-size: 1.05rem;
 }
-
 .menu-item figcaption:first-of-type {
   font-weight: bold;
   margin-top: 5px;
 }
-
 .menu-item figcaption:last-of-type {
   font-size: 1rem;
   color: #a7e1ee;
@@ -222,23 +215,19 @@ figcaption {
 @media (max-width: 768px) {
   header {
     text-align: center;
-    background-color: rgba(255, 255, 255, 0.08);
+    background-color: rgba(255,255,255,0.08);
     color: #BFD8C1;
     padding-top: max(18px, env(safe-area-inset-top));
     padding-bottom: 14px;
-    text-shadow: 0 0 12px rgba(167, 225, 238, 0.6);
+    text-shadow: 0 0 12px rgba(167,225,238,0.6);
     font-weight: 500;
     backdrop-filter: blur(4px);
-    position: sticky;
-    top: 0;
-    z-index: 100;
   }
 
   header h1 {
-    font-size: clamp(1.4rem, 5vw, 1.8rem);
-    letter-spacing: 1px;
+    font-size: clamp(1.3rem, 5vw, 1.8rem);
     line-height: 1.2;
-    text-shadow: 0 0 14px rgba(167, 225, 238, 0.7);
+    text-shadow: 0 0 14px rgba(167,225,238,0.7);
   }
 
   main {
@@ -259,7 +248,7 @@ figcaption {
   }
 
   .menu-payment {
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(255,255,255,0.04);
     padding: 0.5rem;
     overflow-y: auto;
   }
@@ -279,7 +268,7 @@ figcaption {
     justify-content: flex-start;
     width: 95%;
     max-width: 480px;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255,255,255,0.05);
     border-radius: 10px;
     padding: 0.6rem;
     gap: 0.8rem;
@@ -301,22 +290,17 @@ figcaption {
     line-height: 1.3;
     font-size: 0.9rem;
   }
-
   .menu-item figcaption:first-of-type {
     font-weight: 600;
     color: #fff;
     font-size: 1rem;
-    margin-bottom: 2px;
   }
-
   .menu-item figcaption:last-of-type {
     color: #a7e1ee;
     font-size: 0.85rem;
   }
 
-  .receipt-footer {
-    display: none !important;
-  }
+  .receipt-footer { display: none !important; }
 
   .toolbar {
     flex-wrap: wrap;
@@ -333,14 +317,16 @@ figcaption {
     align-items: center;
     text-align: center;
   }
-
   .menu-image {
     width: 80px;
     height: 80px;
     margin-bottom: 0.4rem;
   }
+  .menu-item figcaption { text-align: center; }
+}
 
-  .menu-item figcaption {
-    text-align: center;
-  }
+/* ---------- SAFE AREA FIX ---------- */
+@supports (padding: max(0px)) {
+  header { padding-top: max(12px, env(safe-area-inset-top)); }
+  body { padding-top: env(safe-area-inset-top); }
 }
