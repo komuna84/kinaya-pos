@@ -2,6 +2,20 @@
 // Kinaya Rising POS (Stable October 2025) - script.js
 // ===========================================================
 
+// ---------- Header Date ----------
+document.addEventListener("DOMContentLoaded", () => {
+  const dateEl = document.getElementById("current-date");
+  if (dateEl) {
+    const now = new Date();
+    dateEl.textContent = now.toLocaleDateString("en-US", {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  }
+});
+
 // ---------- Core Models ----------
 class Order {
   constructor() {
@@ -80,8 +94,8 @@ class Order {
 
     Ui.receiptDetails(this);
     Ui.updateTotals(this);
-    updatePaymentUI();
-    toggleSubmitVisibility();
+    updatePaymentUI();            
+    toggleSubmitVisibility();     
   }
 }
 
@@ -145,12 +159,13 @@ class Ui {
       figure.classList.add("menu-item");
       figure.setAttribute("data-sku", JSON.stringify(item));
       figure.innerHTML = `
-        <img src="${item.image}" alt="${item.description}" class="menu-image">
-        <div class="menu-item-content">
-          <div class="title">${item.description}</div>
-          <div class="sku">${item.sku}</div>
-          <div class="price">${Utilities.convertFloatToString(item.price)}</div>
-        </div>
+        <img src="${item.image}" alt="${item.description}" class="menu-image"
+             style="width:150px;height:150px;object-fit:cover;border-radius:12px;">
+        <figcaption style="font-weight:bold;margin-top:8px;">${item.description}</figcaption>
+        <figcaption style="font-size:0.9em;opacity:0.8;">${item.sku}</figcaption>
+        <figcaption style="color:#A7E1EE;margin-top:4px;">
+          ${Utilities.convertFloatToString(item.price)}
+        </figcaption>
       `;
       frag.appendChild(figure);
     });
@@ -229,92 +244,250 @@ class Ui {
   }
 }
 
-// ---------- Swipe Drawer ----------
-function setupProductDrawer() {
-  const drawer = document.querySelector(".menu-payment");
-  if (!drawer) return;
+// ---------- Init ----------
+const sheetCsvUrl =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vT8TYrKVClp5GXP5Sx7NYGpfRvEMCCNuL40vbcyhdwP6bnvQeQRqJ4xTv6BZUnC5nm7N2N_KwQlHZ2H/pub?gid=30403628&single=true&output=csv";
 
-  let startY = 0;
-  let isDragging = false;
+let isReturnMode = false;
+const returnButton = document.getElementById("toggle-return");
+const order = new Order();
 
-  drawer.addEventListener("touchstart", e => {
-    if (window.innerWidth > 900) return;
-    startY = e.touches[0].clientY;
-    isDragging = true;
-  });
+loadMenuFromSheet(sheetCsvUrl).then(menuData => {
+  order.menu = menuData;
+  Ui.renderMenu(order);
+});
 
-  drawer.addEventListener("touchend", e => {
-    if (!isDragging) return;
-    isDragging = false;
-    const diff = startY - e.changedTouches[0].clientY;
-
-    if (diff > 50 && !drawer.classList.contains("expanded")) {
-      drawer.classList.add("expanded");
-      document.body.classList.add("menu-expanded");
-    }
-
-    if (diff < -50 && drawer.classList.contains("expanded")) {
-      drawer.classList.remove("expanded");
-      document.body.classList.remove("menu-expanded");
-    }
-  });
-
-  drawer.addEventListener("click", e => {
-    if (e.target.closest(".menu-item")) {
-      drawer.classList.add("expanded");
-    }
+if (returnButton) {
+  returnButton.addEventListener("click", () => {
+    isReturnMode = !isReturnMode;
+    returnButton.classList.toggle("active");
   });
 }
 
-// ---------- Safe placeholders for undefined functions ----------
-function updatePaymentUI() {}
-function toggleSubmitVisibility() {}
+document.addEventListener("click", e => {
+  const card = e.target.closest(".menu-item");
+  if (!card) return;
+  const data = card.getAttribute("data-sku");
+  order.addOrderLine(1, data, isReturnMode);
+});
 
-// ---------- Initialization ----------
-document.addEventListener("DOMContentLoaded", async () => {
-  const dateEl = document.getElementById("current-date");
-  if (dateEl) {
-    const now = new Date();
-    dateEl.textContent = now.toLocaleDateString("en-US", {
-      weekday: "short",
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  }
+// =======================================================
+// PAYMENT & SPLIT LOGIC
+// =======================================================
+const paymentOverlay = document.getElementById("payment-overlay");
+const closePaypadIcon = document.querySelector(".paypad-close");
+const cashBtn = document.getElementById("cash-btn");
+const cardBtn = document.getElementById("card-btn");
+const clearBtn = document.getElementById("clear-btn");
+const manualAmountInput = document.getElementById("amount-paid-input");
+const paymentTypeEl = document.getElementById("payment-type");
+const changeEl = document.getElementById("change-amount");
+const splitInfoEl = document.getElementById("split-info");
 
-  const sheetCsvUrl =
-    "https://docs.google.com/spreadsheets/d/e/2PACX-1vT8TYrKVClp5GXP5Sx7NYGpfRvEMCCNuL40vbcyhdwP6bnvQeQRqJ4xTv6BZUnC5nm7N2N_KwQlHZ2H/pub?gid=30403628&single=true&output=csv";
+let activeMethod = null;
+let currentInput = "";
 
-  const order = new Order();
-  const returnButton = document.getElementById("toggle-return");
-  let isReturnMode = false;
+function openPaypad(method) {
+  activeMethod = method;
+  currentInput = "";
+  const display = document.getElementById("paypad-display");
+  if (display) display.textContent = "$0.00";
+  paymentOverlay.classList.add("active");
+  paymentTypeEl.textContent = method[0].toUpperCase() + method.slice(1);
+}
+function closePaypad() {
+  activeMethod = null;
+  currentInput = "";
+  paymentOverlay.classList.remove("active");
+}
 
-  const menuData = await loadMenuFromSheet(sheetCsvUrl);
-  order.menu = menuData;
-  Ui.renderMenu(order);
-  setupProductDrawer();
+if (closePaypadIcon) closePaypadIcon.addEventListener("click", closePaypad);
+if (cashBtn) cashBtn.addEventListener("click", () => openPaypad("cash"));
+if (cardBtn) cardBtn.addEventListener("click", () => openPaypad("card"));
 
-  if (returnButton) {
-    returnButton.addEventListener("click", () => {
-      isReturnMode = !isReturnMode;
-      returnButton.classList.toggle("active");
-    });
-  }
-
-  document.addEventListener("click", e => {
-    const card = e.target.closest(".menu-item");
-    if (!card) return;
-    const data = card.getAttribute("data-sku");
-    order.addOrderLine(1, data, isReturnMode);
-
-    const drawer = document.querySelector(".menu-payment");
-    if (drawer && drawer.classList.contains("expanded")) {
-      drawer.classList.remove("expanded");
-      document.body.classList.remove("menu-expanded");
-    }
+if (clearBtn) {
+  clearBtn.addEventListener("click", () => {
+    if (!confirm("Clear current order?")) return;
+    order._order = [];
+    order._payment = { cash: 0, card: 0 };
+    Ui.receiptDetails(order);
+    Ui.updateTotals(order);
+    updatePaymentUI(true);
+    toggleSubmitVisibility();
   });
+}
+
+// Paypad buttons
+document.querySelectorAll(".paypad-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const id = btn.getAttribute("data-id");
+    if (!id) return;
+
+    if (id === "clear") currentInput = "";
+    else if (id === "back") currentInput = currentInput.slice(0, -1);
+    else if (id === "close-sale") finalizePaypadAmount();
+    else if (!isNaN(id)) currentInput += id;
+
+    const display = document.getElementById("paypad-display");
+    const cents = parseFloat(currentInput);
+    const numeric = isNaN(cents) ? 0 : cents / 100;
+    if (display) display.textContent = `$${numeric.toFixed(2)}`;
+  });
+});
+
+function finalizePaypadAmount() {
+  const cents = parseFloat(currentInput);
+  const amount = isNaN(cents) ? 0 : cents / 100;
+  if (amount <= 0 || !activeMethod) {
+    alert("Enter a valid amount");
+    return;
+  }
+
+  order._payment[activeMethod] = Utilities.roundToTwo(order._payment[activeMethod] + amount);
+  const paid = totalPaid();
+  if (manualAmountInput) manualAmountInput.value = paid.toFixed(2);
 
   updatePaymentUI();
   toggleSubmitVisibility();
+  closePaypad();
+}
+
+if (manualAmountInput) {
+  manualAmountInput.addEventListener("input", () => {
+    const typed = parseFloat(manualAmountInput.value);
+    const total = isNaN(typed) ? 0 : Math.max(0, typed);
+    const bucket = activeMethod || "cash";
+    const other = bucket === "cash" ? "card" : "cash";
+    order._payment[bucket] = Utilities.roundToTwo(total);
+    order._payment[other] = 0;
+    paymentTypeEl.textContent = bucket[0].toUpperCase() + bucket.slice(1);
+    updatePaymentUI();
+    toggleSubmitVisibility();
+  });
+}
+
+function orderTotal() {
+  return order._order.reduce((a, l) => a + l.subtotal + l.tax, 0);
+}
+function totalPaid() {
+  return Object.values(order._payment).reduce((a, b) => a + b, 0);
+}
+
+function updatePaymentUI(reset = false) {
+  const total = orderTotal();
+  const paid = reset ? 0 : totalPaid();
+  const change = Math.max(0, paid - total);
+
+  if (manualAmountInput && !reset) {
+    manualAmountInput.value = paid ? paid.toFixed(2) : "";
+  }
+  if (changeEl) {
+    changeEl.textContent = Utilities.convertFloatToString(change);
+  }
+
+  // ---- Split Payment Display ----
+  const cash = order._payment.cash;
+  const card = order._payment.card;
+  if (splitInfoEl) {
+    if (cash > 0 && card > 0) {
+      splitInfoEl.textContent = `${Utilities.convertFloatToString(cash)} Cash + ${Utilities.convertFloatToString(card)} Card`;
+    } else if (cash > 0) {
+      splitInfoEl.textContent = `${Utilities.convertFloatToString(cash)} Cash`;
+    } else if (card > 0) {
+      splitInfoEl.textContent = `${Utilities.convertFloatToString(card)} Card`;
+    } else {
+      splitInfoEl.textContent = "None";
+    }
+  }
+
+  let statusEl = document.getElementById("payment-status");
+  if (!statusEl) {
+    statusEl = document.createElement("div");
+    statusEl.id = "payment-status";
+    statusEl.style.position = "fixed";
+    statusEl.style.bottom = "6px";
+    statusEl.style.left = "50%";
+    statusEl.style.transform = "translateX(-50%)";
+    statusEl.style.fontWeight = "600";
+    statusEl.style.color = "#A7E1EE";
+    document.body.appendChild(statusEl);
+  }
+  statusEl.textContent = `Paid: ${Utilities.convertFloatToString(paid)} / ${Utilities.convertFloatToString(total)} ${paid >= total ? "✔︎" : ""}`;
+}
+
+// =======================================================
+// SUBMIT SALE (FINAL VERSION - works from GitHub Pages)
+// =======================================================
+const submitRow = document.getElementById("submit-row");
+const submitBtn = document.getElementById("submit-sale");
+const emailInput = document.getElementById("customer-email");
+const modal = document.getElementById("submit-modal");
+const modalCancel = document.getElementById("modal-cancel");
+const modalOk = document.getElementById("modal-ok");
+
+function toggleSubmitVisibility() {
+  const ready = totalPaid() >= orderTotal();
+  const hasEmail = !!(emailInput && emailInput.value.trim());
+  if (submitRow)
+    submitRow.style.display = ready && hasEmail && order._order.length
+      ? "table-row"
+      : "none";
+}
+
+if (emailInput) emailInput.addEventListener("input", toggleSubmitVisibility);
+
+if (submitBtn) submitBtn.addEventListener("click", () => modal.classList.remove("hidden"));
+if (modalCancel) modalCancel.addEventListener("click", () => modal.classList.add("hidden"));
+if (modalOk) modalOk.addEventListener("click", () => {
+  modal.classList.add("hidden");
+  submitSale();
 });
+
+function submitSale() {
+  const email = (emailInput && emailInput.value.trim()) || "";
+  const date = new Date().toLocaleDateString("en-US");
+  const inv = document.getElementById("invoice-number");
+  const transactionID = inv
+    ? inv.textContent.replace(/^\s*Invoice\s*#\s*/i, "").trim()
+    : "";
+  const splitDetails = splitInfoEl ? splitInfoEl.textContent : "";
+
+  const rows = order._order.map(line => ({
+    Date: date,
+    Sku: line.sku,
+    ProductTitle: line.description,
+    Quantity: line.quantity,
+    Price: line.price,
+    Subtotal: line.subtotal,
+    Tax: line.tax,
+    Total: Utilities.roundToTwo(line.subtotal + line.tax),
+    TransactionID: transactionID,
+    Email: email,
+    SplitPayment: splitDetails,
+  }));
+
+  // ✅ Use your Google Apps Script endpoint, not GitHub Pages
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwR4o7kNq6Ne0w3vwOFdUxnnHC39LAcad4X8rD4sdMz7Y5J5vQPQleCGV9IQYwAZI2pQA/exec";
+
+  fetch(WEB_APP_URL, {
+    method: "POST",
+    mode: "no-cors", // ✅ important for GitHub + phone
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(rows),
+  })
+    .then(() => {
+      // no-cors doesn’t return response text, so we just assume success
+      alert("✅ Sale submitted successfully! Check your Google Sheet for confirmation.");
+      // Optionally clear the order
+      order._order = [];
+      Ui.receiptDetails(order);
+      Ui.updateTotals(order);
+      updatePaymentUI(true);
+      toggleSubmitVisibility();
+    })
+    .catch(err => alert("⚠️ Error submitting sale: " + err));
+}
+
+// ---------- Initialize ----------
+updatePaymentUI();
+toggleSubmitVisibility();
