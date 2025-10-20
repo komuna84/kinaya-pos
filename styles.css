@@ -17,28 +17,34 @@ body {
   flex-direction: column;
 }
 
+/* ---------- HEADER ---------- */
+header {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #BFD8C1;
+  text-shadow: 0 0 12px rgba(167, 225, 238, 0.7),
+               0 0 24px rgba(167, 225, 238, 0.4);
+  text-align: center;
+  font-size: 1.2rem;
+  padding: 16px 0 14px;
+  backdrop-filter: blur(4px);
+}
+
+header h1 {
+  font-family: "Audiowide", cursive;
+  font-size: 2rem;
+  letter-spacing: 1px;
+  line-height: 1.3;
+  text-shadow: 0 0 12px rgba(167, 225, 238, 0.9),
+               0 0 25px rgba(167, 225, 238, 0.4);
+}
+
+/* ---------- MAIN ---------- */
 main {
   flex-grow: 1;
   display: flex;
   flex-direction: row;
   margin-top: 10px;
   height: 92%;
-}
-
-/* ---------- HEADER ---------- */
-header {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: #BFD8C1;
-  text-shadow: 0 0 8px rgba(191, 216, 193, 0.3);
-  font-size: 1.2rem;
-  padding: 12px 0;
-}
-
-header h1 {
-  font-family: "Audiowide", cursive;
-  margin-left: 15px;
-  font-size: 2rem;
-  letter-spacing: 1px;
 }
 
 /* ---------- ORDER SECTION ---------- */
@@ -118,12 +124,6 @@ th, td {
   vertical-align: middle;
 }
 
-#amount-paid-input::-webkit-outer-spin-button,
-#amount-paid-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
 #amount-paid-input:focus {
   outline: none;
   background: rgba(167,225,238,0.1);
@@ -185,6 +185,7 @@ th, td {
   color: #fff;
 }
 
+/* ---------- RETURN BUTTON ---------- */
 #toggle-return {
   background: none;
   border: none;
@@ -291,72 +292,6 @@ figcaption {
   pointer-events: all;
 }
 
-.paypad {
-  display: grid;
-  grid-template-columns: repeat(3, 110px);
-  grid-template-rows: auto repeat(4, 110px);
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-  background: #111;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 0 25px rgba(167, 225, 238, 0.4);
-  position: relative;
-}
-
-.paypad-display {
-  grid-column: span 3;
-  text-align: center;
-  font-size: 2rem;
-  color: #A7E1EE;
-  margin-bottom: 10px;
-  font-weight: bold;
-  border-bottom: 1px solid #333;
-  padding-bottom: 8px;
-}
-
-.paypad-btn {
-  background: #000;
-  color: #A7E1EE;
-  border: 1px solid #444;
-  transition: background 0.2s ease, color 0.2s ease;
-}
-.paypad-btn:hover {
-  background: #1b1b1b;
-  color: #66d0ff;
-}
-.paypad-btn.number { font-size: 2rem; }
-
-.paypad-btn.span3-col {
-  grid-column: span 3;
-  background: #A7E1EE;
-  color: #111;
-  font-weight: bold;
-  border: none;
-  border-radius: 10px;
-  font-size: 1.4rem;
-}
-.paypad-btn.span3-col:hover {
-  background: #7fd7e6;
-}
-
-.close-paypad {
-  position: absolute;
-  top: 20px;
-  right: 25px;
-  cursor: pointer;
-}
-.close-icon {
-  color: #fff;
-  font-size: 2.5rem;
-  transition: transform 0.2s ease, color 0.2s ease;
-}
-.close-icon:hover {
-  transform: scale(1.2);
-  color: #A7E1EE;
-}
-
 /* ---------- MODAL ---------- */
 .modal.hidden { display: none; }
 
@@ -398,19 +333,6 @@ figcaption {
   color: #66d0ff;
 }
 
-/* ---------- DELETE BUTTON ---------- */
-.delete {
-  cursor: pointer;
-  color: #bbb;
-  text-align: center;
-  transition: color 0.25s ease, transform 0.25s ease;
-}
-.delete i { font-size: 1.4rem; }
-.delete:hover {
-  color: #ff5c5c;
-  transform: scale(1.2);
-}
-
 /* ---------- RESPONSIVE ---------- */
 @media (max-width: 1200px) {
   main {
@@ -422,8 +344,6 @@ figcaption {
     width: 95%;
     max-width: 800px;
     margin-bottom: 25px;
-    transform: scale(1.05);
-    transition: transform 0.3s ease;
   }
   .menu-payment {
     width: 100%;
@@ -453,14 +373,6 @@ figcaption {
     padding: 10px;
     scroll-snap-align: start;
   }
-  .menu-image {
-    width: 100%;
-    aspect-ratio: 1 / 1;
-    object-fit: cover;
-    border-radius: 10px;
-    margin-bottom: 8px;
-    background-color: #222;
-  }
   .menu-payment::after {
     content: "";
     position: absolute;
@@ -475,12 +387,22 @@ figcaption {
 
 /* ---------- MOBILE ---------- */
 @media (max-width: 768px) {
+  header {
+    padding-top: max(20px, env(safe-area-inset-top));
+    padding-bottom: 16px;
+  }
+
+  header h1 {
+    font-size: clamp(1.3rem, 5vw, 1.8rem);
+  }
+
   main {
     flex-direction: column;
     align-items: stretch;
     height: 100vh;
     overflow: hidden;
   }
+
   .order {
     width: 100%;
     flex: 0 0 65vh;
@@ -488,204 +410,6 @@ figcaption {
     border: none;
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     z-index: 2;
-  }
-  .receipt {
-    background-color: #fff;
-    color: #000;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    margin: 10px 12px;
-    padding: 6px 0;
-    font-size: 1rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    overflow-x: auto;
-  }
-  th, td {
-    padding: 10px 8px;
-    font-size: 0.95rem;
-  }
-  .toolbar {
-    background: rgba(250,250,250,0.95);
-    border-top: 1px solid #ddd;
-    border-bottom: 1px solid #ddd;
-    margin: 12px auto;
-    padding: 18px 0;
-    gap: 45px;
-    border-radius: 0 0 8px 8px;
-  }
-}
-
-/* ---------- TOOLBAR ICONS ---------- */
-.toolbar i,
-.toolbar-icon {
-  color: #000 !important;
-  opacity: 0.85;
-  transition: color 0.2s ease, transform 0.2s ease;
-}
-.toolbar i:hover,
-.toolbar-icon:hover {
-  color: #2a9d8f !important;
-  transform: scale(1.15);
-}
-/* --- Clean POS receipt alignment --- */
-#summary-section td {
-  vertical-align: middle;
-  padding: 4px 8px;
-}
-
-/* Make Amount Paid field look like text */
-#amount-paid-input {
-  appearance: none;
-  -moz-appearance: textfield;
-  -webkit-appearance: none;
-  background: transparent;
-  border: none;
-  text-align: right;
-  font-size: 1.05rem;
-  font-weight: 400;
-  color: #000;
-  width: 80px;
-  line-height: 1.5;
-  padding: 0;
-  margin: 0;
-  outline: none;
-  cursor: text;
-  vertical-align: middle;
-}
-
-/* Remove spinners in all browsers */
-#amount-paid-input::-webkit-inner-spin-button,
-#amount-paid-input::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-/* Match receipt text color when not focused */
-#amount-paid-input::placeholder {
-  color: #777;
-}
-
-#amount-paid-input:focus {
-  border-bottom: 1px dotted #aaa;
-  background: transparent;
-  outline: none;
-}
-/* ================= RECEIPT SUMMARY ALIGNMENT ================= */
-
-/* Shared layout for all summary rows */
-#summary-section tr td:first-child {
-  text-align: left;
-  padding-left: 8px;
-}
-#summary-section tr td:last-child {
-  text-align: right;
-  width: 100px;
-  padding-right: 8px;
-}
-
-/* -------- Amount Paid Input -------- */
-#amount-paid-input {
-  -webkit-appearance: none;
-  -moz-appearance: textfield;
-  appearance: none;
-  background: transparent;
-  border: none;
-  text-align: right;
-  font-size: 1rem;
-  font-weight: 400;
-  color: #000;
-  width: 80px;
-  line-height: 1.5;
-  padding: 0;
-  margin: 0;
-  outline: none;
-  vertical-align: middle;
-  cursor: text;
-}
-#amount-paid-input::-webkit-inner-spin-button,
-#amount-paid-input::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-#amount-paid-input::placeholder {
-  color: #777;
-}
-#amount-paid-input:focus {
-  border-bottom: 1px dotted #aaa;
-  background: transparent;
-}
-
-/* -------- Change / Payment Type -------- */
-#change-amount,
-#payment-type {
-  text-align: right;
-  display: inline-block;
-  width: 80px;
-}
-
-/* -------- Grand Total emphasis -------- */
-#grandtotal-summary {
-  font-weight: 700;
-}
-
-/* -------- Split Payment Row -------- */
-#split-info {
-  text-align: right;
-  color: #000;
-  font-size: 0.95rem;
-  font-style: italic;
-  opacity: 0.85;
-  width: 100px;
-}
-
-/* ---------- EXTRA MOBILE REFINEMENTS ---------- */
-@media (max-width: 768px) {
-  header {
-    text-align: center;
-    padding: 1rem 0;
-  }
-
-  header h1 {
-    font-size: clamp(1.2rem, 5vw, 1.8rem);
-    margin: 0 auto;
-  }
-
-  main {
-    flex-direction: column;
-    align-items: stretch;
-    height: auto;
-    margin: 0;
-  }
-
-  .order {
-    width: 100% !important;
-    min-width: unset !important;
-    max-width: unset !important;
-    border-radius: 0;
-    border: none;
-    box-shadow: none;
-    background: #fff;
-    color: #000;
-  }
-
-  .receipt {
-    margin: 8px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  }
-
-  table {
-    font-size: 0.9rem;
-  }
-
-  .toolbar {
-    flex-wrap: wrap;
-    gap: 1.2rem;
-    padding: 1rem 0.5rem;
-  }
-
-  .toolbar-btn {
-    font-size: 1.3rem;
   }
 
   .menu-payment {
@@ -708,132 +432,19 @@ figcaption {
     min-width: 140px;
   }
 
-  .menu-item figcaption {
-    font-size: 0.9rem;
+  .toolbar {
+    flex-wrap: wrap;
+    gap: 1.2rem;
+    padding: 1rem 0.5rem;
+    background: rgba(250,250,250,0.95);
   }
 }
 
-/* ---------- CLEAN MOBILE GRID + HIDE THANK YOU ---------- */
-@media (max-width: 768px) {
-  /* Hide thank-you message */
-  .receipt-footer {
-    display: none !important;
-  }
-
-  /* Product grid becomes vertical */
-  .menu {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.8rem;
-    padding: 0.5rem;
-  }
-
-  /* Each product tile */
-  .menu-item {
-    display: flex;
-    flex-direction: row;              /* image left, text right */
-    align-items: center;
-    justify-content: flex-start;
-    width: 95%;
-    max-width: 480px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    padding: 0.6rem;
-    gap: 0.8rem;
-    box-shadow: 0 0 6px rgba(167,225,238,0.2);
-  }
-
-  /* Smaller image */
-  .menu-image {
-    flex-shrink: 0;
-    width: 90px;
-    height: 90px;
-    object-fit: cover;
-    border-radius: 8px;
-    box-shadow: 0 0 5px rgba(167,225,238,0.25);
-  }
-
-  /* Text next to image */
-  .menu-item figcaption {
-    text-align: left;
-    color: #aef0d0;
-    line-height: 1.3;
-    font-size: 0.9rem;
-  }
-
-  .menu-item figcaption:first-of-type {
-    font-weight: 600;
-    color: #fff;
-    font-size: 1rem;
-    margin-bottom: 2px;
-  }
-
-  .menu-item figcaption:last-of-type {
-    color: #a7e1ee;
-    font-size: 0.85rem;
-  }
-
-  /* Make scroll feel like a neat product list */
-  .menu-payment {
-    background: rgba(255, 255, 255, 0.04);
-    padding: 0.5rem;
-    overflow-y: auto;
-  }
-}
-
-/* Smaller phones (≤430px) */
+/* ---------- SMALLER PHONES ---------- */
 @media (max-width: 430px) {
   .menu-item {
-    flex-direction: column;  /* stack image over text */
+    flex-direction: column;
     align-items: center;
     text-align: center;
   }
-
-  .menu-image {
-    width: 80px;
-    height: 80px;
-    margin-bottom: 0.4rem;
-  }
-
-  .menu-item figcaption {
-    text-align: center;
-  }
 }
-/* ---------- FINAL SAFE-AREA + HEADER FIX ---------- */
-@supports (padding: max(0px)) {
-  header {
-    padding-top: max(12px, env(safe-area-inset-top));
-  }
-  body {
-    padding-top: env(safe-area-inset-top);
-  }
-}
-
-/* Center the header on mobile and add breathing room */
-@media (max-width: 768px) {
-  header {
-    text-align: center;
-    background-color: rgba(255, 255, 255, 0.08);
-    color: #BFD8C1;
-    padding-top: max(18px, env(safe-area-inset-top));
-    padding-bottom: 14px;
-    text-shadow: 0 0 12px rgba(167, 225, 238, 0.6);
-    font-weight: 500;
-    backdrop-filter: blur(4px);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-
-  header h1 {
-    font-family: "Audiowide", cursive;
-    font-size: clamp(1.4rem, 5vw, 1.8rem);
-    letter-spacing: 1px;
-    line-height: 1.2;
-    text-shadow: 0 0 14px rgba(167, 225, 238, 0.7);
-    margin: 0 auto;
-    padding: 0 1rem;
-  }
-}
-
