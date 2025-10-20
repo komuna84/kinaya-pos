@@ -146,11 +146,11 @@ class Ui {
       figure.setAttribute("data-sku", JSON.stringify(item));
       figure.innerHTML = `
         <img src="${item.image}" alt="${item.description}" class="menu-image">
-        <div class="menu-item-content">
-          <div class="title">${item.description}</div>
-          <div class="sku">${item.sku}</div>
-          <div class="price">${Utilities.convertFloatToString(item.price)}</div>
-        </div>
+        <figcaption style="font-weight:bold;margin-top:8px;">${item.description}</figcaption>
+        <figcaption style="font-size:0.9em;opacity:0.8;">${item.sku}</figcaption>
+        <figcaption style="color:#A7E1EE;margin-top:4px;">
+          ${Utilities.convertFloatToString(item.price)}
+        </figcaption>
       `;
       frag.appendChild(figure);
     });
@@ -229,49 +229,42 @@ class Ui {
   }
 }
 
-// ---------- Drawer Setup ----------
+// ---------- Simplified Swipe Drawer ----------
 function setupProductDrawer() {
   const drawer = document.querySelector(".menu-payment");
   if (!drawer) return;
 
-  // Add handle bar
-  let handle = drawer.querySelector(".drawer-handle");
-  if (!handle) {
-    handle = document.createElement("div");
-    handle.className = "drawer-handle";
-    drawer.prepend(handle);
-  }
-
-  const openDrawer = () => {
-    drawer.classList.add("expanded");
-    document.body.classList.add("menu-expanded");
-  };
-  const closeDrawer = () => {
-    drawer.classList.remove("expanded");
-    document.body.classList.remove("menu-expanded");
-  };
-
-  // Tap toggle
-  handle.addEventListener("click", () => {
-    if (window.innerWidth > 900) return;
-    drawer.classList.toggle("expanded");
-    document.body.classList.toggle("menu-expanded");
-  });
-
-  // Swipe detection (on handle only)
   let startY = 0;
-  handle.addEventListener("touchstart", e => (startY = e.touches[0].clientY));
-  handle.addEventListener("touchend", e => {
-    const diff = startY - e.changedTouches[0].clientY;
-    if (diff > 50) openDrawer();
-    if (diff < -50) closeDrawer();
+  let isDragging = false;
+
+  drawer.addEventListener("touchstart", e => {
+    if (window.innerWidth > 900) return;
+    startY = e.touches[0].clientY;
+    isDragging = true;
   });
 
-  // Prevent close when adding products
+  drawer.addEventListener("touchmove", e => {
+    if (!isDragging) return;
+  });
+
+  drawer.addEventListener("touchend", e => {
+    if (!isDragging) return;
+    isDragging = false;
+    const diff = startY - e.changedTouches[0].clientY;
+
+    if (diff > 50 && !drawer.classList.contains("expanded")) {
+      drawer.classList.add("expanded");
+      document.body.classList.add("menu-expanded");
+    } else if (diff < -50 && drawer.classList.contains("expanded")) {
+      drawer.classList.remove("expanded");
+      document.body.classList.remove("menu-expanded");
+    }
+  });
+
+  // Don’t auto-close when clicking a product
   drawer.addEventListener("click", e => {
     if (e.target.closest(".menu-item")) {
-      // keep open
-      openDrawer();
+      drawer.classList.add("expanded");
     }
   });
 }
