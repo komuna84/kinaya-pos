@@ -473,195 +473,64 @@ figcaption {
   }
 }
 
-/* ---------- MOBILE ---------- */
+/* ---------- MOBILE / TABLET (≤ 768px) ---------- */
 @media (max-width: 768px) {
+  /* Keep header readable */
+  header {
+    text-align: center;
+    padding: 0.8rem 0;
+  }
+
+  header h1 {
+    font-size: clamp(1.2rem, 5vw, 1.8rem);
+  }
+
+  /* Stack layout: receipt above drawer */
   main {
     flex-direction: column;
     align-items: stretch;
     height: 100vh;
     overflow: hidden;
   }
+
   .order {
     width: 100%;
     flex: 0 0 65vh;
-    overflow-y: auto;
     border: none;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    background: #fff;
+    color: #000;
+    overflow-y: auto;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     z-index: 2;
   }
-  .receipt {
-    background-color: #fff;
-    color: #000;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    margin: 10px 12px;
-    padding: 6px 0;
-    font-size: 1rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    overflow-x: auto;
+
+  /* Hide "Thank You" */
+  .receipt-footer {
+    display: none !important;
   }
-  th, td {
-    padding: 10px 8px;
-    font-size: 0.95rem;
-  }
-  .toolbar {
-    background: rgba(250,250,250,0.95);
-    border-top: 1px solid #ddd;
-    border-bottom: 1px solid #ddd;
-    margin: 12px auto;
-    padding: 18px 0;
-    gap: 45px;
-    border-radius: 0 0 8px 8px;
-  }
-}
 
-/* ---------- TOOLBAR ICONS ---------- */
-.toolbar i,
-.toolbar-icon {
-  color: #000 !important;
-  opacity: 0.85;
-  transition: color 0.2s ease, transform 0.2s ease;
-}
-.toolbar i:hover,
-.toolbar-icon:hover {
-  color: #2a9d8f !important;
-  transform: scale(1.15);
-}
-/* --- Clean POS receipt alignment --- */
-#summary-section td {
-  vertical-align: middle;
-  padding: 4px 8px;
-}
-
-/* Make Amount Paid field look like text */
-#amount-paid-input {
-  appearance: none;
-  -moz-appearance: textfield;
-  -webkit-appearance: none;
-  background: transparent;
-  border: none;
-  text-align: right;
-  font-size: 1.05rem;
-  font-weight: 400;
-  color: #000;
-  width: 80px;
-  line-height: 1.5;
-  padding: 0;
-  margin: 0;
-  outline: none;
-  cursor: text;
-  vertical-align: middle;
-}
-
-/* Remove spinners in all browsers */
-#amount-paid-input::-webkit-inner-spin-button,
-#amount-paid-input::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-/* Match receipt text color when not focused */
-#amount-paid-input::placeholder {
-  color: #777;
-}
-
-#amount-paid-input:focus {
-  border-bottom: 1px dotted #aaa;
-  background: transparent;
-  outline: none;
-}
-/* ================= RECEIPT SUMMARY ALIGNMENT ================= */
-
-/* Shared layout for all summary rows */
-#summary-section tr td:first-child {
-  text-align: left;
-  padding-left: 8px;
-}
-#summary-section tr td:last-child {
-  text-align: right;
-  width: 100px;
-  padding-right: 8px;
-}
-
-/* -------- Amount Paid Input -------- */
-#amount-paid-input {
-  -webkit-appearance: none;
-  -moz-appearance: textfield;
-  appearance: none;
-  background: transparent;
-  border: none;
-  text-align: right;
-  font-size: 1rem;
-  font-weight: 400;
-  color: #000;
-  width: 80px;
-  line-height: 1.5;
-  padding: 0;
-  margin: 0;
-  outline: none;
-  vertical-align: middle;
-  cursor: text;
-}
-#amount-paid-input::-webkit-inner-spin-button,
-#amount-paid-input::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-#amount-paid-input::placeholder {
-  color: #777;
-}
-#amount-paid-input:focus {
-  border-bottom: 1px dotted #aaa;
-  background: transparent;
-}
-
-/* -------- Change / Payment Type -------- */
-#change-amount,
-#payment-type {
-  text-align: right;
-  display: inline-block;
-  width: 80px;
-}
-
-/* -------- Grand Total emphasis -------- */
-#grandtotal-summary {
-  font-weight: 700;
-}
-
-/* -------- Split Payment Row -------- */
-#split-info {
-  text-align: right;
-  color: #000;
-  font-size: 0.95rem;
-  font-style: italic;
-  opacity: 0.85;
-  width: 100px;
-}
-
-/* ---------- MOBILE SWIPE-UP DRAWER (FINAL FIX) ---------- */
-@media (max-width: 768px) {
+  /* Swipe-Up Drawer (products) */
   .menu-payment {
     position: fixed !important;
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 22vh;
-    background: rgba(10, 10, 10, 0.96);
-    border-radius: 18px 18px 0 0;
+    height: 20vh !important;
+    background: rgba(10, 10, 10, 0.95);
+    border-radius: 16px 16px 0 0;
     border-top: 1px solid rgba(174, 240, 208, 0.3);
     box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.6);
-    transform: translateY(78%);
-    transition: transform 0.35s ease-in-out;
-    z-index: 90; /* below toolbar / pay buttons */
+    transform: translateY(80%);
+    transition: transform 0.4s ease;
+    z-index: 999;
     overflow: hidden;
     touch-action: pan-y;
   }
 
   .menu-payment.expanded {
     transform: translateY(0);
-    height: 92vh; /* nearly full screen */
+    height: 85vh !important;
     overflow-y: auto;
-    padding-bottom: 5rem;
   }
 
   .menu-payment::before {
@@ -676,45 +545,75 @@ figcaption {
     background: rgba(174, 240, 208, 0.6);
   }
 
-  /* --- make 2-column grid inside drawer --- */
+  /* Dim background when expanded */
+  body.menu-expanded main {
+    filter: blur(3px);
+    transition: filter 0.3s ease;
+  }
+  body.menu-expanded {
+    overflow: hidden;
+  }
+
+  /* Card layout inside drawer */
   .menu {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(160px, 1fr));
     gap: 1rem;
     padding: 1rem;
+    justify-items: center;
   }
 
   .menu-item {
+    width: 95%;
+    max-width: 180px;
     background: rgba(255, 255, 255, 0.07);
     border-radius: 12px;
-    padding: 0.8rem;
+    padding: 10px;
     text-align: center;
-    box-shadow: 0 0 10px rgba(167, 225, 238, 0.25);
+    color: #fff;
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+  }
+
+  .menu-item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 10px rgba(167, 225, 238, 0.3);
   }
 
   .menu-image {
     width: 100%;
+    height: 120px;
     border-radius: 10px;
-    margin-bottom: 0.4rem;
+    object-fit: cover;
+    margin-bottom: 8px;
   }
 
   .menu-item figcaption:first-of-type {
-    font-size: 1rem;
     font-weight: 600;
-    margin-bottom: 0.2rem;
+    color: #fff;
+    font-size: 0.95rem;
   }
 
   .menu-item figcaption:last-of-type {
-    font-size: 0.9rem;
     color: #a7e1ee;
+    font-size: 0.85rem;
+  }
+
+  /* Toolbar sticky at top of drawer */
+  .toolbar {
+    position: sticky;
+    top: 0;
+    background: rgba(10,10,10,0.95);
+    border-bottom: 1px solid rgba(174,240,208,0.2);
+    z-index: 5;
   }
 }
 
-/* Fix toolbar visibility (remove black overlay) */
-.toolbar {
-  position: relative;
-  z-index: 100;
-}
-.paypad {
-  z-index: 200;
+/* ---------- SMALL PHONES (≤ 430px) ---------- */
+@media (max-width: 430px) {
+  .menu {
+    grid-template-columns: 1fr;
+  }
+  .menu-image {
+    height: 100px;
+  }
 }
