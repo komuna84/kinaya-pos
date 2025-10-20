@@ -637,3 +637,104 @@ figcaption {
   opacity: 0.85;
   width: 100px;
 }
+
+/* ---------- EXTRA MOBILE REFINEMENTS ---------- */
+@media (max-width: 768px) {
+  header {
+    text-align: center;
+    padding: 1rem 0;
+  }
+
+  header h1 {
+    font-size: clamp(1.2rem, 5vw, 1.8rem);
+    margin: 0 auto;
+  }
+
+  main {
+    flex-direction: column;
+    align-items: stretch;
+    height: auto;
+    margin: 0;
+  }
+
+  .order {
+    width: 100% !important;
+    min-width: unset !important;
+    max-width: unset !important;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+    background: #fff;
+    color: #000;
+  }
+
+  .receipt {
+    margin: 8px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  table {
+    font-size: 0.9rem;
+  }
+
+  .toolbar {
+    flex-wrap: wrap;
+    gap: 1.2rem;
+    padding: 1rem 0.5rem;
+  }
+
+  .toolbar-btn {
+    font-size: 1.3rem;
+  }
+
+  .menu-payment {
+    width: 100%;
+    margin: 0;
+    border-radius: 0;
+    border: none;
+    height: auto;
+    padding: 1rem 0.5rem 2rem;
+  }
+
+  .menu {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .menu-item {
+    width: 45%;
+    min-width: 140px;
+  }
+
+  .menu-item figcaption {
+    font-size: 0.9rem;
+  }
+}
+
+/* Small phones (≤ 480px) */
+@media (max-width: 480px) {
+  header h1 {
+    font-size: 1.3rem;
+  }
+
+  .menu-item {
+    width: 100%;
+    max-width: 280px;
+  }
+
+  th, td {
+    padding: 6px 4px;
+    font-size: 0.85rem;
+  }
+
+  .toolbar {
+    gap: 1rem;
+    padding: 0.8rem 0;
+  }
+
+  .toolbar-btn {
+    font-size: 1.1rem;
+  }
+}
