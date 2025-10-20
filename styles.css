@@ -817,91 +817,95 @@ figcaption {
   }
 }
 
-/* ---------- CLEAN MOBILE GRID + HIDE THANK YOU ---------- */
+/* ---------- FINAL PRODUCT GRID FIX: VERTICAL CARDS ---------- */
 @media (max-width: 768px) {
-  /* Hide thank-you message */
   .receipt-footer {
-    display: none !important;
+    display: none !important; /* Hide Thank You section */
   }
 
-  /* Product grid becomes vertical */
-  .menu {
+  /* Menu container scrolls vertically */
+  .menu-payment {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.8rem;
-    padding: 0.5rem;
+    justify-content: flex-start;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0.75rem 0.5rem;
+    background: rgba(255, 255, 255, 0.04);
+    height: auto;
+    scroll-behavior: smooth;
   }
 
-  /* Each product tile */
+  /* Each product card is vertical */
   .menu-item {
     display: flex;
-    flex-direction: row;              /* image left, text right */
+    flex-direction: column; /* vertical stack */
     align-items: center;
     justify-content: flex-start;
-    width: 95%;
-    max-width: 480px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    padding: 0.6rem;
-    gap: 0.8rem;
-    box-shadow: 0 0 6px rgba(167,225,238,0.2);
+    width: 90%;
+    max-width: 320px;
+    background: rgba(255, 255, 255, 0.07);
+    border-radius: 12px;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    text-align: center;
+    box-shadow: 0 0 10px rgba(167, 225, 238, 0.2);
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
   }
 
-  /* Smaller image */
+  .menu-item:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 12px rgba(174, 240, 208, 0.4);
+  }
+
+  /* Image centered and smaller */
   .menu-image {
-    flex-shrink: 0;
-    width: 90px;
-    height: 90px;
+    width: 120px;
+    height: 120px;
+    border-radius: 10px;
     object-fit: cover;
-    border-radius: 8px;
-    box-shadow: 0 0 5px rgba(167,225,238,0.25);
+    margin-bottom: 0.6rem;
+    box-shadow: 0 0 6px rgba(174, 240, 208, 0.25);
   }
 
-  /* Text next to image */
+  /* Text below image, centered */
   .menu-item figcaption {
-    text-align: left;
     color: #aef0d0;
+    font-size: 0.95rem;
     line-height: 1.3;
-    font-size: 0.9rem;
+    margin: 0.1rem 0;
   }
 
   .menu-item figcaption:first-of-type {
     font-weight: 600;
     color: #fff;
-    font-size: 1rem;
-    margin-bottom: 2px;
+    font-size: 1.05rem;
+    margin-top: 0.3rem;
   }
 
   .menu-item figcaption:last-of-type {
     color: #a7e1ee;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
   }
 
-  /* Make scroll feel like a neat product list */
-  .menu-payment {
-    background: rgba(255, 255, 255, 0.04);
-    padding: 0.5rem;
-    overflow-y: auto;
+  /* Fix scroll behavior */
+  body, main {
+    overflow-x: hidden;
   }
 }
 
-/* Smaller phones (≤430px) */
+/* Tiny phones (≤430px) */
 @media (max-width: 430px) {
   .menu-item {
-    flex-direction: column;  /* stack image over text */
-    align-items: center;
-    text-align: center;
+    width: 95%;
+    padding: 0.6rem;
   }
-
   .menu-image {
-    width: 80px;
-    height: 80px;
-    margin-bottom: 0.4rem;
+    width: 100px;
+    height: 100px;
   }
-
   .menu-item figcaption {
-    text-align: center;
+    font-size: 0.85rem;
   }
 }
-
