@@ -21,7 +21,8 @@ body {
 header {
   background-color: rgba(255, 255, 255, 0.1);
   color: #BFD8C1;
-  text-shadow: 0 0 12px rgba(167, 225, 238, 0.7),
+  text-shadow: 0 0 8px rgba(191, 216, 193, 0.3),
+               0 0 12px rgba(167, 225, 238, 0.7),
                0 0 24px rgba(167, 225, 238, 0.4);
   text-align: center;
   font-size: 1.2rem;
@@ -41,7 +42,7 @@ header h1 {
                0 0 25px rgba(167, 225, 238, 0.4);
 }
 
-/* ---------- MAIN LAYOUT ---------- */
+/* ---------- MAIN ---------- */
 main {
   flex-grow: 1;
   display: flex;
@@ -57,11 +58,11 @@ main {
   width: 600px;
   min-width: 540px;
   max-width: 35%;
-  overflow: hidden;
   border: 2px solid #333;
   box-shadow: 0 0 15px rgba(255, 255, 255, 0.15);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .company-info {
@@ -98,64 +99,11 @@ th, td {
   border-bottom: 1px dotted #ccc;
 }
 
-.quantity, .price, .subtotal, .delete {
+.quantity,
+.price,
+.subtotal,
+.delete {
   text-align: right;
-}
-
-/* --- Summary alignment --- */
-#summary-section td {
-  vertical-align: middle;
-  padding: 4px 8px;
-}
-
-#amount-paid-input {
-  appearance: textfield;
-  -moz-appearance: textfield;
-  background: transparent;
-  border: none;
-  text-align: right;
-  font-size: 1rem;
-  color: #000;
-  width: 90px;
-  padding: 0;
-  margin: 0;
-  line-height: 1.4;
-  outline: none;
-  vertical-align: middle;
-}
-
-#amount-paid-input:focus {
-  outline: none;
-  background: rgba(167,225,238,0.1);
-}
-
-#change-amount,
-#payment-type {
-  text-align: right;
-  display: inline-block;
-  width: 90px;
-}
-
-/* --- Submit button --- */
-.submit-sale-btn {
-  background: #4caf50;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 8px 16px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.submit-sale-btn:hover {
-  background: #45a049;
-}
-
-/* ---------- FOOTER ---------- */
-.receipt-footer {
-  padding-top: 12px;
-  text-align: center;
-  font-size: 1.1rem;
-  border-top: dotted 2px #ccc;
 }
 
 /* ---------- TOOLBAR ---------- */
@@ -179,12 +127,12 @@ th, td {
   cursor: pointer;
   transition: transform 0.2s, color 0.2s;
 }
-
 .toolbar-btn:hover {
   transform: scale(1.2);
   color: #fff;
 }
 
+/* ---------- RETURN BUTTON ---------- */
 #toggle-return {
   background: none;
   border: none;
@@ -205,50 +153,40 @@ th, td {
   transform: scale(1.2);
 }
 
-/* ---------- MENU SECTION (SWIPE SCROLL) ---------- */
+/* ---------- MENU SECTION ---------- */
 .menu-payment {
   background: rgba(255, 255, 255, 0.05);
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
   padding: 15px;
-  position: relative;
   border: solid 0.5px #333;
   border-radius: 10px;
   margin: 0 10px 5px 10px;
   height: calc(100% - 10px);
+  overflow: hidden;
 }
 
 .menu {
   display: flex;
-  flex-wrap: nowrap;
-  justify-content: flex-start;
-  align-items: flex-start;
-  gap: 18px;
-  width: max-content;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  padding: 10px;
-}
-.menu::-webkit-scrollbar {
-  height: 6px;
-}
-.menu::-webkit-scrollbar-thumb {
-  background: rgba(167,225,238,0.4);
-  border-radius: 3px;
+  flex-flow: row wrap;
+  justify-content: center;
+  align-content: flex-start;
+  height: 100%;
+  overflow: auto;
+  gap: 20px;
 }
 
+/* ---------- PRODUCT ITEM ---------- */
 .menu-item {
-  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.07);
   width: 220px;
-  border-radius: 14px;
+  border-radius: 16px;
+  padding: 12px;
   text-align: center;
-  background: rgba(255,255,255,0.07);
-  padding: 10px;
   transition: transform 0.2s ease, box-shadow 0.3s ease;
-  scroll-snap-align: start;
 }
 .menu-item:hover {
   transform: scale(1.05);
@@ -256,12 +194,12 @@ th, td {
 }
 
 .menu-image {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  object-fit: cover;
   border-radius: 10px;
-  margin-bottom: 8px;
-  background-color: #222;
+  max-width: 200px;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  margin: 0 auto 10px auto;
 }
 
 figcaption {
@@ -280,28 +218,27 @@ figcaption {
   color: #a7e1ee;
 }
 
-/* right fade edge for swipe area */
-.menu-payment::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: 40px;
-  height: 100%;
-  background: linear-gradient(to left, rgba(18,18,18,1), transparent);
-  pointer-events: none;
-}
-
-/* ---------- MOBILE ---------- */
+/* ---------- MOBILE (CLEAN COLUMN SCROLL) ---------- */
 @media (max-width: 768px) {
   header {
     text-align: center;
-    padding-top: max(20px, env(safe-area-inset-top));
-    padding-bottom: 16px;
+    background-color: rgba(255, 255, 255, 0.08);
+    color: #BFD8C1;
+    padding-top: max(18px, env(safe-area-inset-top));
+    padding-bottom: 14px;
+    text-shadow: 0 0 12px rgba(167, 225, 238, 0.6);
+    font-weight: 500;
+    backdrop-filter: blur(4px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
   }
 
   header h1 {
-    font-size: clamp(1.3rem, 5vw, 1.8rem);
+    font-size: clamp(1.4rem, 5vw, 1.8rem);
+    letter-spacing: 1px;
+    line-height: 1.2;
+    text-shadow: 0 0 14px rgba(167, 225, 238, 0.7);
   }
 
   main {
@@ -316,31 +253,69 @@ figcaption {
     flex: 0 0 65vh;
     overflow-y: auto;
     border: none;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    z-index: 2;
+    box-shadow: none;
+    background: #fff;
+    color: #000;
   }
 
   .menu-payment {
-    width: 100%;
-    border-radius: 0;
-    height: auto;
-    padding: 1rem;
-    overflow-x: auto;
+    background: rgba(255, 255, 255, 0.04);
+    padding: 0.5rem;
+    overflow-y: auto;
   }
 
   .menu {
     display: flex;
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    gap: 18px;
-    width: max-content;
-    scroll-snap-type: x mandatory;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.5rem;
   }
 
   .menu-item {
-    flex: 0 0 auto;
-    width: 180px;
-    padding: 10px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    width: 95%;
+    max-width: 480px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 0.6rem;
+    gap: 0.8rem;
+    box-shadow: 0 0 6px rgba(167,225,238,0.2);
+  }
+
+  .menu-image {
+    flex-shrink: 0;
+    width: 90px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 0 5px rgba(167,225,238,0.25);
+  }
+
+  .menu-item figcaption {
+    text-align: left;
+    color: #aef0d0;
+    line-height: 1.3;
+    font-size: 0.9rem;
+  }
+
+  .menu-item figcaption:first-of-type {
+    font-weight: 600;
+    color: #fff;
+    font-size: 1rem;
+    margin-bottom: 2px;
+  }
+
+  .menu-item figcaption:last-of-type {
+    color: #a7e1ee;
+    font-size: 0.85rem;
+  }
+
+  .receipt-footer {
+    display: none !important;
   }
 
   .toolbar {
@@ -348,5 +323,24 @@ figcaption {
     gap: 1.2rem;
     padding: 1rem 0.5rem;
     background: rgba(250,250,250,0.95);
+  }
+}
+
+/* ---------- SMALLER PHONES ---------- */
+@media (max-width: 430px) {
+  .menu-item {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .menu-image {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 0.4rem;
+  }
+
+  .menu-item figcaption {
+    text-align: center;
   }
 }
