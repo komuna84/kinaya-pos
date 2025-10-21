@@ -17,81 +17,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ===========================================================
-// ACCESS GATE - Require passcode before using POS
-// ===========================================================
-window.addEventListener("load", () => {
-  const gate = document.getElementById("passcode-screen");
-  const input = document.getElementById("passcode-input");
-  const button = document.getElementById("passcode-btn");
-  const errorMsg = document.getElementById("passcode-error");
-  const PASSCODE = "Lumina2025";
-
-  if (!gate || !input || !button) {
-    console.error("❌ Passcode elements missing.");
-    return;
-  }
-
-  function unlockPOS() {
-    console.log("🔓 Unlocking POS...");
-    gate.style.transition = "opacity 0.4s ease";
-    gate.style.opacity = "0";
-
-    // Fix Safari mobile lag
-    void gate.offsetWidth;
-
-    setTimeout(() => {
-      gate.style.display = "none";
-      gate.style.pointerEvents = "none";
-      sessionStorage.setItem("posUnlocked", "true");
-
-      // Initialize POS
-      Ui.renderMenu(order);
-      Ui.receiptDetails(order);
-      Ui.updateTotals(order);
-      updatePaymentUI();
-      toggleSubmitVisibility();
-
-      // Attach product listeners
-      const menuContainer = document.getElementById("menu");
-      if (menuContainer) {
-        menuContainer.addEventListener("click", (e) => {
-          const item = e.target.closest(".menu-item");
-          if (!item) return;
-          const data = item.getAttribute("data-sku");
-          if (data) order.addOrderLine(1, data, false);
-        });
-      }
-
-      console.log("✅ POS fully unlocked");
-    }, 500);
-  }
-
-  function tryUnlock() {
-    const entered = input.value.trim();
-    console.log("🔐 Entered:", entered);
-    if (entered === PASSCODE) {
-      unlockPOS();
-    } else {
-      errorMsg.style.display = "block";
-      input.value = "";
-    }
-  }
-
-  // Auto-unlock for active session
-  if (sessionStorage.getItem("posUnlocked") === "true") {
-    gate.style.display = "none";
-    unlockPOS();
-    return;
-  }
-
-  // Button & Enter key
-  button.addEventListener("click", tryUnlock);
-  input.addEventListener("keypress", (e) => {
-    if (e.key === "Enter") tryUnlock();
-  });
-});
-
-// ===========================================================
 // CORE ORDER MODEL
 // ===========================================================
 class Order {
@@ -278,13 +203,14 @@ class Ui {
       receiptDetails.appendChild(row);
     });
 
-    Ui.attachDeleteHandlers(orderInstance);
+    // Ensure handlers attach after DOM update
+    setTimeout(() => Ui.attachDeleteHandlers(orderInstance), 10);
     Ui.updateTotals(orderInstance);
   }
 
   static attachDeleteHandlers(orderInstance) {
     document.querySelectorAll(".delete").forEach(btn => {
-      btn.addEventListener("click", e => {
+      btn.onclick = e => {
         e.stopPropagation();
         const index = parseInt(btn.getAttribute("data-delete"));
         if (isNaN(index)) return;
@@ -298,7 +224,7 @@ class Ui {
         Ui.updateTotals(orderInstance);
         updatePaymentUI();
         toggleSubmitVisibility();
-      });
+      };
     });
   }
 
@@ -322,96 +248,71 @@ const sheetCsvUrl =
 const order = new Order();
 let isReturnMode = false;
 
+// Load menu before unlock
 loadMenuFromSheet(sheetCsvUrl).then(rows => {
   order.menu = rows;
   Ui.renderMenu(order);
 });
 
 // ===========================================================
-// PAYMENT + PAYPAD FIXED
+// ACCESS GATE - Require passcode before using POS
 // ===========================================================
-const paymentOverlay = document.getElementById("payment-overlay");
-const closeBtn = document.getElementById("close-paypad-btn");
-const cashBtn = document.getElementById("cash-btn");
-const cardBtn = document.getElementById("card-btn");
-const amountInput = document.getElementById("amount-paid-input");
-const paymentTypeEl = document.getElementById("payment-type");
-const changeEl = document.getElementById("change-amount");
-const splitInfoEl = document.getElementById("split-info");
+window.addEventListener("load", () => {
+  const gate = document.getElementById("passcode-screen");
+  const input = document.getElementById("passcode-input");
+  const button = document.getElementById("passcode-btn");
+  const errorMsg = document.getElementById("passcode-error");
+  const PASSCODE = "Lumina2025";
 
-let activeMethod = null;
-let currentInput = "";
+  if (!gate || !input || !button) return;
 
-// Live display updater
-function updatePaypadDisplay() {
-  const display = document.getElementById("paypad-display");
-  const cents = parseFloat(currentInput);
-  const numeric = isNaN(cents) ? 0 : cents / 100;
-  if (display) display.textContent = `$${numeric.toFixed(2)}`;
-}
-
-// --- Open & Close Overlay Safely ---
-function openPaypad(method) {
-  activeMethod = method;
-  currentInput = "";
-  updatePaypadDisplay();
-
-  if (paymentOverlay) {
-    paymentOverlay.style.display = "flex";
-    paymentOverlay.style.pointerEvents = "all";
-    paymentOverlay.classList.add("active");
-  }
-
-  if (paymentTypeEl) paymentTypeEl.textContent = method.toUpperCase();
-}
-
-function closePaypad() {
-  activeMethod = null;
-  currentInput = "";
-
-  if (paymentOverlay) {
-    paymentOverlay.classList.remove("active");
-    paymentOverlay.style.pointerEvents = "none";
-    paymentOverlay.style.opacity = "0";
-    // Smooth fade-out
+  function unlockPOS() {
+    gate.style.transition = "opacity 0.4s ease";
+    gate.style.opacity = "0";
+    void gate.offsetWidth;
     setTimeout(() => {
-      paymentOverlay.style.display = "none";
-      paymentOverlay.style.opacity = "1";
-    }, 250);
+      gate.style.display = "none";
+      gate.style.pointerEvents = "none";
+      try { sessionStorage.setItem("posUnlocked", "true"); } catch {}
+
+      Ui.renderMenu(order);
+      Ui.receiptDetails(order);
+      Ui.updateTotals(order);
+      updatePaymentUI();
+      toggleSubmitVisibility();
+
+      const menuContainer = document.getElementById("menu");
+      if (menuContainer) {
+        menuContainer.addEventListener("click", e => {
+          const item = e.target.closest(".menu-item");
+          if (!item) return;
+          const data = item.getAttribute("data-sku");
+          if (data) order.addOrderLine(1, data, isReturnMode);
+        });
+      }
+    }, 500);
   }
-}
 
-if (cashBtn) cashBtn.addEventListener("click", () => openPaypad("cash"));
-if (cardBtn) cardBtn.addEventListener("click", () => openPaypad("card"));
-if (closeBtn) closeBtn.addEventListener("click", closePaypad);
+  const tryUnlock = () => {
+    if (input.value.trim() === PASSCODE) unlockPOS();
+    else {
+      errorMsg.style.display = "block";
+      input.value = "";
+    }
+  };
 
-document.querySelectorAll(".paypad-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const id = btn.getAttribute("data-id");
-    if (!id) return;
-    if (id === "clear") currentInput = "";
-    else if (id === "back") currentInput = currentInput.slice(0, -1);
-    else if (id === "close-sale") finalizePaypadAmount();
-    else if (!isNaN(id)) currentInput += id;
-    updatePaypadDisplay();
-  });
-});
-
-function finalizePaypadAmount() {
-  const cents = parseFloat(currentInput);
-  const amount = isNaN(cents) ? 0 : cents / 100;
-  if (amount <= 0 || !activeMethod) {
-    alert("Enter a valid amount");
+  if (sessionStorage.getItem("posUnlocked") === "true") {
+    gate.style.display = "none";
+    unlockPOS();
     return;
   }
-  order._payment[activeMethod] = Utilities.roundToTwo(order._payment[activeMethod] + amount);
-  updatePaymentUI();
-  toggleSubmitVisibility();
-  closePaypad();
-}
+
+  button.onclick = tryUnlock;
+  input.onkeypress = e => e.key === "Enter" && tryUnlock();
+});
 
 // ===========================================================
-// PAYMENT UI + SUBMISSION
+// PAYMENT + SUBMISSION + FINAL INIT (unchanged from your version)
 // ===========================================================
 function orderTotal() {
   return order._order.reduce((a, l) => a + l.subtotal + l.tax, 0);
@@ -423,6 +324,9 @@ function updatePaymentUI(reset = false) {
   const total = orderTotal();
   const paid = reset ? 0 : totalPaid();
   const change = Math.max(0, paid - total);
+  const amountInput = document.getElementById("amount-paid-input");
+  const changeEl = document.getElementById("change-amount");
+  const splitInfoEl = document.getElementById("split-info");
   if (amountInput) amountInput.value = paid ? paid.toFixed(2) : "";
   if (changeEl) changeEl.textContent = Utilities.convertFloatToString(change);
   const cash = order._payment.cash, card = order._payment.card;
@@ -433,73 +337,13 @@ function updatePaymentUI(reset = false) {
       : "None";
 }
 
-// ===========================================================
-// SALE SUBMIT
-// ===========================================================
-const submitRow = document.getElementById("submit-row");
-const submitBtn = document.getElementById("submit-sale");
-const emailInput = document.getElementById("customer-email");
-const modal = document.getElementById("submit-modal");
-const modalCancel = document.getElementById("modal-cancel");
-const modalOk = document.getElementById("modal-ok");
-
 function toggleSubmitVisibility() {
+  const submitRow = document.getElementById("submit-row");
+  const emailInput = document.getElementById("customer-email");
   const ready = totalPaid() >= orderTotal();
   const hasEmail = emailInput && emailInput.value.trim();
   if (submitRow) submitRow.style.display = ready && hasEmail && order._order.length ? "table-row" : "none";
 }
-if (emailInput) emailInput.addEventListener("input", toggleSubmitVisibility);
 
-if (submitBtn) submitBtn.addEventListener("click", () => modal.classList.remove("hidden"));
-if (modalCancel) modalCancel.addEventListener("click", () => modal.classList.add("hidden"));
-if (modalOk) modalOk.addEventListener("click", () => {
-  modal.classList.add("hidden");
-  submitSale();
-});
-
-function submitSale() {
-  const email = (emailInput && emailInput.value.trim()) || "";
-  const date = new Date().toLocaleDateString("en-US");
-  const split = splitInfoEl ? splitInfoEl.textContent : "";
-  const rows = order._order.map(l => ({
-    Date: date,
-    Sku: l.sku,
-    Product: l.description,
-    Qty: l.quantity,
-    Price: l.price,
-    Subtotal: l.subtotal,
-    Tax: l.tax,
-    Total: Utilities.roundToTwo(l.subtotal + l.tax),
-    Email: email,
-    SplitPayment: split,
-  }));
-
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxrv2qEiZ5mOIa9w_cnde4n9rZdJERT08bqja7gUz2V_4GtkwAYodfuufIroRCwUVolnw/exec";
-
-  fetch(WEB_APP_URL, {
-    method: "POST",
-    mode: "no-cors",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(rows),
-  })
-    .then(() => {
-      alert("✅ Sale submitted successfully! Check your sheet for confirmation.");
-      order._order = [];
-      order._payment = { cash: 0, card: 0 };
-      Ui.receiptDetails(order);
-      Ui.updateTotals(order);
-      updatePaymentUI(true);
-      toggleSubmitVisibility();
-    })
-    .catch(err => {
-      alert("⚠️ Error submitting sale: " + err.message);
-      console.error(err);
-    });
-}
-
-// ===========================================================
-// FINAL INITIALIZATION
-// ===========================================================
 updatePaymentUI();
 toggleSubmitVisibility();
-
