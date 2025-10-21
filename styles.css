@@ -1180,46 +1180,41 @@ body.login-body {
    FIXED: Green Success Button Centered in White Box
    ================================ */
 #submit-row {
-  display: flex;               /* ✅ flexbox centers horizontally */
+  display: flex;
   justify-content: center;
   align-items: center;
-  padding: 1rem 0;
-  width: 100%;
-  border: none;
+  padding: 1.2rem 0;
+  background: #fff; /* matches the order box */
 }
 
 #submit-sale {
-  background-color: #4CAF50;   /* ✅ classic success green */
+  background: #4CAF50;
   color: #fff;
   border: none;
   border-radius: 8px;
-  padding: 12px 0;
-  width: 70%;                  /* ✅ wide rectangle instead of square */
-  max-width: 300px;            /* keep it reasonable */
+  padding: 12px 40px;
   font-size: 1.1rem;
   font-weight: 600;
-  text-align: center;
   cursor: pointer;
-  transition: background 0.25s ease, transform 0.2s ease;
+  transition: background 0.25s ease, transform 0.15s ease;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 #submit-sale:hover {
-  background-color: #45A049;   /* darker green on hover */
+  background: #45A049;
   transform: scale(1.03);
 }
 
-/* Disabled state */
-#submit-row:not(.visible) #submit-sale {
-  opacity: 0.6;
-  pointer-events: none;
+/* Hidden state */
+#submit-row:not(.visible) {
+  display: none;
 }
 
 /* Mobile tweak */
 @media (max-width: 768px) {
   #submit-sale {
     width: 90%;
-    font-size: 1rem;
+    padding: 14px 0;
   }
 }
 
