@@ -1,8 +1,8 @@
 // ===========================================================
-// Kinaya Rising POS (Stable October 2025) - script.js
+// Kinaya Rising POS (Stable October 2025) - FINAL CLEAN JS
 // ===========================================================
 
-// ---------- Header Date ----------
+// ---------- HEADER DATE ----------
 document.addEventListener("DOMContentLoaded", () => {
   const dateEl = document.getElementById("current-date");
   if (dateEl) {
@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
 // ===========================================================
 // ACCESS GATE - Require passcode before using POS
 // ===========================================================
@@ -28,7 +29,7 @@ window.addEventListener("load", () => {
 
   const PASSCODE = "Lumina2025"; // 🌿 Change to your preferred code
 
-  // If user already unlocked during this session
+  // If already unlocked
   if (sessionStorage.getItem("posUnlocked") === "true") {
     gate.style.display = "none";
     return;
@@ -53,7 +54,9 @@ window.addEventListener("load", () => {
   });
 });
 
-// ---------- Core Models ----------
+// ===========================================================
+// CORE ORDER MODEL
+// ===========================================================
 class Order {
   constructor() {
     this._menu = [];
@@ -131,12 +134,28 @@ class Order {
 
     Ui.receiptDetails(this);
     Ui.updateTotals(this);
-    updatePaymentUI();            
-    toggleSubmitVisibility();     
+    updatePaymentUI();
+    toggleSubmitVisibility();
   }
 }
 
-// ---------- CSV ----------
+// ===========================================================
+// UTILITIES
+// ===========================================================
+class Utilities {
+  static convertFloatToString(float) {
+    const priceParams = { style: "currency", currency: "USD" };
+    if (float < 0) return `(${Math.abs(float).toLocaleString("en-US", priceParams)})`;
+    return float.toLocaleString("en-US", priceParams);
+  }
+  static roundToTwo(num) {
+    return +(Math.round(num * 100) / 100);
+  }
+}
+
+// ===========================================================
+// CSV LOADER
+// ===========================================================
 async function loadMenuFromSheet(url) {
   const response = await fetch(url, { mode: "cors" });
   const text = await response.text();
@@ -166,26 +185,16 @@ async function loadMenuFromSheet(url) {
   return rows;
 }
 
-// ---------- Utils ----------
-class Utilities {
-  static convertFloatToString(float) {
-    const priceParams = { style: "currency", currency: "USD" };
-    if (float < 0) return `(${Math.abs(float).toLocaleString("en-US", priceParams)})`;
-    return float.toLocaleString("en-US", priceParams);
-  }
-  static roundToTwo(num) {
-    return +(Math.round(num * 100) / 100);
-  }
-}
-
-// ---------- UI ----------
+// ===========================================================
+// UI CLASS
+// ===========================================================
 class Ui {
   static renderMenu(orderInstance) {
     const menuContainer = document.getElementById("menu");
     if (!menuContainer) return;
     menuContainer.innerHTML = "";
 
-    if (!orderInstance.menu || orderInstance.menu.length === 0) {
+    if (!orderInstance.menu.length) {
       menuContainer.innerHTML = "<p style='color:white'>No active products found.</p>";
       return;
     }
@@ -214,29 +223,21 @@ class Ui {
     if (!receiptDetails) return;
     receiptDetails.innerHTML = "";
 
-    if (orderInstance._order.length === 0) {
+    if (!orderInstance._order.length) {
       receiptDetails.innerHTML = `<tr><td colspan="5" style="color:#aaa;text-align:center;">No items yet</td></tr>`;
       Ui.updateTotals(orderInstance);
       return;
     }
 
-    orderInstance._order.forEach((orderLine, index) => {
+    orderInstance._order.forEach((line, i) => {
       const row = document.createElement("tr");
-      row.classList.add("receipt-row");
-      row.setAttribute("data-index", index);
-
-      const isReturn = orderLine.quantity < 0;
-      const returnStyle = isReturn ? "color:#e63946;font-weight:bold;" : "";
-
+      const style = line.quantity < 0 ? "color:#e63946;font-weight:bold;" : "";
       row.innerHTML = `
-        <td class="description" style="${returnStyle}">${orderLine.description}</td>
-        <td class="quantity" style="${returnStyle}">${orderLine.quantity}</td>
-        <td class="price" style="${returnStyle}">${Utilities.convertFloatToString(orderLine.price)}</td>
-        <td class="subtotal" style="${returnStyle}">${Utilities.convertFloatToString(orderLine.subtotal)}</td>
-        <td class="delete" data-delete="${index}" title="Remove item">
-          <i class="fas fa-backspace"></i>
-        </td>
-      `;
+        <td style="${style}">${line.description}</td>
+        <td style="${style}">${line.quantity}</td>
+        <td style="${style}">${Utilities.convertFloatToString(line.price)}</td>
+        <td style="${style}">${Utilities.convertFloatToString(line.subtotal)}</td>
+        <td class="delete" data-delete="${i}" title="Remove item"><i class="fas fa-backspace"></i></td>`;
       receiptDetails.appendChild(row);
     });
 
@@ -245,20 +246,17 @@ class Ui {
   }
 
   static attachDeleteHandlers(orderInstance) {
-    document.querySelectorAll(".delete").forEach(button => {
-      button.addEventListener("click", e => {
+    document.querySelectorAll(".delete").forEach(btn => {
+      btn.addEventListener("click", e => {
         e.stopPropagation();
-        const index = parseInt(button.getAttribute("data-delete"));
+        const index = parseInt(btn.getAttribute("data-delete"));
         if (isNaN(index)) return;
         const line = orderInstance._order[index];
         if (!line) return;
-
         line.quantity--;
         line.subtotal = Utilities.roundToTwo(line.quantity * line.price);
         line.tax = Utilities.roundToTwo(line.subtotal * 0.07);
-
         if (line.quantity <= 0) orderInstance._order.splice(index, 1);
-
         Ui.receiptDetails(orderInstance);
         Ui.updateTotals(orderInstance);
         updatePaymentUI();
@@ -271,52 +269,35 @@ class Ui {
     const subtotal = orderInstance._order.reduce((a, l) => a + l.subtotal, 0);
     const tax = orderInstance._order.reduce((a, l) => a + l.tax, 0);
     const grandTotal = subtotal + tax;
-
-    const fmt = val =>
-      val < 0 ? `(${Utilities.convertFloatToString(Math.abs(val))})` : Utilities.convertFloatToString(val);
-
+    const fmt = v => Utilities.convertFloatToString(v);
     document.getElementById("subtotal-summary").textContent = fmt(subtotal);
     document.getElementById("tax-summary").textContent = fmt(tax);
     document.getElementById("grandtotal-summary").textContent = fmt(grandTotal);
   }
 }
 
-// ---------- Init ----------
+// ===========================================================
+// INIT
+// ===========================================================
 const sheetCsvUrl =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vT8TYrKVClp5GXP5Sx7NYGpfRvEMCCNuL40vbcyhdwP6bnvQeQRqJ4xTv6BZUnC5nm7N2N_KwQlHZ2H/pub?gid=30403628&single=true&output=csv";
 
-let isReturnMode = false;
-const returnButton = document.getElementById("toggle-return");
 const order = new Order();
+let isReturnMode = false;
 
-loadMenuFromSheet(sheetCsvUrl).then(menuData => {
-  order.menu = menuData;
+loadMenuFromSheet(sheetCsvUrl).then(rows => {
+  order.menu = rows;
   Ui.renderMenu(order);
 });
 
-if (returnButton) {
-  returnButton.addEventListener("click", () => {
-    isReturnMode = !isReturnMode;
-    returnButton.classList.toggle("active");
-  });
-}
-
-document.addEventListener("click", e => {
-  const card = e.target.closest(".menu-item");
-  if (!card) return;
-  const data = card.getAttribute("data-sku");
-  order.addOrderLine(1, data, isReturnMode);
-});
-
-// =======================================================
-// PAYMENT & SPLIT LOGIC
-// =======================================================
+// ===========================================================
+// PAYMENT + PAYPAD
+// ===========================================================
 const paymentOverlay = document.getElementById("payment-overlay");
-const closePaypadIcon = document.querySelector(".paypad-close");
+const closeBtn = document.getElementById("close-paypad-btn");
 const cashBtn = document.getElementById("cash-btn");
 const cardBtn = document.getElementById("card-btn");
-const clearBtn = document.getElementById("clear-btn");
-const manualAmountInput = document.getElementById("amount-paid-input");
+const amountInput = document.getElementById("amount-paid-input");
 const paymentTypeEl = document.getElementById("payment-type");
 const changeEl = document.getElementById("change-amount");
 const splitInfoEl = document.getElementById("split-info");
@@ -324,51 +305,41 @@ const splitInfoEl = document.getElementById("split-info");
 let activeMethod = null;
 let currentInput = "";
 
+// Live display updater
+function updatePaypadDisplay() {
+  const display = document.getElementById("paypad-display");
+  const cents = parseFloat(currentInput);
+  const numeric = isNaN(cents) ? 0 : cents / 100;
+  if (display) display.textContent = `$${numeric.toFixed(2)}`;
+}
+
 function openPaypad(method) {
   activeMethod = method;
   currentInput = "";
-  const display = document.getElementById("paypad-display");
-  if (display) display.textContent = "$0.00";
-  paymentOverlay.classList.add("active");
-  paymentTypeEl.textContent = method[0].toUpperCase() + method.slice(1);
+  updatePaypadDisplay();
+  if (paymentOverlay) paymentOverlay.classList.add("active");
+  if (paymentTypeEl) paymentTypeEl.textContent = method.toUpperCase();
 }
+
 function closePaypad() {
   activeMethod = null;
   currentInput = "";
-  paymentOverlay.classList.remove("active");
+  if (paymentOverlay) paymentOverlay.classList.remove("active");
 }
 
-if (closePaypadIcon) closePaypadIcon.addEventListener("click", closePaypad);
 if (cashBtn) cashBtn.addEventListener("click", () => openPaypad("cash"));
 if (cardBtn) cardBtn.addEventListener("click", () => openPaypad("card"));
+if (closeBtn) closeBtn.addEventListener("click", closePaypad);
 
-if (clearBtn) {
-  clearBtn.addEventListener("click", () => {
-    if (!confirm("Clear current order?")) return;
-    order._order = [];
-    order._payment = { cash: 0, card: 0 };
-    Ui.receiptDetails(order);
-    Ui.updateTotals(order);
-    updatePaymentUI(true);
-    toggleSubmitVisibility();
-  });
-}
-
-// Paypad buttons
 document.querySelectorAll(".paypad-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     const id = btn.getAttribute("data-id");
     if (!id) return;
-
     if (id === "clear") currentInput = "";
     else if (id === "back") currentInput = currentInput.slice(0, -1);
     else if (id === "close-sale") finalizePaypadAmount();
     else if (!isNaN(id)) currentInput += id;
-
-    const display = document.getElementById("paypad-display");
-    const cents = parseFloat(currentInput);
-    const numeric = isNaN(cents) ? 0 : cents / 100;
-    if (display) display.textContent = `$${numeric.toFixed(2)}`;
+    updatePaypadDisplay();
   });
 });
 
@@ -379,82 +350,38 @@ function finalizePaypadAmount() {
     alert("Enter a valid amount");
     return;
   }
-
   order._payment[activeMethod] = Utilities.roundToTwo(order._payment[activeMethod] + amount);
-  const paid = totalPaid();
-  if (manualAmountInput) manualAmountInput.value = paid.toFixed(2);
-
   updatePaymentUI();
   toggleSubmitVisibility();
   closePaypad();
 }
 
-if (manualAmountInput) {
-  manualAmountInput.addEventListener("input", () => {
-    const typed = parseFloat(manualAmountInput.value);
-    const total = isNaN(typed) ? 0 : Math.max(0, typed);
-    const bucket = activeMethod || "cash";
-    const other = bucket === "cash" ? "card" : "cash";
-    order._payment[bucket] = Utilities.roundToTwo(total);
-    order._payment[other] = 0;
-    paymentTypeEl.textContent = bucket[0].toUpperCase() + bucket.slice(1);
-    updatePaymentUI();
-    toggleSubmitVisibility();
-  });
-}
-
+// ===========================================================
+// PAYMENT UI + SUBMISSION
+// ===========================================================
 function orderTotal() {
   return order._order.reduce((a, l) => a + l.subtotal + l.tax, 0);
 }
 function totalPaid() {
   return Object.values(order._payment).reduce((a, b) => a + b, 0);
 }
-
 function updatePaymentUI(reset = false) {
   const total = orderTotal();
   const paid = reset ? 0 : totalPaid();
   const change = Math.max(0, paid - total);
-
-  if (manualAmountInput && !reset) {
-    manualAmountInput.value = paid ? paid.toFixed(2) : "";
-  }
-  if (changeEl) {
-    changeEl.textContent = Utilities.convertFloatToString(change);
-  }
-
-  // ---- Split Payment Display ----
-  const cash = order._payment.cash;
-  const card = order._payment.card;
-  if (splitInfoEl) {
-    if (cash > 0 && card > 0) {
-      splitInfoEl.textContent = `${Utilities.convertFloatToString(cash)} Cash + ${Utilities.convertFloatToString(card)} Card`;
-    } else if (cash > 0) {
-      splitInfoEl.textContent = `${Utilities.convertFloatToString(cash)} Cash`;
-    } else if (card > 0) {
-      splitInfoEl.textContent = `${Utilities.convertFloatToString(card)} Card`;
-    } else {
-      splitInfoEl.textContent = "None";
-    }
-  }
-
-  let statusEl = document.getElementById("payment-status");
-  if (!statusEl) {
-    statusEl = document.createElement("div");
-    statusEl.id = "payment-status";
-    statusEl.style.position = "fixed";
-    statusEl.style.bottom = "6px";
-    statusEl.style.left = "50%";
-    statusEl.style.transform = "translateX(-50%)";
-    statusEl.style.fontWeight = "600";
-    statusEl.style.color = "#A7E1EE";
-    document.body.appendChild(statusEl);
-  }
-  statusEl.textContent = `Paid: ${Utilities.convertFloatToString(paid)} / ${Utilities.convertFloatToString(total)} ${paid >= total ? "✔︎" : ""}`;
+  if (amountInput) amountInput.value = paid ? paid.toFixed(2) : "";
+  if (changeEl) changeEl.textContent = Utilities.convertFloatToString(change);
+  const cash = order._payment.cash, card = order._payment.card;
+  if (splitInfoEl)
+    splitInfoEl.textContent = cash && card ? `${Utilities.convertFloatToString(cash)} Cash + ${Utilities.convertFloatToString(card)} Card`
+      : cash ? `${Utilities.convertFloatToString(cash)} Cash`
+      : card ? `${Utilities.convertFloatToString(card)} Card`
+      : "None";
 }
 
-// =======================================================
-// SUBMIT SALE (FINAL VERSION - GitHub Pages Ready)
-// =======================================================
+// ===========================================================
+// SALE SUBMIT
+// ===========================================================
 const submitRow = document.getElementById("submit-row");
 const submitBtn = document.getElementById("submit-sale");
 const emailInput = document.getElementById("customer-email");
@@ -464,13 +391,9 @@ const modalOk = document.getElementById("modal-ok");
 
 function toggleSubmitVisibility() {
   const ready = totalPaid() >= orderTotal();
-  const hasEmail = !!(emailInput && emailInput.value.trim());
-  if (submitRow)
-    submitRow.style.display = ready && hasEmail && order._order.length
-      ? "table-row"
-      : "none";
+  const hasEmail = emailInput && emailInput.value.trim();
+  if (submitRow) submitRow.style.display = ready && hasEmail && order._order.length ? "table-row" : "none";
 }
-
 if (emailInput) emailInput.addEventListener("input", toggleSubmitVisibility);
 
 if (submitBtn) submitBtn.addEventListener("click", () => modal.classList.remove("hidden"));
@@ -483,41 +406,30 @@ if (modalOk) modalOk.addEventListener("click", () => {
 function submitSale() {
   const email = (emailInput && emailInput.value.trim()) || "";
   const date = new Date().toLocaleDateString("en-US");
-  const inv = document.getElementById("invoice-number");
-  const transactionID = inv
-    ? inv.textContent.replace(/^\s*Invoice\s*#\s*/i, "").trim()
-    : "";
-  const splitDetails = splitInfoEl ? splitInfoEl.textContent : "";
-
-  const rows = order._order.map(line => ({
+  const split = splitInfoEl ? splitInfoEl.textContent : "";
+  const rows = order._order.map(l => ({
     Date: date,
-    Sku: line.sku,
-    ProductTitle: line.description,
-    Quantity: line.quantity,
-    Price: line.price,
-    Subtotal: line.subtotal,
-    Tax: line.tax,
-    Total: Utilities.roundToTwo(line.subtotal + line.tax),
-    TransactionID: transactionID,
+    Sku: l.sku,
+    Product: l.description,
+    Qty: l.quantity,
+    Price: l.price,
+    Subtotal: l.subtotal,
+    Tax: l.tax,
+    Total: Utilities.roundToTwo(l.subtotal + l.tax),
     Email: email,
-    SplitPayment: splitDetails,
+    SplitPayment: split,
   }));
 
-  // ✅ Correct Google Apps Script URL (keep this exact one)
   const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxrv2qEiZ5mOIa9w_cnde4n9rZdJERT08bqja7gUz2V_4GtkwAYodfuufIroRCwUVolnw/exec";
 
-  // ✅ Send sale data to Google Apps Script (GitHub-compatible)
   fetch(WEB_APP_URL, {
     method: "POST",
-    mode: "no-cors", // required for GitHub Pages
+    mode: "no-cors",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(rows),
   })
     .then(() => {
-      // GitHub Pages won’t show a response, so we just trust success
-      alert("✅ Sale submitted successfully! Check your Google Sheet for the new entry and your inbox for a receipt.");
-
-      // Reset order
+      alert("✅ Sale submitted successfully! Check your sheet for confirmation.");
       order._order = [];
       order._payment = { cash: 0, card: 0 };
       Ui.receiptDetails(order);
@@ -531,50 +443,8 @@ function submitSale() {
     });
 }
 
-// ---------- Initialize ----------
+// ===========================================================
+// FINAL INITIALIZATION
+// ===========================================================
 updatePaymentUI();
 toggleSubmitVisibility();
-
-// =======================================================
-// SWIPE-UP IMAGE GALLERY LOGIC
-// =======================================================
-const gallery = document.getElementById("image-gallery");
-if (gallery) {
-  let startY = 0;
-
-  gallery.addEventListener("touchstart", e => {
-    startY = e.touches[0].clientY;
-  });
-
-  gallery.addEventListener("touchmove", e => {
-    const endY = e.touches[0].clientY;
-    if (startY - endY > 50) gallery.classList.add("active");   // swipe up
-    if (endY - startY > 50) gallery.classList.remove("active"); // swipe down
-  });
-
-  // Auto-open when a product is clicked
-  document.addEventListener("click", e => {
-    const card = e.target.closest(".menu-item");
-    if (!card) return;
-    gallery.classList.add("active");
-  });
-}
-// =======================================================
-// CLOSE PAYPAD BUTTON FIX (MOBILE + DESKTOP)
-// =======================================================
-document.addEventListener("DOMContentLoaded", () => {
-  const overlay = document.getElementById("payment-overlay");
-  const closeBtn = document.getElementById("close-paypad-btn");
-  const fallbackBtn = document.querySelector(".paypad-close"); // fallback in case older markup
-
-  const closeAction = () => {
-    if (overlay) overlay.classList.remove("active");
-  };
-
-  if (closeBtn) {
-    closeBtn.addEventListener("click", closeAction);
-  } else if (fallbackBtn) {
-    fallbackBtn.addEventListener("click", closeAction);
-  }
-});
-
