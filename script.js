@@ -330,85 +330,60 @@ loadMenuFromSheet(sheetCsvUrl).then(rows => {
 // ===========================================================
 // PAYMENT + PAYPAD FIXED
 // ===========================================================
-const paymentOverlay = document.getElementById("payment-overlay");
-const closeBtn = document.getElementById("close-paypad-btn");
-const cashBtn = document.getElementById("cash-btn");
-const cardBtn = document.getElementById("card-btn");
-const amountInput = document.getElementById("amount-paid-input");
-const paymentTypeEl = document.getElementById("payment-type");
-const changeEl = document.getElementById("change-amount");
-const splitInfoEl = document.getElementById("split-info");
+document.addEventListener("DOMContentLoaded", () => {
+  const overlay = document.getElementById("payment-overlay");
+  const display = document.querySelector(".paypad-display");
+  const numberBtns = document.querySelectorAll(".paypad-btn.number");
+  const enterBtn = document.querySelector(".paypad-btn.span3-col");
+  const closeBtn = document.getElementById("close-paypad-btn");
+  const amountInput = document.getElementById("amount-paid-input");
 
-let activeMethod = null;
-let currentInput = "";
+  let currentValue = "";
 
-// Live display updater
-function updatePaypadDisplay() {
-  const display = document.getElementById("paypad-display");
-  const cents = parseFloat(currentInput);
-  const numeric = isNaN(cents) ? 0 : cents / 100;
-  if (display) display.textContent = `$${numeric.toFixed(2)}`;
-}
+  // --- Helper to update display ---
+  const updateDisplay = () => {
+    display.textContent = currentValue || "0";
+  };
 
-// --- Open & Close Overlay Safely ---
-function openPaypad(method) {
-  activeMethod = method;
-  currentInput = "";
-  updatePaypadDisplay();
-
-  if (paymentOverlay) {
-    paymentOverlay.style.display = "flex";
-    paymentOverlay.style.pointerEvents = "all";
-    paymentOverlay.classList.add("active");
+  // --- Open the paypad ---
+  function openPaypad() {
+    overlay.classList.add("active");
+    document.body.classList.add("overlay-active");
+    currentValue = ""; // clear previous value
+    updateDisplay();
   }
 
-  if (paymentTypeEl) paymentTypeEl.textContent = method.toUpperCase();
-}
-
-function closePaypad() {
-  activeMethod = null;
-  currentInput = "";
-
-  if (paymentOverlay) {
-    paymentOverlay.classList.remove("active");
-    paymentOverlay.style.pointerEvents = "none";
-    paymentOverlay.style.opacity = "0";
-    // Smooth fade-out
-    setTimeout(() => {
-      paymentOverlay.style.display = "none";
-      paymentOverlay.style.opacity = "1";
-    }, 250);
+  // --- Close paypad ---
+  function closePaypad() {
+    overlay.classList.remove("active");
+    document.body.classList.remove("overlay-active");
   }
-}
 
-if (cashBtn) cashBtn.addEventListener("click", () => openPaypad("cash"));
-if (cardBtn) cardBtn.addEventListener("click", () => openPaypad("card"));
-if (closeBtn) closeBtn.addEventListener("click", closePaypad);
-
-document.querySelectorAll(".paypad-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const id = btn.getAttribute("data-id");
-    if (!id) return;
-    if (id === "clear") currentInput = "";
-    else if (id === "back") currentInput = currentInput.slice(0, -1);
-    else if (id === "close-sale") finalizePaypadAmount();
-    else if (!isNaN(id)) currentInput += id;
-    updatePaypadDisplay();
+  // --- Handle number press ---
+  numberBtns.forEach(btn => {
+    btn.onclick = () => {
+      const val = btn.textContent.trim();
+      if (currentValue.length < 8) {
+        currentValue += val;
+        updateDisplay();
+      }
+    };
   });
-});
 
-function finalizePaypadAmount() {
-  const cents = parseFloat(currentInput);
-  const amount = isNaN(cents) ? 0 : cents / 100;
-  if (amount <= 0 || !activeMethod) {
-    alert("Enter a valid amount");
-    return;
-  }
-  order._payment[activeMethod] = Utilities.roundToTwo(order._payment[activeMethod] + amount);
-  updatePaymentUI();
-  toggleSubmitVisibility();
-  closePaypad();
-}
+  // --- Handle Enter ---
+  enterBtn.onclick = () => {
+    if (currentValue) {
+      amountInput.value = currentValue; // ✅ apply amount
+    }
+    closePaypad();
+  };
+
+  // --- Handle Close ---
+  closeBtn.onclick = closePaypad;
+
+  // --- Optional: open paypad on click in input ---
+  amountInput.addEventListener("focus", openPaypad);
+});
 
 // ===========================================================
 // PAYMENT UI + SUBMISSION
