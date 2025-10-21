@@ -1009,166 +1009,7 @@ body.overlay-active {
   }
 }
 
-/* ================= FINAL FIX — CALCULATOR ABOVE EVERYTHING ================= */
-#payment-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(6px);
-  display: none;
-  justify-content: center;
-  align-items: center;
-  z-index: 999999; /* overlay on top of all content */
-  transition: opacity 0.3s ease;
-}
-
-#payment-overlay.active {
-  display: flex;
-}
-
-.paypad {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: #111;
-  border-radius: 12px;
-  box-shadow: 0 0 25px rgba(167, 225, 238, 0.4);
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  padding: 20px;
-  z-index: 1000000; /* calculator itself above overlay */
-}
-
-/* --- Make sure it's perfect on mobile --- */
-@media (max-width: 768px) {
-  #payment-overlay {
-    z-index: 999999 !important;
-  }
-
-  .paypad {
-    z-index: 1000000 !important;
-    width: 92%;
-    max-width: 340px;
-    padding: 18px;
-    gap: 8px;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-  }
-}
-
-/* ==================== CLEAN FINAL PAYPAD FIX ==================== */
-#payment-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(6px);
-  display: none;
-  justify-content: center;
-  align-items: center;
-  z-index: 999999; /* above main + order panel */
-  transition: opacity 0.3s ease;
-}
-#payment-overlay.active {
-  display: flex;
-}
-
-.paypad {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  background: #111;
-  border-radius: 14px;
-  box-shadow: 0 0 25px rgba(167,225,238,0.4);
-  padding: 20px;
-  width: 90%;
-  max-width: 360px;
-  z-index: 1000000; /* calculator above overlay */
-}
-
-/* --- Display field --- */
-.paypad-display {
-  grid-column: span 3;
-  text-align: center;
-  font-size: 2rem;
-  color: #A7E1EE;
-  font-weight: bold;
-  border-bottom: 1px solid #333;
-  padding-bottom: 10px;
-  margin-bottom: 8px;
-}
-
-/* --- Buttons --- */
-.paypad-btn {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  background: #000;
-  color: #A7E1EE;
-  border: 1px solid #333;
-  border-radius: 10px;
-  font-size: 1.6rem;
-  transition: all 0.2s ease;
-}
-.paypad-btn:hover {
-  background: #1a1a1a;
-  color: #7fd7e6;
-}
-
-.paypad-btn.span3-col {
-  grid-column: span 3;
-  background: #A7E1EE;
-  color: #111;
-  font-weight: bold;
-  font-size: 1.2rem;
-  height: 56px;
-  border: none;
-  border-radius: 8px;
-  transition: all 0.25s ease;
-}
-.paypad-btn.span3-col:hover {
-  background: #8fdff0;
-  transform: scale(1.03);
-}
-
-/* --- Close button (X) --- */
-.close-icon {
-  position: absolute;
-  top: 10px;
-  right: 14px;
-  font-size: 2rem;
-  color: #A7E1EE;
-  cursor: pointer;
-  transition: transform 0.2s ease, color 0.2s ease;
-}
-.close-icon:hover {
-  transform: scale(1.2);
-  color: #7fd7e6;
-}
-
-/* --- Mobile sizing --- */
-@media (max-width: 768px) {
-  .paypad {
-    width: 92%;
-    max-width: 340px;
-    padding: 18px;
-    gap: 8px;
-  }
-  .paypad-btn {
-    font-size: 1.4rem;
-  }
-  .paypad-btn.span3-col {
-    height: 50px;
-    font-size: 1.1rem;
-  }
-}
-
-/* =================== CLEAN PAYPAD FINAL =================== */
+/* ================= FINAL CONSOLIDATED PAYPAD ================= */
 #payment-overlay {
   display: none;
   position: fixed;
@@ -1177,14 +1018,14 @@ body.overlay-active {
   backdrop-filter: blur(6px);
   justify-content: center;
   align-items: center;
-  z-index: 999999; /* Always above everything */
+  z-index: 999999;
   transition: opacity 0.3s ease;
 }
 #payment-overlay.active {
   display: flex;
 }
 
-/* --- Paypad Box --- */
+/* Paypad Box (Centered Modal) */
 .paypad {
   position: relative;
   display: grid;
@@ -1197,14 +1038,13 @@ body.overlay-active {
   border-radius: 16px;
   padding: 24px;
   box-shadow: 0 0 35px rgba(167, 225, 238, 0.3);
-  /* ✅ perfect centering */
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
 }
 
-/* --- Display (Amount typed) --- */
+/* Display Field */
 .paypad-display {
   grid-column: span 3;
   text-align: center;
@@ -1218,7 +1058,7 @@ body.overlay-active {
   margin-bottom: 4px;
 }
 
-/* --- Buttons --- */
+/* Buttons */
 .paypad-btn {
   background: rgba(255,255,255,0.04);
   color: #A7E1EE;
@@ -1232,8 +1072,6 @@ body.overlay-active {
   background: rgba(167,225,238,0.15);
   transform: scale(1.05);
 }
-
-/* --- Enter Button --- */
 .paypad-btn.span3-col {
   grid-column: span 3;
   background: #A7E1EE;
@@ -1249,7 +1087,7 @@ body.overlay-active {
   background: #7fd7e6;
 }
 
-/* --- Close Button Inside --- */
+/* Close Button */
 #close-paypad-btn {
   position: absolute;
   top: 12px;
@@ -1266,7 +1104,7 @@ body.overlay-active {
   color: #fff;
 }
 
-/* --- Mobile Layout --- */
+/* --- Mobile Adjustments --- */
 @media (max-width: 768px) {
   .paypad {
     grid-template-columns: repeat(3, 90px);
@@ -1278,6 +1116,9 @@ body.overlay-active {
   }
   .paypad-display {
     font-size: 1.8rem;
+  }
+  .paypad-btn {
+    font-size: 1.4rem;
   }
 }
 /* ===============================
