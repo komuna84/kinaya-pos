@@ -457,9 +457,3 @@ document.addEventListener("DOMContentLoaded", () => {
 // ===========================================================
 updatePaymentUI();
 toggleSubmitVisibility();
-
-// ===========================================================
-// FINAL INITIALIZATION
-// ===========================================================
-updatePaymentUI();
-toggleSubmitVisibility();
