@@ -15,6 +15,43 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+// ===========================================================
+// ACCESS GATE - Require passcode before using POS
+// ===========================================================
+document.addEventListener("DOMContentLoaded", () => {
+  const gate = document.getElementById("passcode-screen");
+  const input = document.getElementById("passcode-input");
+  const button = document.getElementById("passcode-btn");
+  const errorMsg = document.getElementById("passcode-error");
+
+  if (!gate || !input || !button) return;
+
+  const PASSCODE = "Lumina2025"; // 🪶 change this to whatever you want
+
+  // Optional: If they've entered it once, remember for this session
+  const unlocked = sessionStorage.getItem("posUnlocked");
+  if (unlocked === "true") {
+    gate.style.display = "none";
+    return;
+  }
+
+  button.addEventListener("click", () => {
+    if (input.value.trim() === PASSCODE) {
+      gate.style.opacity = "0";
+      setTimeout(() => {
+        gate.style.display = "none";
+        sessionStorage.setItem("posUnlocked", "true");
+      }, 400);
+    } else {
+      errorMsg.style.display = "block";
+      input.value = "";
+    }
+  });
+
+  input.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") button.click();
+  });
+});
 
 // ---------- Core Models ----------
 class Order {
