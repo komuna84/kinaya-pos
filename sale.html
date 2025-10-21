@@ -1,193 +1,193 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Kinaya Rising POS</title>
+// =============================================================
+// Kinaya Rising POS - Clean Simplified Version (Split Payment)
+// =============================================================
 
-  <!-- Fonts & Icons -->
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
-    crossorigin="anonymous"
-    referrerpolicy="no-referrer"
-  />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Audiowide&family=Libre+Barcode+128&family=Roboto:wght@300;400;700&display=swap"
-    rel="stylesheet"
-  />
+// ---------- Constants ----------
+const TAX_RATE = 0.07;
+const ENDPOINT = "https://script.google.com/macros/s/14LQqEsRumpXVeC7ZKEd8CX2FHZoztKHsuROG6DQg4uR_iZOBgcX9esxj/exec";
 
-  <!-- Local Styles & Script -->
-  <link rel="stylesheet" href="styles.css" />
-  <script>
-    // ✅ Session lock check
-    if (sessionStorage.getItem("posUnlocked") !== "true") {
-      window.location.href = "index.html";
-    }
-  </script>
-  <script src="script.js" defer></script>
-</head>
+// ---------- Global State ----------
+let order = [];
+let cashPaid = 0;
+let cardPaid = 0;
+let isReturnMode = false;
 
-<body>
-  <header>
-    <h1>Kinaya Rising Purchase Order</h1>
-  </header>
+// ---------- Utility ----------
+const fmt = (num) => `$${(num || 0).toFixed(2)}`;
 
-  <main class="main-container flex-row">
-    <!-- =============== RECEIPT / ORDER SECTION =============== -->
-    <section class="order flex-column">
-      <article class="receipt flex-column">
-        <div class="company-info flex-column">
-          <p id="company-name">Kinaya Rising</p>
-          <p id="company-website">KinayaRising.com</p>
-          <p id="company-email">KinayaRising@gmail.com</p>
-          <p id="invoice-number">Invoice #1000</p>
-          <p id="current-date"></p>
-        </div>
+// ---------- Load Menu ----------
+document.addEventListener("DOMContentLoaded", () => {
+  const menu = document.getElementById("menu");
+  const products = [
+    { sku: "B0F8NFSWXW", name: "Book - AoL Part 1", price: 14.98 },
+    { sku: "BKM-001", name: "Bookmarks", price: 2.0 },
+  ];
 
-        <div class="receipt-details">
-          <table class="details-details">
-            <thead>
-              <tr><td class="dotted-border" colspan="5"></td></tr>
-              <tr><td class="empty-border" colspan="5"></td></tr>
-              <tr>
-                <th class="product-name">Product Name</th>
-                <th class="quantity">Qty</th>
-                <th class="price">Price</th>
-                <th class="subtotal">Sub</th>
-                <th class="delete">Del</th>
-              </tr>
-              <tr><td class="dotted-border" colspan="5"></td></tr>
-              <tr><td class="empty-border" colspan="5"></td></tr>
-            </thead>
+  products.forEach((p) => {
+    const item = document.createElement("div");
+    item.className = "menu-item";
+    item.innerHTML = `
+      <figcaption>${p.name}</figcaption>
+      <figcaption>${p.sku}</figcaption>
+      <figcaption>${fmt(p.price)}</figcaption>`;
+    item.onclick = () => addItem(p);
+    menu.appendChild(item);
+  });
 
-            <tbody id="receipt-details">
-              <!-- Populated dynamically -->
-            </tbody>
-          </table>
+  document.getElementById("cash-btn").onclick = () => openPaypad("cash");
+  document.getElementById("card-btn").onclick = () => openPaypad("card");
+  document.getElementById("clear-order-btn").onclick = clearOrder;
+  document.getElementById("toggle-return").onclick = toggleReturn;
+  document.getElementById("submit-sale").onclick = submitSale;
 
-          <!-- =============== SUMMARY =============== -->
-          <div class="receipt-summary">
-            <table class="summary-table">
-              <tbody id="summary-section">
-                <tr><td class="dotted-border" colspan="3"></td></tr>
-                <tr><td class="empty-border" colspan="3"></td></tr>
+  setupPaypad();
+  updateUI();
+});
 
-                <tr><td>Subtotal:</td><td id="subtotal-summary">$0.00</td></tr>
-                <tr><td>Tax:</td><td id="tax-summary">$0.00</td></tr>
-                <tr><td>Grand Total:</td><td id="grandtotal-summary">$0.00</td></tr>
+// ---------- Add / Remove ----------
+function addItem(product) {
+  const existing = order.find((i) => i.sku === product.sku);
+  if (existing) existing.qty += 1;
+  else order.push({ ...product, qty: 1 });
+  updateUI();
+}
 
-                <tr><td class="dotted-border" colspan="3"></td></tr>
-                <tr><td class="empty-border" colspan="3"></td></tr>
+function removeItem(sku) {
+  order = order.filter((i) => i.sku !== sku);
+  updateUI();
+}
 
-                <tr>
-                  <td>Amount Paid:</td>
-                  <td><input type="currency" id="amount-paid-input" step="0.01" min="0" placeholder="0.00" /></td>
-                </tr>
+// ---------- Totals ----------
+function calcTotals() {
+  const subtotal = order.reduce((s, i) => s + i.qty * i.price, 0);
+  const tax = subtotal * TAX_RATE;
+  const total = subtotal + tax;
+  return { subtotal, tax, total };
+}
 
-                <tr><td id="change-title">Change:</td><td id="change-amount">$0.00</td></tr>
-                <tr><td>Payment Type:</td><td id="payment-type">Cash</td></tr>
-                <tr><td>Split Payment:</td><td id="split-info">None</td></tr>
+// ---------- Update UI ----------
+function updateUI() {
+  const tbody = document.getElementById("receipt-details");
+  tbody.innerHTML = "";
 
-                <tr><td class="dotted-border" colspan="3"></td></tr>
-                <tr><td class="empty-border" colspan="3"></td></tr>
+  order.forEach((item) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${item.name}</td>
+      <td>${item.qty}</td>
+      <td>${fmt(item.price)}</td>
+      <td>${fmt(item.qty * item.price)}</td>
+      <td><button class="delete" onclick="removeItem('${item.sku}')"><i class='fa-solid fa-xmark'></i></button></td>`;
+    tbody.appendChild(tr);
+  });
 
-                <tr>
-                  <td>Email:</td>
-                  <td colspan="2">
-                    <input
-                      type="email"
-                      id="customer-email"
-                      placeholder="customer@example.com"
-                      style="width:100%;padding:4px;border:1px solid #333;border-radius:4px;
-                             background:#111;color:#A7E1EE;"
-                    />
-                  </td>
-                </tr>
-                <tr id="submit-row" style="display:none;">
-                  <td colspan="3" style="text-align:center;">
-                    <button id="submit-sale" class="submit-sale-btn">
-                      Submit Sale
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </article>
+  const { subtotal, tax, total } = calcTotals();
+  document.getElementById("subtotal-summary").textContent = fmt(subtotal);
+  document.getElementById("tax-summary").textContent = fmt(tax);
+  document.getElementById("grandtotal-summary").textContent = fmt(total);
 
-      <div class="receipt-footer flex-column">
-        <p id="receipt-message">Thank You For Your Support!</p>
-      </div>
+  const splitText = [];
+  if (cashPaid) splitText.push(fmt(cashPaid) + " Cash");
+  if (cardPaid) splitText.push(fmt(cardPaid) + " Card");
+  document.getElementById("split-info").textContent = splitText.join(" ");
+  document.getElementById("amount-paid-input").value = fmt(cashPaid + cardPaid);
+  document.getElementById("submit-sale").style.display =
+    order.length > 0 && (cashPaid + cardPaid) >= total ? "block" : "none";
+}
 
-      <!-- Toolbar -->
-      <div class="toolbar flex-row">
-        <button id="cash-btn" class="toolbar-btn" title="Cash Payment">
-          <i class="fa-solid fa-money-bill-wave"></i>
-        </button>
-        <button id="card-btn" class="toolbar-btn" title="Card Payment">
-          <i class="fa-solid fa-credit-card"></i>
-        </button>
-        <button id="clear-order-btn" class="toolbar-btn" title="Clear Order">
-          <i class="fa-solid fa-trash"></i>
-        </button>
-        <button id="toggle-return" class="toolbar-btn" title="Toggle Return Mode">
-          <i class="fa-solid fa-rotate-left"></i>
-        </button>
-      </div>
-    </section>
+// ---------- Clear / Return ----------
+function clearOrder() {
+  if (!confirm("Clear current order?")) return;
+  order = [];
+  cashPaid = cardPaid = 0;
+  updateUI();
+}
 
-    <!-- =============== MENU / PAYMENT SECTION =============== -->
-    <section class="menu-payment grid">
-      <div class="menu flex-row" id="menu">
-        <!-- Menu populated dynamically -->
-      </div>
-    </section>
-  </main>
+function toggleReturn() {
+  isReturnMode = !isReturnMode;
+  document.getElementById("toggle-return").classList.toggle("active", isReturnMode);
+}
 
-  <!-- Submit Confirmation Modal -->
-  <div id="submit-modal" class="modal hidden">
-    <div class="modal-content">
-      <p>✅ Payment complete! Submit this ticket?</p>
-      <div class="modal-buttons">
-        <button id="modal-cancel">Cancel</button>
-        <button id="modal-ok">OK</button>
-      </div>
-    </div>
-  </div>
+// ---------- Paypad ----------
+let activeMethod = null;
+let currentInput = "";
 
-  <!-- Paypad Overlay -->
-  <div id="payment-overlay">
-    <div class="paypad" id="paypad">
-      <!-- Close button -->
-      <button id="close-paypad-btn" class="paypad-close" title="Close">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
+function setupPaypad() {
+  const overlay = document.getElementById("payment-overlay");
+  document.getElementById("close-paypad-btn").onclick = () => closePaypad();
+  overlay.querySelectorAll(".paypad-btn").forEach((btn) =>
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-id");
+      if (!id) return;
+      if (id === "clear") currentInput = "";
+      else if (id === "back") currentInput = currentInput.slice(0, -1);
+      else if (id === "enter") finalizePaypad();
+      else currentInput += id;
+      updateDisplay();
+    })
+  );
+}
 
-      <!-- Display -->
-      <div id="paypad-display" class="paypad-display">$0.00</div>
+function openPaypad(method) {
+  activeMethod = method;
+  currentInput = "";
+  updateDisplay();
+  document.getElementById("payment-overlay").style.display = "flex";
+}
 
-      <!-- Keypad -->
-      <button class="paypad-btn number" data-id="7">7</button>
-      <button class="paypad-btn number" data-id="8">8</button>
-      <button class="paypad-btn number" data-id="9">9</button>
+function closePaypad() {
+  document.getElementById("payment-overlay").style.display = "none";
+}
 
-      <button class="paypad-btn number" data-id="4">4</button>
-      <button class="paypad-btn number" data-id="5">5</button>
-      <button class="paypad-btn number" data-id="6">6</button>
+function updateDisplay() {
+  const num = parseFloat(currentInput) / 100 || 0;
+  document.getElementById("paypad-display").textContent = fmt(num);
+}
 
-      <button class="paypad-btn number" data-id="1">1</button>
-      <button class="paypad-btn number" data-id="2">2</button>
-      <button class="paypad-btn number" data-id="3">3</button>
+function finalizePaypad() {
+  const amount = parseFloat(currentInput) / 100 || 0;
+  if (amount <= 0) return;
+  if (activeMethod === "cash") cashPaid += amount;
+  else cardPaid += amount;
+  closePaypad();
+  updateUI();
+}
 
-      <button class="paypad-btn number" data-id="0">0</button>
-      <button class="paypad-btn" data-id="back">Back</button>
-      <button class="paypad-btn" data-id="clear">Clear</button>
+// ---------- Submit ----------
+async function submitSale() {
+  const email = document.getElementById("customer-email").value.trim();
+  const { subtotal, tax, total } = calcTotals();
+  const date = new Date().toLocaleDateString("en-US");
 
-      <!-- Enter -->
-      <button class="paypad-btn span3-col" data-id="close-sale">Enter</button>
-    </div>
-  </div>
-</body>
-</html>
+  const rows = order.map((i) => ({
+    Date: date,
+    Sku: i.sku,
+    ProductTitle: i.name,
+    Quantity: i.qty,
+    Price: i.price,
+    Subtotal: i.qty * i.price,
+    Tax: tax,
+    Total: total,
+    Email: email,
+    Payment: [
+      cashPaid ? fmt(cashPaid) + " Cash" : "",
+      cardPaid ? fmt(cardPaid) + " Card" : "",
+    ]
+      .filter(Boolean)
+      .join(" "),
+  }));
+
+  try {
+    const res = await fetch(ENDPOINT, {
+      method: "POST",
+      body: JSON.stringify(rows),
+      headers: { "Content-Type": "application/json" },
+    });
+    const text = await res.text();
+    alert(text.includes("Success") ? "✅ Sale recorded!" : "❌ Error saving sale");
+  } catch (err) {
+    alert("Error submitting sale: " + err);
+  }
+
+  clearOrder();
+}
