@@ -328,7 +328,6 @@ const sheetCsvUrl =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vT8TYrKVClp5GXP5Sx7NYGpfRvEMCCNuL40vbcyhdwP6bnvQeQRqJ4xTv6BZUnC5nm7N2N_KwQlHZ2H/pub?gid=30403628&single=true&output=csv";
 
 const order = new Order();
-let isReturnMode = false;
 
 loadMenuFromSheet(sheetCsvUrl).then(rows => {
   order.menu = rows;
