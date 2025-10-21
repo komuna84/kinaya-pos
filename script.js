@@ -416,7 +416,7 @@ function updatePaymentUI(reset = false) {
 }
 
 // =======================================================
-// SUBMIT SALE (FINAL VERSION - works from GitHub Pages)
+// SUBMIT SALE (FINAL VERSION - GitHub Pages Ready)
 // =======================================================
 const submitRow = document.getElementById("submit-row");
 const submitBtn = document.getElementById("submit-sale");
@@ -466,26 +466,32 @@ function submitSale() {
     SplitPayment: splitDetails,
   }));
 
-  // ✅ Use your Google Apps Script endpoint, not GitHub Pages
+  // ✅ Correct Google Apps Script URL (keep this exact one)
   const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxrv2qEiZ5mOIa9w_cnde4n9rZdJERT08bqja7gUz2V_4GtkwAYodfuufIroRCwUVolnw/exec";
 
+  // ✅ Send sale data to Google Apps Script (GitHub-compatible)
   fetch(WEB_APP_URL, {
     method: "POST",
-    mode: "no-cors", // ✅ important for GitHub + phone
+    mode: "no-cors", // required for GitHub Pages
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(rows),
   })
     .then(() => {
-      // no-cors doesn’t return response text, so we just assume success
-      alert("✅ Sale submitted successfully! Check your Google Sheet for confirmation.");
-      // Optionally clear the order
+      // GitHub Pages won’t show a response, so we just trust success
+      alert("✅ Sale submitted successfully! Check your Google Sheet for the new entry and your inbox for a receipt.");
+
+      // Reset order
       order._order = [];
+      order._payment = { cash: 0, card: 0 };
       Ui.receiptDetails(order);
       Ui.updateTotals(order);
       updatePaymentUI(true);
       toggleSubmitVisibility();
     })
-    .catch(err => alert("⚠️ Error submitting sale: " + err));
+    .catch(err => {
+      alert("⚠️ Error submitting sale: " + err.message);
+      console.error(err);
+    });
 }
 
 // ---------- Initialize ----------
@@ -499,7 +505,6 @@ const gallery = document.getElementById("image-gallery");
 if (gallery) {
   let startY = 0;
 
-  // --- Touch gesture for mobile swipe ---
   gallery.addEventListener("touchstart", e => {
     startY = e.touches[0].clientY;
   });
@@ -510,11 +515,10 @@ if (gallery) {
     if (endY - startY > 50) gallery.classList.remove("active"); // swipe down
   });
 
-  // --- Auto-open when a product is clicked ---
+  // Auto-open when a product is clicked
   document.addEventListener("click", e => {
     const card = e.target.closest(".menu-item");
     if (!card) return;
     gallery.classList.add("active");
   });
 }
-
