@@ -22,12 +22,14 @@
 </head>
 <body class="login-body">
   <div class="login-container">
-    <h1>Kinaya Rising POS</h1>
-    <input type="password" id="passcode-input" placeholder="Enter passcode" />
+    <h1>🌿 Kinaya Rising POS</h1>
+    <p>Enter Access Code</p>
+    <input type="password" id="passcode-input" placeholder="••••••••" />
+    <br />
     <button id="passcode-btn">Unlock</button>
-    <p id="passcode-error" style="color:#e63946;display:none;">Invalid passcode.</p>
+    <p id="passcode-error">Invalid passcode.</p>
   </div>
-
+  <p class="login-footer">© 2025 Kinaya Rising</p>
   <script>
     const PASSCODE = "Lumina2025";
     const button = document.getElementById("passcode-btn");
@@ -38,7 +40,7 @@
       const entered = input.value.trim();
       if (entered === PASSCODE) {
         sessionStorage.setItem("posUnlocked", "true");
-        window.location.href = "menu.html"; // ✅ redirect to main menu
+        window.location.href = "menu.html";
       } else {
         error.style.display = "block";
         input.value = "";
@@ -46,7 +48,7 @@
     }
 
     button.onclick = unlock;
-    input.onkeypress = e => e.key === "Enter" && unlock();
+    input.onkeypress = (e) => e.key === "Enter" && unlock();
   </script>
 </body>
 </html>
