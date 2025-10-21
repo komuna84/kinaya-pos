@@ -163,7 +163,20 @@
         <!-- Menu populated dynamically -->
       </div>
 
-      <!-- Paypad Overlay -->
+     
+  </main>
+
+  <!-- Submit Confirmation Modal -->
+  <div id="submit-modal" class="modal hidden">
+    <div class="modal-content">
+      <p>✅ Payment complete! Submit this ticket?</p>
+      <div class="modal-buttons">
+        <button id="modal-cancel">Cancel</button>
+        <button id="modal-ok">OK</button>
+      </div>
+    </div>
+  </div>
+   <!-- Paypad Overlay -->
       <div class="payment-grid" id="payment-overlay">
         <div class="close-paypad flex">
           <div id="paypad-display" class="paypad-display">$0.00</div>
@@ -187,17 +200,5 @@
         </div>
       </div>
     </section>
-  </main>
-
-  <!-- Submit Confirmation Modal -->
-  <div id="submit-modal" class="modal hidden">
-    <div class="modal-content">
-      <p>✅ Payment complete! Submit this ticket?</p>
-      <div class="modal-buttons">
-        <button id="modal-cancel">Cancel</button>
-        <button id="modal-ok">OK</button>
-      </div>
-    </div>
-  </div>
 </body>
 </html>
