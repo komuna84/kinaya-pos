@@ -348,3 +348,36 @@ th, td {
   .image-scroll { gap: 1rem; width: 95%; padding: 0.8rem; }
   .image-scroll img { width: 100px; }
 }
+
+/* ================= FORCE CALCULATOR TO TOP ================= */
+#payment-overlay,
+.paypad {
+  position: fixed !important;
+  inset: 0;
+  z-index: 9999999 !important; /* ✅ top of all layers */
+}
+
+#payment-overlay {
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: opacity 0.3s ease;
+  opacity: 0;
+  pointer-events: none;
+}
+
+#payment-overlay.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.paypad {
+  position: fixed !important;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10000000 !important; /* ✅ even above overlay */
+}
+
