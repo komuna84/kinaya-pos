@@ -1,5 +1,5 @@
 // ===========================================================
-// Kinaya Rising POS (Stable October 2025) - FINAL CLEAN JS
+// Kinaya Rising POS (Stable October 2025) - FIXED PAYPAD OVERLAY
 // ===========================================================
 
 // ---------- HEADER DATE ----------
@@ -29,7 +29,6 @@ window.addEventListener("load", () => {
 
   const PASSCODE = "Lumina2025"; // 🌿 Change to your preferred code
 
-  // If already unlocked
   if (sessionStorage.getItem("posUnlocked") === "true") {
     gate.style.display = "none";
     return;
@@ -291,7 +290,7 @@ loadMenuFromSheet(sheetCsvUrl).then(rows => {
 });
 
 // ===========================================================
-// PAYMENT + PAYPAD
+// PAYMENT + PAYPAD FIXED
 // ===========================================================
 const paymentOverlay = document.getElementById("payment-overlay");
 const closeBtn = document.getElementById("close-paypad-btn");
@@ -313,18 +312,35 @@ function updatePaypadDisplay() {
   if (display) display.textContent = `$${numeric.toFixed(2)}`;
 }
 
+// --- Open & Close Overlay Safely ---
 function openPaypad(method) {
   activeMethod = method;
   currentInput = "";
   updatePaypadDisplay();
-  if (paymentOverlay) paymentOverlay.classList.add("active");
+
+  if (paymentOverlay) {
+    paymentOverlay.style.display = "flex";
+    paymentOverlay.style.pointerEvents = "all";
+    paymentOverlay.classList.add("active");
+  }
+
   if (paymentTypeEl) paymentTypeEl.textContent = method.toUpperCase();
 }
 
 function closePaypad() {
   activeMethod = null;
   currentInput = "";
-  if (paymentOverlay) paymentOverlay.classList.remove("active");
+
+  if (paymentOverlay) {
+    paymentOverlay.classList.remove("active");
+    paymentOverlay.style.pointerEvents = "none";
+    paymentOverlay.style.opacity = "0";
+    // Smooth fade-out
+    setTimeout(() => {
+      paymentOverlay.style.display = "none";
+      paymentOverlay.style.opacity = "1";
+    }, 250);
+  }
 }
 
 if (cashBtn) cashBtn.addEventListener("click", () => openPaypad("cash"));
