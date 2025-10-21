@@ -124,11 +124,15 @@ main {
 
 /* ---------- HEADER ---------- */
 header {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: #BFD8C1;
-  text-shadow: 0 0 8px rgba(191, 216, 193, 0.3);
-  font-size: 1.2rem;
-  padding: 12px 0;
+  background: linear-gradient(90deg, rgba(10, 30, 40, 0.9), rgba(20, 60, 80, 0.9));
+  color: #A7E1EE; /* Kinaya blue */
+  text-shadow: 0 0 10px rgba(167, 225, 238, 0.8), 0 0 20px rgba(80, 160, 190, 0.5);
+  font-size: 1.3rem;
+  letter-spacing: 0.05em;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(167, 225, 238, 0.25);
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 20, 30, 0.6);
 }
 
 header h1 {
