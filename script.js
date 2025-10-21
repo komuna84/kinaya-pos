@@ -497,25 +497,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const passcodeBtn = document.getElementById("passcode-btn");
   const passcodeError = document.getElementById("passcode-error");
 
-  const CORRECT_CODE = "2025"; // set your access code here
-
-  passcodeBtn.addEventListener("click", () => {
-    if (passcodeInput.value === CORRECT_CODE) {
-      passcodeScreen.style.opacity = "0";
-      setTimeout(() => {
-        passcodeScreen.style.display = "none";
-        initPOS(); // load POS logic AFTER unlock
-      }, 400);
-    } else {
-      passcodeError.style.display = "block";
-    }
-  });
-
-  passcodeInput.addEventListener("keypress", e => {
-    if (e.key === "Enter") passcodeBtn.click();
-  });
-});
-
 // ===================== MAIN POS INITIALIZATION =====================
 function initPOS() {
   console.log("🔓 POS unlocked and initialized");
