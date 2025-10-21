@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ===========================================================
-// ACCESS GATE + ONE-TIME POS LISTENERS
+// ACCESS GATE + POS LISTENER FIX
 // ===========================================================
 let isReturnMode = false;
 let posListenersAttached = false;
@@ -30,16 +30,72 @@ function attachPosListenersOnce() {
   const toggleReturnBtn = document.getElementById("toggle-return");
   const menuContainer = document.getElementById("menu");
 
-  // Clear order
-  if (clearBtn) {
-    clearBtn.addEventListener("click", () => {
-      order._order = [];
-      Ui.receiptDetails(order);
-      Ui.updateTotals(order);
-      updatePaymentUI(true);
-      toggleSubmitVisibility();
-    });
+  if (!clearBtn || !toggleReturnBtn || !menuContainer) return;
+
+  // 🗑️ Clear Order
+  clearBtn.addEventListener("click", () => {
+    order._order = [];
+    Ui.receiptDetails(order);
+    Ui.updateTotals(order);
+    updatePaymentUI(true);
+    toggleSubmitVisibility();
+  });
+
+  // 🔁 Toggle Return Mode
+  toggleReturnBtn.addEventListener("click", () => {
+    isReturnMode = !isReturnMode;
+    toggleReturnBtn.classList.toggle("active", isReturnMode);
+  });
+
+  // 🛒 Add Product
+  menuContainer.addEventListener("click", e => {
+    const item = e.target.closest(".menu-item");
+    if (!item) return;
+    const data = item.getAttribute("data-sku");
+    if (data) {
+      order.addOrderLine(1, data, isReturnMode);
+    }
+  });
+}
+
+// --- Unlock Screen ---
+document.addEventListener("DOMContentLoaded", () => {   // ✅ FIXED HERE
+  const gate = document.getElementById("passcode-screen");
+  const input = document.getElementById("passcode-input");
+  const button = document.getElementById("passcode-btn");
+  const errorMsg = document.getElementById("passcode-error");
+
+  if (!gate || !input || !button) return;
+  const PASSCODE = "Lumina2025";
+
+  const unlock = () => {
+    if (input.value.trim() === PASSCODE) {
+      gate.style.opacity = "0";
+      setTimeout(() => {
+        gate.style.display = "none";
+        sessionStorage.setItem("posUnlocked", "true");
+        Ui.renderMenu(order);
+        attachPosListenersOnce(); // ✅ attach listeners AFTER unlocking
+      }, 400);
+    } else {
+      errorMsg.style.display = "block";
+      input.value = "";
+    }
+  };
+
+  if (sessionStorage.getItem("posUnlocked") === "true") {
+    gate.style.display = "none";
+    Ui.renderMenu(order);
+    attachPosListenersOnce();
+    return;
   }
+
+  button.addEventListener("click", unlock);
+  input.addEventListener("keypress", e => {
+    if (e.key === "Enter") unlock();
+  });
+});
+
 
   // Toggle return mode
   if (toggleReturnBtn) {
