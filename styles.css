@@ -1177,42 +1177,42 @@ body.login-body {
    ================================ */
 
 #submit-row {
-  width: 100%;
   text-align: center;
-  margin: 1rem 0;
+  margin: 1.2rem 0;
 }
 
 #submit-sale {
-  width: 92%; /* ✅ fills most of the white box, with a small margin */
-  margin: 0 auto; /* center horizontally */
-  padding: 14px 0;
-  font-size: 1.15rem;
-  font-weight: 600;
-  text-align: center;
-  color: #111;
+  background: #4CAF50;          /* ✅ clean success green */
+  color: #fff;
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
+  padding: 12px 40px;
+  font-size: 1.1rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.25s ease;
-  box-shadow: 0 0 10px rgba(167, 225, 238, 0.4);
+  transition: background 0.25s ease, transform 0.15s ease;
+  display: inline-block;        /* centers it nicely inside the row */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 #submit-sale:hover {
-  transform: scale(1.02);
-  box-shadow: 0 0 16px rgba(167, 225, 238, 0.6);
+  background: #45A049;          /* darker hover green */
+  transform: scale(1.03);
 }
 
-/* Optional: disabled state when hidden */
+/* Disabled or hidden state */
 #submit-row:not(.visible) #submit-sale {
-  opacity: 0.5;
+  opacity: 0.6;
   pointer-events: none;
 }
 
-/* Mobile adjustment */
+/* Mobile tweak */
 @media (max-width: 768px) {
   #submit-sale {
-    width: 96%; /* slightly more breathing room on small screens */
+    width: 90%;                 /* ✅ looks great on phones */
+    padding: 14px 0;
     font-size: 1rem;
   }
 }
+
 
