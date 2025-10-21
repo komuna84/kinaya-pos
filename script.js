@@ -1,5 +1,5 @@
 // ===========================================================
-// Kinaya Rising POS - FINAL FIXED ACCESS GATE
+// Kinaya Rising POS - FINAL FIXED ACCESS GATE (WORKING VERSION)
 // ===========================================================
 
 let order;
@@ -8,6 +8,7 @@ let posListenersAttached = false;
 
 // Wait for everything to load before initializing
 window.addEventListener("load", async () => {
+  // ✅ Header date
   const dateEl = document.getElementById("current-date");
   if (dateEl) {
     const now = new Date();
@@ -19,10 +20,8 @@ window.addEventListener("load", async () => {
     });
   }
 
-  // Initialize core
+  // ✅ Initialize order + load menu
   order = new Order();
-
-  // Load menu first
   const sheetCsvUrl =
     "https://docs.google.com/spreadsheets/d/e/2PACX-1vT8TYrKVClp5GXP5Sx7NYGpfRvEMCCNuL40vbcyhdwP6bnvQeQRqJ4xTv6BZUnC5nm7N2N_KwQlHZ2H/pub?gid=30403628&single=true&output=csv";
 
@@ -30,7 +29,7 @@ window.addEventListener("load", async () => {
   order.menu = rows;
   Ui.renderMenu(order);
 
-  // Then run passcode gate
+  // ✅ Start passcode gate after menu is loaded
   initPasscodeGate();
 });
 
@@ -44,7 +43,9 @@ function initPasscodeGate() {
   if (!gate || !input || !button) return;
 
   const unlock = () => {
-    if (input.value.trim() === PASSCODE) {
+    const entered = input.value.trim();
+    if (entered === PASSCODE) {
+      console.log("✅ Correct passcode, unlocking POS...");
       gate.style.transition = "opacity 0.4s ease";
       gate.style.opacity = "0";
       setTimeout(() => {
@@ -53,13 +54,15 @@ function initPasscodeGate() {
         attachPosListenersOnce();
       }, 400);
     } else {
+      console.warn("❌ Wrong passcode entered:", entered);
       errorMsg.style.display = "block";
       input.value = "";
     }
   };
 
-  // Auto-unlock if session already active
+  // ✅ If session already unlocked
   if (sessionStorage.getItem("posUnlocked") === "true") {
+    console.log("🔓 Already unlocked, skipping gate.");
     gate.style.display = "none";
     attachPosListenersOnce();
     return;
@@ -74,6 +77,8 @@ function initPasscodeGate() {
 function attachPosListenersOnce() {
   if (posListenersAttached) return;
   posListenersAttached = true;
+
+  console.log("🎯 POS listeners attached.");
 
   const clearBtn = document.getElementById("clear-btn");
   const toggleReturnBtn = document.getElementById("toggle-return");
@@ -327,19 +332,6 @@ class Ui {
     document.getElementById("grandtotal-summary").textContent = fmt(grandTotal);
   }
 }
-
-// ===========================================================
-// INIT MENU LOAD
-// ===========================================================
-const sheetCsvUrl =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vT8TYrKVClp5GXP5Sx7NYGpfRvEMCCNuL40vbcyhdwP6bnvQeQRqJ4xTv6BZUnC5nm7N2N_KwQlHZ2H/pub?gid=30403628&single=true&output=csv";
-
-const order = new Order();
-
-loadMenuFromSheet(sheetCsvUrl).then(rows => {
-  order.menu = rows;
-  Ui.renderMenu(order);
-});
 
 
 // ===========================================================
