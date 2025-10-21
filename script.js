@@ -1,5 +1,5 @@
 // ===========================================================
-// Kinaya Rising POS (Stable October 2025) - FIXED PAYPAD OVERLAY
+// Kinaya Rising POS (Stable October 2025) — FINAL BUILD
 // ===========================================================
 
 // ---------- HEADER DATE ----------
@@ -17,12 +17,11 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ===========================================================
-// SESSION CHECK (new, replaces old gate)
+// SESSION CHECK
 // ===========================================================
 if (sessionStorage.getItem("posUnlocked") !== "true") {
   window.location.href = "index.html";
 }
-
 
 // ===========================================================
 // CORE ORDER MODEL
@@ -261,7 +260,7 @@ loadMenuFromSheet(sheetCsvUrl).then(rows => {
 });
 
 // ===========================================================
-// PAYMENT + PAYPAD FIXED
+// PAYMENT + PAYPAD
 // ===========================================================
 const paymentOverlay = document.getElementById("payment-overlay");
 const closeBtn = document.getElementById("close-paypad-btn");
@@ -275,7 +274,6 @@ const splitInfoEl = document.getElementById("split-info");
 let activeMethod = null;
 let currentInput = "";
 
-// Live display updater
 function updatePaypadDisplay() {
   const display = document.getElementById("paypad-display");
   const cents = parseFloat(currentInput);
@@ -283,10 +281,13 @@ function updatePaypadDisplay() {
   if (display) display.textContent = `$${numeric.toFixed(2)}`;
 }
 
-// --- Open & Close Overlay Safely ---
+// --- Open & Close Overlay ---
 function openPaypad(method) {
   activeMethod = method;
-  currentInput = "";
+
+  // preload previously entered value if exists
+  const prev = order._payment[method] || 0;
+  currentInput = String(Math.round(prev * 100));
   updatePaypadDisplay();
 
   if (paymentOverlay) {
@@ -306,7 +307,6 @@ function closePaypad() {
     paymentOverlay.classList.remove("active");
     paymentOverlay.style.pointerEvents = "none";
     paymentOverlay.style.opacity = "0";
-    // Smooth fade-out
     setTimeout(() => {
       paymentOverlay.style.display = "none";
       paymentOverlay.style.opacity = "1";
@@ -337,13 +337,17 @@ function finalizePaypadAmount() {
     alert("Enter a valid amount");
     return;
   }
-  order._payment[activeMethod] = Utilities.roundToTwo(order._payment[activeMethod] + amount);
+
+  // 🟢 Replace previous amount instead of adding
+  order._payment[activeMethod] = Utilities.roundToTwo(amount);
+
+  closePaypad();
   updatePaymentUI();
   toggleSubmitVisibility();
-  closePaypad();
 }
+
 // ===========================================================
-// TOOLBAR BUTTONS — Clear Order + Payment + Return
+// TOOLBAR BUTTONS
 // ===========================================================
 const clearOrderBtn = document.getElementById("clear-order-btn");
 
@@ -382,10 +386,14 @@ function updatePaymentUI(reset = false) {
   if (changeEl) changeEl.textContent = Utilities.convertFloatToString(change);
   const cash = order._payment.cash, card = order._payment.card;
   if (splitInfoEl)
-    splitInfoEl.textContent = cash && card ? `${Utilities.convertFloatToString(cash)} Cash + ${Utilities.convertFloatToString(card)} Card`
-      : cash ? `${Utilities.convertFloatToString(cash)} Cash`
-      : card ? `${Utilities.convertFloatToString(card)} Card`
-      : "None";
+    splitInfoEl.textContent =
+      cash && card
+        ? `${Utilities.convertFloatToString(cash)} Cash + ${Utilities.convertFloatToString(card)} Card`
+        : cash
+        ? `${Utilities.convertFloatToString(cash)} Cash`
+        : card
+        ? `${Utilities.convertFloatToString(card)} Card`
+        : "None";
 }
 
 async function submitSale() {
@@ -399,7 +407,6 @@ async function submitSale() {
   const email = (emailInput && emailInput.value.trim()) || "";
   const split = splitInfoEl ? splitInfoEl.textContent : "";
 
-  // Generate invoice number using timestamp (same pattern as your old sheet)
   const invoice = Math.floor(Date.now() / 1000).toString().slice(-4);
 
   const rows = order._order.map(l => ({
@@ -417,7 +424,7 @@ async function submitSale() {
   }));
 
   try {
-    const res = await fetch("https://script.google.com/macros/s/AKfycbxrv2qEiZ5mOIa9w_cnde4n9rZdJERT08bqja7gUz2V_4GtkwAYodfuufIroRCwUVolnw/exec", {
+    await fetch("https://script.google.com/macros/s/AKfycbxrv2qEiZ5mOIa9w_cnde4n9rZdJERT08bqja7gUz2V_4GtkwAYodfuufIroRCwUVolnw/exec", {
       method: "POST",
       mode: "no-cors",
       headers: { "Content-Type": "application/json" },
@@ -426,15 +433,19 @@ async function submitSale() {
 
     alert("✅ Sale submitted successfully! Check your sheet for confirmation.");
 
-    // Clear everything after sending
+    // --- Reset everything ---
     order._order = [];
     order._payment = { cash: 0, card: 0 };
     Ui.receiptDetails(order);
     Ui.updateTotals(order);
+
+    // --- Reset payment info display ---
     updatePaymentUI(true);
     toggleSubmitVisibility();
+    if (paymentTypeEl) paymentTypeEl.textContent = "—";
+    if (splitInfoEl) splitInfoEl.textContent = "None";
 
-    // Remove saved email
+    // --- Clear email + stored value ---
     sessionStorage.removeItem("lastCustomerEmail");
     if (emailInput) emailInput.value = "";
   } catch (err) {
@@ -443,13 +454,9 @@ async function submitSale() {
   }
 }
 
-
-
 // ===========================================================
-// MENU CLICK HANDLERS (add items to order)
+// MENU CLICK HANDLERS
 // ===========================================================
-
-// ✅ Move menu click logic inside the .then() where the menu loads
 loadMenuFromSheet(sheetCsvUrl).then(rows => {
   order.menu = rows;
   Ui.renderMenu(order);
@@ -469,7 +476,7 @@ loadMenuFromSheet(sheetCsvUrl).then(rows => {
 });
 
 // ===========================================================
-// RETURN MODE VISUAL TOGGLE (optional visual indicator)
+// RETURN MODE
 // ===========================================================
 const returnBtn = document.getElementById("toggle-return");
 if (returnBtn) {
@@ -485,10 +492,8 @@ if (returnBtn) {
   });
 }
 
-
 // ===========================================================
 // FINAL INITIALIZATION
 // ===========================================================
 updatePaymentUI();
 toggleSubmitVisibility();
-
