@@ -388,79 +388,61 @@ function updatePaymentUI(reset = false) {
       : "None";
 }
 
-// ===========================================================
-// SALE SUBMIT
-// ===========================================================
-const submitRow = document.getElementById("submit-row");
-const submitBtn = document.getElementById("submit-sale");
-const emailInput = document.getElementById("customer-email");
-const modal = document.getElementById("submit-modal");
-const modalCancel = document.getElementById("modal-cancel");
-const modalOk = document.getElementById("modal-ok");
+async function submitSale() {
+  const { subtotal, tax, total } = (() => {
+    const subtotal = order._order.reduce((s, l) => s + l.subtotal, 0);
+    const tax = order._order.reduce((s, l) => s + l.tax, 0);
+    return { subtotal, tax, total: subtotal + tax };
+  })();
 
-function toggleSubmitVisibility() {
-  const ready = totalPaid() >= orderTotal();
-  const hasEmail = emailInput && emailInput.value.trim();
-  if (submitRow) submitRow.style.display = ready && hasEmail && order._order.length ? "table-row" : "none";
-}
-if (emailInput) emailInput.addEventListener("input", toggleSubmitVisibility);
-
-if (submitBtn) submitBtn.addEventListener("click", () => modal.classList.remove("hidden"));
-if (modalCancel) modalCancel.addEventListener("click", () => modal.classList.add("hidden"));
-if (modalOk) {
-  modalOk.addEventListener("click", () => {
-    modal.classList.add("hidden");
-    submitSale();
-
-    // After sale completes, refocus on email input
-    setTimeout(() => {
-      if (emailInput) {
-        emailInput.focus();
-        emailInput.select(); // highlights previous address if stored
-      }
-    }, 800); // short delay to let the UI reset first
-  });
-}
-
-function submitSale() {
-  const email = (emailInput && emailInput.value.trim()) || "";
   const date = new Date().toLocaleDateString("en-US");
+  const email = (emailInput && emailInput.value.trim()) || "";
   const split = splitInfoEl ? splitInfoEl.textContent : "";
+
+  // Generate invoice number using timestamp (same pattern as your old sheet)
+  const invoice = Math.floor(Date.now() / 1000).toString().slice(-4);
+
   const rows = order._order.map(l => ({
     Date: date,
     Sku: l.sku,
-    Product: l.description,
-    Qty: l.quantity,
+    "Product Title": l.description,
+    Quantity: l.quantity,
     Price: l.price,
     Subtotal: l.subtotal,
     Tax: l.tax,
     Total: Utilities.roundToTwo(l.subtotal + l.tax),
+    "Invoice #": invoice,
     Email: email,
-    SplitPayment: split,
+    Payment: split
   }));
 
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxrv2qEiZ5mOIa9w_cnde4n9rZdJERT08bqja7gUz2V_4GtkwAYodfuufIroRCwUVolnw/exec";
-
-  fetch(WEB_APP_URL, {
-    method: "POST",
-    mode: "no-cors",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(rows),
-  })
-    .then(() => {
-      alert("✅ Sale submitted successfully! Check your sheet for confirmation.");
-      order._order = [];
-      order._payment = { cash: 0, card: 0 };
-      Ui.receiptDetails(order);
-      Ui.updateTotals(order);
-      updatePaymentUI(true);
-      toggleSubmitVisibility();
-    })
-    .catch(err => {
-      alert("⚠️ Error submitting sale: " + err.message);
-      console.error(err);
+  try {
+    const res = await fetch("https://script.google.com/macros/s/AKfycbxrv2qEiZ5mOIa9w_cnde4n9rZdJERT08bqja7gUz2V_4GtkwAYodfuufIroRCwUVolnw/exec", {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(rows)
     });
+
+    alert("✅ Sale submitted successfully! Check your sheet for confirmation.");
+
+    // Clear everything after sending
+    order._order = [];
+    order._payment = { cash: 0, card: 0 };
+    Ui.receiptDetails(order);
+    Ui.updateTotals(order);
+    updatePaymentUI(true);
+    toggleSubmitVisibility();
+
+    // Remove saved email
+    sessionStorage.removeItem("lastCustomerEmail");
+    if (emailInput) emailInput.value = "";
+  } catch (err) {
+    alert("⚠️ Error submitting sale: " + err.message);
+    console.error(err);
+  }
 }
+
 
 
 // ===========================================================
@@ -485,7 +467,6 @@ loadMenuFromSheet(sheetCsvUrl).then(rows => {
     });
   }
 });
-
 
 // ===========================================================
 // RETURN MODE VISUAL TOGGLE (optional visual indicator)
