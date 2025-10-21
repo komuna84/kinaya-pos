@@ -483,13 +483,13 @@ if (returnBtn) {
   returnBtn.addEventListener("click", () => {
     isReturnMode = !isReturnMode;
 
-    // 🔁 Toggle button highlight
-    returnBtn.classList.toggle("active-return", isReturnMode);
+    // Toggle button state class
+    returnBtn.classList.toggle("active", isReturnMode);
 
-    // 🔁 Toggle body visual indicator
+    // Toggle body class for background/visual indicator
     document.body.classList.toggle("return-mode", isReturnMode);
 
-    // 🔁 Update header label
+    // Update header text
     const header = document.querySelector("header h1");
     if (header) {
       header.textContent = isReturnMode
@@ -498,6 +498,7 @@ if (returnBtn) {
     }
   });
 }
+
 // ===========================================================
 // FINAL INITIALIZATION
 // ===========================================================
