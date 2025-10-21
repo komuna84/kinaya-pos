@@ -17,68 +17,87 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ===========================================================
-// ACCESS GATE - Require passcode before using POS
+// ACCESS GATE + ONE-TIME POS LISTENERS
 // ===========================================================
+let isReturnMode = false;
+let posListenersAttached = false;
+
+function attachPosListenersOnce() {
+  if (posListenersAttached) return;
+  posListenersAttached = true;
+
+  const clearBtn = document.getElementById("clear-btn");
+  const toggleReturnBtn = document.getElementById("toggle-return");
+  const menuContainer = document.getElementById("menu");
+
+  // Clear order
+  if (clearBtn) {
+    clearBtn.addEventListener("click", () => {
+      order._order = [];
+      Ui.receiptDetails(order);
+      Ui.updateTotals(order);
+      updatePaymentUI(true);
+      toggleSubmitVisibility();
+    });
+  }
+
+  // Toggle return mode
+  if (toggleReturnBtn) {
+    toggleReturnBtn.addEventListener("click", () => {
+      isReturnMode = !isReturnMode;
+      toggleReturnBtn.classList.toggle("active", isReturnMode);
+      // console.log("Return Mode:", isReturnMode);
+    });
+  }
+
+  // Add product (event delegation for dynamically rendered menu)
+  if (menuContainer) {
+    menuContainer.addEventListener("click", (e) => {
+      const item = e.target.closest(".menu-item");
+      if (!item) return;
+      const data = item.getAttribute("data-sku");
+      if (data) order.addOrderLine(1, data, isReturnMode);
+    });
+  }
+}
+
+// Bind listeners as soon as DOM is ready (safe even while locked)
+document.addEventListener("DOMContentLoaded", attachPosListenersOnce);
+
+// Simple passcode gate — just hides the overlay when correct
 window.addEventListener("load", () => {
   const gate = document.getElementById("passcode-screen");
   const input = document.getElementById("passcode-input");
   const button = document.getElementById("passcode-btn");
   const errorMsg = document.getElementById("passcode-error");
-
   if (!gate || !input || !button) return;
 
-  const PASSCODE = "Lumina2025"; // 🌿 Change your access code
+  const PASSCODE = "Lumina2025";
 
-  function unlockPOS() {
-    gate.style.opacity = "0";
-    setTimeout(() => {
-      gate.style.display = "none";
-      sessionStorage.setItem("posUnlocked", "true");
-
-      // 🧩 Initialize POS logic after unlock
-      initPOS();
-    }, 400);
+  // If already unlocked in this session, hide overlay
+  if (sessionStorage.getItem("posUnlocked") === "true") {
+    gate.style.display = "none";
+    return;
   }
 
   const unlock = () => {
-    if (input.value.trim() === PASSCODE) {
-      unlockPOS();
+    if ((input.value || "").trim() === PASSCODE) {
+      gate.style.opacity = "0";
+      setTimeout(() => {
+        gate.style.display = "none";
+        sessionStorage.setItem("posUnlocked", "true");
+        // Menu may already be rendered by loader; if not, render again safely:
+        Ui.renderMenu(order); // harmless if already rendered
+      }, 300);
     } else {
-      errorMsg.style.display = "block";
+      errorMsg && (errorMsg.style.display = "block");
       input.value = "";
     }
   };
 
-  // If already unlocked in session
-  if (sessionStorage.getItem("posUnlocked") === "true") {
-    gate.style.display = "none";
-    initPOS(); // ✅ Immediately initialize
-    return;
-  }
-
   button.addEventListener("click", unlock);
-  input.addEventListener("keypress", e => {
-    if (e.key === "Enter") unlock();
-  });
+  input.addEventListener("keypress", (e) => { if (e.key === "Enter") unlock(); });
 });
-
-// ===========================================================
-// POS INITIALIZATION
-// ===========================================================
-function initPOS() {
-  console.log("✅ POS Unlocked and Initialized");
-
-  // Reconnect menu events
-  Ui.renderMenu(order);
-  activatePOSListeners();
-
-  // Refresh UI
-  Ui.receiptDetails(order);
-  Ui.updateTotals(order);
-  updatePaymentUI();
-  toggleSubmitVisibility();
-}
-
 
 // ===========================================================
 // CORE ORDER MODEL
