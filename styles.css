@@ -904,4 +904,25 @@ figcaption {
   }
 }
 
+/* ================= FORCE OVERLAY ABOVE MAIN ================= */
+#payment-overlay {
+  position: fixed !important;
+  inset: 0 !important;            /* covers entire screen */
+  z-index: 999999 !important;     /* sits above main and all other content */
+  pointer-events: none;
+}
+
+#payment-overlay.active {
+  pointer-events: all !important;
+}
+
+#payment-overlay .paypad {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 1000000 !important;    /* calculator above overlay */
+}
+
+
 
