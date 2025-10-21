@@ -1,3 +1,100 @@
+/* ================================
+   🌿 LOGIN PAGE STYLES
+   (Kinaya Rising POS)
+=================================== */
+
+body.login-body {
+  margin: 0;
+  height: 100vh;
+  background: radial-gradient(circle at center, #0f0f0f 0%, #000 100%);
+  color: #A7E1EE;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: "Roboto", sans-serif;
+  overflow: hidden;
+}
+
+.login-container {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(167, 225, 238, 0.25);
+  border-radius: 16px;
+  box-shadow: 0 0 25px rgba(167, 225, 238, 0.15);
+  padding: 3rem 2.5rem;
+  text-align: center;
+  max-width: 360px;
+  width: 85%;
+}
+
+.login-container h1 {
+  font-family: "Audiowide", cursive;
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  color: #A7E1EE;
+  text-shadow: 0 0 8px rgba(167, 225, 238, 0.25);
+}
+
+.login-container p {
+  margin: 0.4rem 0 1.2rem;
+  opacity: 0.85;
+}
+
+#passcode-input {
+  width: 80%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #A7E1EE;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  text-align: center;
+  font-size: 1.05rem;
+  letter-spacing: 1px;
+  outline: none;
+  transition: box-shadow 0.3s ease;
+}
+
+#passcode-input:focus {
+  box-shadow: 0 0 12px rgba(167, 225, 238, 0.4);
+}
+
+#passcode-btn {
+  margin-top: 1.2rem;
+  background: #A7E1EE;
+  color: #111;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+#passcode-btn:hover {
+  background: #7fd7e6;
+  transform: scale(1.05);
+}
+
+#passcode-error {
+  color: #e63946;
+  margin-top: 1rem;
+  font-size: 0.95rem;
+  display: none;
+}
+
+.login-footer {
+  position: absolute;
+  bottom: 12px;
+  text-align: center;
+  font-size: 0.9rem;
+  opacity: 0.5;
+  width: 100%;
+  letter-spacing: 0.5px;
+}
+
+/* =================== SALE =================== */
 /* =================== BASE =================== */
 * {
   box-sizing: border-box;
