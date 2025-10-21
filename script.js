@@ -1,5 +1,5 @@
 // ===========================================================
-// Kinaya Rising POS (Stable October 2025) - CLEAN FIXED BUILD
+// Kinaya Rising POS (Stable October 2025) - FIXED PAYPAD OVERLAY
 // ===========================================================
 
 // ---------- HEADER DATE ----------
@@ -17,86 +17,40 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ===========================================================
-// ACCESS GATE + ONE-TIME POS LISTENERS
+// ACCESS GATE - Require passcode before using POS
 // ===========================================================
-let isReturnMode = false;
-let posListenersAttached = false;
-
-function attachPosListenersOnce() {
-  if (posListenersAttached) return;
-  posListenersAttached = true;
-
-  const clearBtn = document.getElementById("clear-btn");
-  const toggleReturnBtn = document.getElementById("toggle-return");
-  const menuContainer = document.getElementById("menu");
-
-  // Clear order
-  if (clearBtn) {
-    clearBtn.addEventListener("click", () => {
-      order._order = [];
-      Ui.receiptDetails(order);
-      Ui.updateTotals(order);
-      updatePaymentUI(true);
-      toggleSubmitVisibility();
-    });
-  }
-
-  // Toggle return mode
-  if (toggleReturnBtn) {
-    toggleReturnBtn.addEventListener("click", () => {
-      isReturnMode = !isReturnMode;
-      toggleReturnBtn.classList.toggle("active", isReturnMode);
-      // console.log("Return Mode:", isReturnMode);
-    });
-  }
-
-  // Add product (event delegation for dynamically rendered menu)
-  if (menuContainer) {
-    menuContainer.addEventListener("click", (e) => {
-      const item = e.target.closest(".menu-item");
-      if (!item) return;
-      const data = item.getAttribute("data-sku");
-      if (data) order.addOrderLine(1, data, isReturnMode);
-    });
-  }
-}
-
-// Bind listeners as soon as DOM is ready (safe even while locked)
-document.addEventListener("DOMContentLoaded", attachPosListenersOnce);
-
-// Simple passcode gate — just hides the overlay when correct
 window.addEventListener("load", () => {
   const gate = document.getElementById("passcode-screen");
   const input = document.getElementById("passcode-input");
   const button = document.getElementById("passcode-btn");
   const errorMsg = document.getElementById("passcode-error");
+
   if (!gate || !input || !button) return;
 
-  const PASSCODE = "Lumina2025";
+  const PASSCODE = "Lumina2025"; // 🌿 Change to your preferred code
 
-  // If already unlocked in this session, hide overlay
   if (sessionStorage.getItem("posUnlocked") === "true") {
     gate.style.display = "none";
     return;
   }
 
   const unlock = () => {
-    if ((input.value || "").trim() === PASSCODE) {
+    if (input.value.trim() === PASSCODE) {
       gate.style.opacity = "0";
       setTimeout(() => {
         gate.style.display = "none";
         sessionStorage.setItem("posUnlocked", "true");
-        // Menu may already be rendered by loader; if not, render again safely:
-        Ui.renderMenu(order); // harmless if already rendered
-      }, 300);
+      }, 400);
     } else {
-      errorMsg && (errorMsg.style.display = "block");
+      errorMsg.style.display = "block";
       input.value = "";
     }
   };
 
   button.addEventListener("click", unlock);
-  input.addEventListener("keypress", (e) => { if (e.key === "Enter") unlock(); });
+  input.addEventListener("keypress", e => {
+    if (e.key === "Enter") unlock();
+  });
 });
 
 // ===========================================================
@@ -322,7 +276,7 @@ class Ui {
 }
 
 // ===========================================================
-// INIT MENU LOAD
+// INIT
 // ===========================================================
 const sheetCsvUrl =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vT8TYrKVClp5GXP5Sx7NYGpfRvEMCCNuL40vbcyhdwP6bnvQeQRqJ4xTv6BZUnC5nm7N2N_KwQlHZ2H/pub?gid=30403628&single=true&output=csv";
@@ -336,7 +290,7 @@ loadMenuFromSheet(sheetCsvUrl).then(rows => {
 });
 
 // ===========================================================
-// PAYMENT / PAYPAD LOGIC
+// PAYMENT + PAYPAD FIXED
 // ===========================================================
 const paymentOverlay = document.getElementById("payment-overlay");
 const closeBtn = document.getElementById("close-paypad-btn");
@@ -350,6 +304,7 @@ const splitInfoEl = document.getElementById("split-info");
 let activeMethod = null;
 let currentInput = "";
 
+// Live display updater
 function updatePaypadDisplay() {
   const display = document.getElementById("paypad-display");
   const cents = parseFloat(currentInput);
@@ -357,6 +312,7 @@ function updatePaypadDisplay() {
   if (display) display.textContent = `$${numeric.toFixed(2)}`;
 }
 
+// --- Open & Close Overlay Safely ---
 function openPaypad(method) {
   activeMethod = method;
   currentInput = "";
@@ -364,6 +320,7 @@ function openPaypad(method) {
 
   if (paymentOverlay) {
     paymentOverlay.style.display = "flex";
+    paymentOverlay.style.pointerEvents = "all";
     paymentOverlay.classList.add("active");
   }
 
@@ -373,9 +330,16 @@ function openPaypad(method) {
 function closePaypad() {
   activeMethod = null;
   currentInput = "";
+
   if (paymentOverlay) {
     paymentOverlay.classList.remove("active");
-    setTimeout(() => (paymentOverlay.style.display = "none"), 250);
+    paymentOverlay.style.pointerEvents = "none";
+    paymentOverlay.style.opacity = "0";
+    // Smooth fade-out
+    setTimeout(() => {
+      paymentOverlay.style.display = "none";
+      paymentOverlay.style.opacity = "1";
+    }, 250);
   }
 }
 
@@ -425,14 +389,10 @@ function updatePaymentUI(reset = false) {
   if (changeEl) changeEl.textContent = Utilities.convertFloatToString(change);
   const cash = order._payment.cash, card = order._payment.card;
   if (splitInfoEl)
-    splitInfoEl.textContent =
-      cash && card
-        ? `${Utilities.convertFloatToString(cash)} Cash + ${Utilities.convertFloatToString(card)} Card`
-        : cash
-        ? `${Utilities.convertFloatToString(cash)} Cash`
-        : card
-        ? `${Utilities.convertFloatToString(card)} Card`
-        : "None";
+    splitInfoEl.textContent = cash && card ? `${Utilities.convertFloatToString(cash)} Cash + ${Utilities.convertFloatToString(card)} Card`
+      : cash ? `${Utilities.convertFloatToString(cash)} Cash`
+      : card ? `${Utilities.convertFloatToString(card)} Card`
+      : "None";
 }
 
 // ===========================================================
@@ -476,8 +436,7 @@ function submitSale() {
     SplitPayment: split,
   }));
 
-  const WEB_APP_URL =
-    "https://script.google.com/macros/s/AKfycbxrv2qEiZ5mOIa9w_cnde4n9rZdJERT08bqja7gUz2V_4GtkwAYodfuufIroRCwUVolnw/exec";
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxrv2qEiZ5mOIa9w_cnde4n9rZdJERT08bqja7gUz2V_4GtkwAYodfuufIroRCwUVolnw/exec";
 
   fetch(WEB_APP_URL, {
     method: "POST",
@@ -486,7 +445,22 @@ function submitSale() {
     body: JSON.stringify(rows),
   })
     .then(() => {
-      alert("✅ Sale submitted successfully!");
+      alert("✅ Sale submitted successfully! Check your sheet for confirmation.");
       order._order = [];
-      order._payment = { cash: 0Perfect 🌿 — below is your **final working `script.js` file**, fully merged and tested for the Kinaya Rising POS.  
-This version includes all the paypad fixes, passcode gating, and properly reconnected Clear / Return / Add buttons.  
+      order._payment = { cash: 0, card: 0 };
+      Ui.receiptDetails(order);
+      Ui.updateTotals(order);
+      updatePaymentUI(true);
+      toggleSubmitVisibility();
+    })
+    .catch(err => {
+      alert("⚠️ Error submitting sale: " + err.message);
+      console.error(err);
+    });
+}
+
+// ===========================================================
+// FINAL INITIALIZATION
+// ===========================================================
+updatePaymentUI();
+toggleSubmitVisibility();
