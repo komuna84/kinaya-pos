@@ -270,91 +270,115 @@ figcaption {
 
 /* ---------- PAYMENT OVERLAY ---------- */
 #payment-overlay {
-  display: none;
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(4px);
-  z-index: 1000;
+  backdrop-filter: blur(6px);
+  display: flex;
   justify-content: center;
   align-items: center;
-  transition: opacity 0.3s ease;
+  z-index: 99999;
   opacity: 0;
   pointer-events: none;
+  transition: opacity 0.3s ease;
 }
+
 #payment-overlay.active {
-  display: flex;
   opacity: 1;
   pointer-events: all;
 }
 
+/* Lock scroll when overlay is active */
+body.overlay-active {
+  overflow: hidden;
+}
+
+/* --- Paypad Box --- */
 .paypad {
   display: grid;
-  grid-template-columns: repeat(3, 110px);
-  grid-template-rows: auto repeat(4, 110px);
-  justify-content: center;
-  align-items: center;
+  grid-template-columns: repeat(3, 100px);
+  grid-template-rows: auto repeat(4, 100px) auto;
   gap: 10px;
-  background: #111;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 0 25px rgba(167, 225, 238, 0.4);
-  position: relative;
+  background: #0f0f0f;
+  border-radius: 14px;
+  padding: 22px;
+  box-shadow: 0 0 25px rgba(167, 225, 238, 0.35);
+  text-align: center;
 }
 
+/* --- Display --- */
 .paypad-display {
   grid-column: span 3;
-  text-align: center;
   font-size: 2rem;
-  color: #A7E1EE;
-  margin-bottom: 10px;
   font-weight: bold;
-  border-bottom: 1px solid #333;
-  padding-bottom: 8px;
+  color: #A7E1EE;
+  background: rgba(255,255,255,0.05);
+  border-radius: 8px;
+  padding: 10px 0;
+  margin-bottom: 6px;
 }
 
+/* --- Buttons --- */
 .paypad-btn {
-  background: #000;
+  background: rgba(255,255,255,0.04);
   color: #A7E1EE;
-  border: 1px solid #444;
-  transition: background 0.2s ease, color 0.2s ease;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 10px;
+  font-size: 1.6rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 .paypad-btn:hover {
-  background: #1b1b1b;
-  color: #66d0ff;
+  background: rgba(167,225,238,0.15);
+  transform: scale(1.05);
 }
-.paypad-btn.number { font-size: 2rem; }
 
 .paypad-btn.span3-col {
   grid-column: span 3;
   background: #A7E1EE;
   color: #111;
-  font-weight: bold;
+  font-weight: 700;
   border: none;
-  border-radius: 10px;
-  font-size: 1.4rem;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  padding: 12px 0;
 }
 .paypad-btn.span3-col:hover {
-  background: #7fd7e6;
+  background: #8fdff0;
 }
 
-.close-paypad {
+/* --- Close Button --- */
+#close-paypad-btn {
   position: absolute;
-  top: 20px;
-  right: 25px;
-  cursor: pointer;
-}
-.close-icon {
-  color: #fff;
-  font-size: 2.5rem;
-  transition: transform 0.2s ease, color 0.2s ease;
-}
-.close-icon:hover {
-  transform: scale(1.2);
+  top: 12px;
+  right: 16px;
+  background: transparent;
+  border: none;
   color: #A7E1EE;
+  font-size: 2rem;
+  cursor: pointer;
+  transition: transform 0.25s ease, color 0.25s ease;
+}
+#close-paypad-btn:hover {
+  transform: scale(1.1);
+  color: #fff;
+}
+
+/* --- Mobile --- */
+@media (max-width: 768px) {
+  .paypad {
+    grid-template-columns: repeat(3, 90px);
+    grid-template-rows: auto repeat(4, 80px) auto;
+    gap: 8px;
+    width: 90%;
+    max-width: 340px;
+  }
+  .paypad-display {
+    font-size: 1.8rem;
+  }
+  .paypad-btn {
+    font-size: 1.4rem;
+  }
 }
 
 /* ---------- MODAL ---------- */
