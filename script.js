@@ -333,7 +333,9 @@ let isReturnMode = false;
 loadMenuFromSheet(sheetCsvUrl).then(rows => {
   order.menu = rows;
   Ui.renderMenu(order);
+  attachPosListenersOnce(); // ✅ ensure event listener attaches after menu render
 });
+
 
 // ===========================================================
 // PAYMENT / PAYPAD LOGIC
