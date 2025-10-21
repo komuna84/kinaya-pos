@@ -102,27 +102,29 @@
                 <tr><td class="empty-border" colspan="3"></td></tr>
 
                 <tr>
-                  <td>Email:</td>
-                  <td colspan="2">
-                    <input
-                      type="email"
-                      id="customer-email"
-                      placeholder="customer@example.com"
-                      style="width:100%;padding:4px;border:1px solid #333;border-radius:4px;
-                             background:#111;color:#A7E1EE;"
-                    />
-                  </td>
-                </tr>
-                <tr id="submit-row" style="display:none;">
-                  <td colspan="3" style="text-align:center;">
-                    <button id="submit-sale" class="submit-sale-btn">
-                      Submit Sale
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+  <td>Email:</td>
+  <td colspan="2">
+    <input
+      type="email"
+      id="customer-email"
+      placeholder="customer@example.com"
+      style="width:100%;padding:4px;border:1px solid #333;border-radius:4px;
+             background:#111;color:#A7E1EE;"
+    />
+  </td>
+</tr>
+</tbody>
+</table> <!-- ✅ close your table before submit -->
+
+<!-- ✅ Move submit button OUTSIDE the table -->
+<div id="submit-row" style="display:none;">
+  <button id="submit-sale" class="submit-sale-btn">Submit Sale</button>
+</div>
+
+<div class="receipt-footer">
+  Thank You For Your Support!
+</div>
+
         </div>
       </article>
 
