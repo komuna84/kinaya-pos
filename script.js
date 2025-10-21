@@ -17,11 +17,87 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ===========================================================
-// ACCESS GATE + POS LISTENER FIX (FINAL)
+// Kinaya Rising POS (Stable October 2025) - FINAL UNLOCK FIX
 // ===========================================================
+
+// ---------- HEADER DATE ----------
+document.addEventListener("DOMContentLoaded", () => {
+  const dateEl = document.getElementById("current-date");
+  if (dateEl) {
+    const now = new Date();
+    dateEl.textContent = now.toLocaleDateString("en-US", {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  }
+});
+
 let isReturnMode = false;
 let posListenersAttached = false;
+let order; // declare early so it's visible to all functions
 
+// ===========================================================
+// INITIALIZATION (wait until everything loads)
+// ===========================================================
+window.addEventListener("load", async () => {
+  // 1️⃣ Create order + load products first
+  order = new Order();
+  const sheetCsvUrl =
+    "https://docs.google.com/spreadsheets/d/e/2PACX-1vT8TYrKVClp5GXP5Sx7NYGpfRvEMCCNuL40vbcyhdwP6bnvQeQRqJ4xTv6BZUnC5nm7N2N_KwQlHZ2H/pub?gid=30403628&single=true&output=csv";
+
+  const rows = await loadMenuFromSheet(sheetCsvUrl);
+  order.menu = rows;
+  Ui.renderMenu(order);
+
+  // 2️⃣ Then activate passcode gate
+  initPasscodeGate();
+});
+
+// ===========================================================
+// PASSCODE GATE
+// ===========================================================
+function initPasscodeGate() {
+  const gate = document.getElementById("passcode-screen");
+  const input = document.getElementById("passcode-input");
+  const button = document.getElementById("passcode-btn");
+  const errorMsg = document.getElementById("passcode-error");
+  const PASSCODE = "Lumina2025";
+
+  if (!gate || !input || !button) return;
+
+  const unlock = () => {
+    if (input.value.trim() === PASSCODE) {
+      gate.style.transition = "opacity 0.4s ease";
+      gate.style.opacity = "0";
+      setTimeout(() => {
+        gate.style.display = "none";
+        sessionStorage.setItem("posUnlocked", "true");
+        attachPosListenersOnce();
+      }, 400);
+    } else {
+      errorMsg.style.display = "block";
+      input.value = "";
+    }
+  };
+
+  // If already unlocked in this session
+  if (sessionStorage.getItem("posUnlocked") === "true") {
+    gate.style.display = "none";
+    attachPosListenersOnce();
+    return;
+  }
+
+  button.addEventListener("click", unlock);
+  input.addEventListener("keypress", e => {
+    if (e.key === "Enter") unlock();
+  });
+}
+
+// ===========================================================
+// POS BUTTON LISTENERS
+// ===========================================================
 function attachPosListenersOnce() {
   if (posListenersAttached) return;
   posListenersAttached = true;
@@ -55,49 +131,6 @@ function attachPosListenersOnce() {
     if (data) order.addOrderLine(1, data, isReturnMode);
   });
 }
-
-// ===========================================================
-// PASSCODE GATE (FIXED)
-// ===========================================================
-document.addEventListener("DOMContentLoaded", () => {
-  const gate = document.getElementById("passcode-screen");
-  const input = document.getElementById("passcode-input");
-  const button = document.getElementById("passcode-btn");
-  const errorMsg = document.getElementById("passcode-error");
-  const PASSCODE = "Lumina2025";
-
-  if (!gate || !input || !button) return;
-
-  const unlock = () => {
-    if (input.value.trim() === PASSCODE) {
-      gate.style.transition = "opacity 0.4s ease";
-      gate.style.opacity = "0";
-      setTimeout(() => {
-        gate.style.display = "none";
-        sessionStorage.setItem("posUnlocked", "true");
-        Ui.renderMenu(order);
-        attachPosListenersOnce();
-      }, 400);
-    } else {
-      if (errorMsg) errorMsg.style.display = "block";
-      input.value = "";
-    }
-  };
-
-  // If already unlocked this session
-  if (sessionStorage.getItem("posUnlocked") === "true") {
-    gate.style.display = "none";
-    Ui.renderMenu(order);
-    attachPosListenersOnce();
-    return;
-  }
-
-  button.addEventListener("click", unlock);
-  input.addEventListener("keypress", e => {
-    if (e.key === "Enter") unlock();
-  });
-});
-
 
 // ===========================================================
 // CORE ORDER MODEL
