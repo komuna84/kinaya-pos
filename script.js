@@ -482,7 +482,14 @@ const returnBtn = document.getElementById("toggle-return");
 if (returnBtn) {
   returnBtn.addEventListener("click", () => {
     isReturnMode = !isReturnMode;
+
+    // 🔁 Toggle button highlight
+    returnBtn.classList.toggle("active-return", isReturnMode);
+
+    // 🔁 Toggle body visual indicator
     document.body.classList.toggle("return-mode", isReturnMode);
+
+    // 🔁 Update header label
     const header = document.querySelector("header h1");
     if (header) {
       header.textContent = isReturnMode
@@ -491,7 +498,6 @@ if (returnBtn) {
     }
   });
 }
-
 // ===========================================================
 // FINAL INITIALIZATION
 // ===========================================================
