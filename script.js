@@ -1,49 +1,28 @@
 // ===========================================================
-// Kinaya Rising POS (Stable October 2025) - CLEAN FIXED BUILD
+// Kinaya Rising POS - FINAL FIXED ACCESS GATE
 // ===========================================================
 
-// ---------- HEADER DATE ----------
-document.addEventListener("DOMContentLoaded", () => {
-  const dateEl = document.getElementById("current-date");
-  if (dateEl) {
-    const now = new Date();
-    dateEl.textContent = now.toLocaleDateString("en-US", {
-      weekday: "short",
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  }
-});
-
-// ===========================================================
-// Kinaya Rising POS (Stable October 2025) - FINAL UNLOCK FIX
-// ===========================================================
-
-// ---------- HEADER DATE ----------
-document.addEventListener("DOMContentLoaded", () => {
-  const dateEl = document.getElementById("current-date");
-  if (dateEl) {
-    const now = new Date();
-    dateEl.textContent = now.toLocaleDateString("en-US", {
-      weekday: "short",
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  }
-});
-
+let order;
 let isReturnMode = false;
 let posListenersAttached = false;
-let order; // declare early so it's visible to all functions
 
-// ===========================================================
-// INITIALIZATION (wait until everything loads)
-// ===========================================================
+// Wait for everything to load before initializing
 window.addEventListener("load", async () => {
-  // 1️⃣ Create order + load products first
+  const dateEl = document.getElementById("current-date");
+  if (dateEl) {
+    const now = new Date();
+    dateEl.textContent = now.toLocaleDateString("en-US", {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  }
+
+  // Initialize core
   order = new Order();
+
+  // Load menu first
   const sheetCsvUrl =
     "https://docs.google.com/spreadsheets/d/e/2PACX-1vT8TYrKVClp5GXP5Sx7NYGpfRvEMCCNuL40vbcyhdwP6bnvQeQRqJ4xTv6BZUnC5nm7N2N_KwQlHZ2H/pub?gid=30403628&single=true&output=csv";
 
@@ -51,13 +30,10 @@ window.addEventListener("load", async () => {
   order.menu = rows;
   Ui.renderMenu(order);
 
-  // 2️⃣ Then activate passcode gate
+  // Then run passcode gate
   initPasscodeGate();
 });
 
-// ===========================================================
-// PASSCODE GATE
-// ===========================================================
 function initPasscodeGate() {
   const gate = document.getElementById("passcode-screen");
   const input = document.getElementById("passcode-input");
@@ -82,7 +58,7 @@ function initPasscodeGate() {
     }
   };
 
-  // If already unlocked in this session
+  // Auto-unlock if session already active
   if (sessionStorage.getItem("posUnlocked") === "true") {
     gate.style.display = "none";
     attachPosListenersOnce();
@@ -95,9 +71,6 @@ function initPasscodeGate() {
   });
 }
 
-// ===========================================================
-// POS BUTTON LISTENERS
-// ===========================================================
 function attachPosListenersOnce() {
   if (posListenersAttached) return;
   posListenersAttached = true;
@@ -131,6 +104,7 @@ function attachPosListenersOnce() {
     if (data) order.addOrderLine(1, data, isReturnMode);
   });
 }
+
 
 // ===========================================================
 // CORE ORDER MODEL
