@@ -19,6 +19,12 @@
 
   <!-- Local Styles & Script -->
   <link rel="stylesheet" href="styles.css" />
+  <script>
+    // ✅ Session lock check
+    if (sessionStorage.getItem("posUnlocked") !== "true") {
+      window.location.href = "index.html";
+    }
+  </script>
   <script src="script.js" defer></script>
 </head>
 
@@ -26,31 +32,6 @@
   <header>
     <h1>Kinaya Rising Purchase Order</h1>
   </header>
-<!-- ==================== PASSCODE GATE ==================== -->
-<div id="passcode-screen" style="
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.95);
-  color: #A7E1EE;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 99999;
-  font-family: 'Audiowide', sans-serif;
-  text-align: center;
-  transition: opacity 0.4s ease;
-">
-  <h2 style="margin-bottom: 1.5rem;">🌿 Kinaya Rising POS</h2>
-  <p style="opacity:0.8;margin-bottom:1rem;">Enter Access Code</p>
-  <input id="passcode-input" type="password"
-    style="padding: 10px 14px; border-radius: 8px; border: 1px solid #A7E1EE; background: #111; color: #fff; text-align:center; font-size:1rem;">
-  <button id="passcode-btn"
-    style="margin-top: 1rem; background: #A7E1EE; color: #111; border: none; border-radius: 8px; padding: 8px 20px; font-weight: bold; cursor: pointer;">
-    Unlock
-  </button>
-  <p id="passcode-error" style="margin-top:1rem;color:#e63946;display:none;">Incorrect code.</p>
-</div>
 
   <main class="main-container flex-row">
     <!-- =============== RECEIPT / ORDER SECTION =============== -->
@@ -148,7 +129,7 @@
         <button id="card-btn" class="toolbar-btn" title="Card Payment">
           <i class="fa-solid fa-credit-card"></i>
         </button>
-        <button id="clear-btn" class="toolbar-btn" title="Clear Order">
+        <button id="clear-order-btn" class="toolbar-btn" title="Clear Order">
           <i class="fa-solid fa-trash"></i>
         </button>
         <button id="toggle-return" class="toolbar-btn" title="Toggle Return Mode">
@@ -162,8 +143,7 @@
       <div class="menu flex-row" id="menu">
         <!-- Menu populated dynamically -->
       </div>
-
-     
+    </section>
   </main>
 
   <!-- Submit Confirmation Modal -->
@@ -176,39 +156,38 @@
       </div>
     </div>
   </div>
+
   <!-- Paypad Overlay -->
-<div id="payment-overlay">
-  <div class="paypad" id="paypad">
-    <!-- Close button (inside box) -->
-    <button id="close-paypad-btn" class="paypad-close" title="Close">
-      <i class="fa-solid fa-xmark"></i>
-    </button>
+  <div id="payment-overlay">
+    <div class="paypad" id="paypad">
+      <!-- Close button -->
+      <button id="close-paypad-btn" class="paypad-close" title="Close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
 
-    <!-- Display -->
-    <div id="paypad-display" class="paypad-display">$0.00</div>
+      <!-- Display -->
+      <div id="paypad-display" class="paypad-display">$0.00</div>
 
-    <!-- Keypad -->
-    <button class="paypad-btn number" data-id="7">7</button>
-    <button class="paypad-btn number" data-id="8">8</button>
-    <button class="paypad-btn number" data-id="9">9</button>
+      <!-- Keypad -->
+      <button class="paypad-btn number" data-id="7">7</button>
+      <button class="paypad-btn number" data-id="8">8</button>
+      <button class="paypad-btn number" data-id="9">9</button>
 
-    <button class="paypad-btn number" data-id="4">4</button>
-    <button class="paypad-btn number" data-id="5">5</button>
-    <button class="paypad-btn number" data-id="6">6</button>
+      <button class="paypad-btn number" data-id="4">4</button>
+      <button class="paypad-btn number" data-id="5">5</button>
+      <button class="paypad-btn number" data-id="6">6</button>
 
-    <button class="paypad-btn number" data-id="1">1</button>
-    <button class="paypad-btn number" data-id="2">2</button>
-    <button class="paypad-btn number" data-id="3">3</button>
+      <button class="paypad-btn number" data-id="1">1</button>
+      <button class="paypad-btn number" data-id="2">2</button>
+      <button class="paypad-btn number" data-id="3">3</button>
 
-    <button class="paypad-btn number" data-id="0">0</button>
-    <button class="paypad-btn" data-id="back">Back</button>
-    <button class="paypad-btn" data-id="clear">Clear</button>
+      <button class="paypad-btn number" data-id="0">0</button>
+      <button class="paypad-btn" data-id="back">Back</button>
+      <button class="paypad-btn" data-id="clear">Clear</button>
 
-    <!-- Enter -->
-    <button class="paypad-btn span3-col" data-id="close-sale">Enter</button>
+      <!-- Enter -->
+      <button class="paypad-btn span3-col" data-id="close-sale">Enter</button>
+    </div>
   </div>
-</div>
-
-    </section>
 </body>
 </html>
