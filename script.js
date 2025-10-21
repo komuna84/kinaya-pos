@@ -467,7 +467,7 @@ function submitSale() {
   }));
 
   // ✅ Use your Google Apps Script endpoint, not GitHub Pages
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwUvKnm_NtBt_cLqxJGGXOLlyUpj07O-Y_sJIgBrFTSEuosF7rg7WBgzPOn1xL_qmcFog/exec";
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxrv2qEiZ5mOIa9w_cnde4n9rZdJERT08bqja7gUz2V_4GtkwAYodfuufIroRCwUVolnw/exec";
 
   fetch(WEB_APP_URL, {
     method: "POST",
