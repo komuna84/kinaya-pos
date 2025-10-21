@@ -17,79 +17,12 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ===========================================================
-// ACCESS GATE - Require passcode before using POS
+// SESSION CHECK (new, replaces old gate)
 // ===========================================================
-window.addEventListener("load", () => {
-  const gate = document.getElementById("passcode-screen");
-  const input = document.getElementById("passcode-input");
-  const button = document.getElementById("passcode-btn");
-  const errorMsg = document.getElementById("passcode-error");
-  const PASSCODE = "Lumina2025";
+if (sessionStorage.getItem("posUnlocked") !== "true") {
+  window.location.href = "index.html";
+}
 
-  if (!gate || !input || !button) {
-    console.error("❌ Passcode elements missing.");
-    return;
-  }
-
-  function unlockPOS() {
-    console.log("🔓 Unlocking POS...");
-    gate.style.transition = "opacity 0.4s ease";
-    gate.style.opacity = "0";
-
-    // Fix Safari mobile lag
-    void gate.offsetWidth;
-
-    setTimeout(() => {
-      gate.style.display = "none";
-      gate.style.pointerEvents = "none";
-      sessionStorage.setItem("posUnlocked", "true");
-
-      // Initialize POS
-      Ui.renderMenu(order);
-      Ui.receiptDetails(order);
-      Ui.updateTotals(order);
-      updatePaymentUI();
-      toggleSubmitVisibility();
-
-      // Attach product listeners
-      const menuContainer = document.getElementById("menu");
-      if (menuContainer) {
-        menuContainer.addEventListener("click", (e) => {
-          const item = e.target.closest(".menu-item");
-          if (!item) return;
-          const data = item.getAttribute("data-sku");
-          if (data) order.addOrderLine(1, data, false);
-        });
-      }
-
-      console.log("✅ POS fully unlocked");
-    }, 500);
-  }
-
-  function tryUnlock() {
-    const entered = input.value.trim();
-    console.log("🔐 Entered:", entered);
-    if (entered === PASSCODE) {
-      unlockPOS();
-    } else {
-      errorMsg.style.display = "block";
-      input.value = "";
-    }
-  }
-
-  // Auto-unlock for active session
-  if (sessionStorage.getItem("posUnlocked") === "true") {
-    gate.style.display = "none";
-    unlockPOS();
-    return;
-  }
-
-  // Button & Enter key
-  button.addEventListener("click", tryUnlock);
-  input.addEventListener("keypress", (e) => {
-    if (e.key === "Enter") tryUnlock();
-  });
-});
 
 // ===========================================================
 // CORE ORDER MODEL
