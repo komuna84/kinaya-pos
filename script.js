@@ -1,18 +1,15 @@
 // ===========================================================
-// Kinaya Rising POS - FINAL VERIFIED UNLOCK VERSION
+// 🌿 Kinaya Rising POS — FINAL VERIFIED UNLOCK SYSTEM
 // ===========================================================
 
 let order;
 let isReturnMode = false;
 let posListenersAttached = false;
 
-// ===========================================================
-// INITIALIZATION
-// ===========================================================
 window.addEventListener("load", async () => {
-  console.log("✅ POS starting up...");
+  console.log("✅ Initializing Kinaya Rising POS...");
 
-  // Header Date
+  // ---------- HEADER DATE ----------
   const dateEl = document.getElementById("current-date");
   if (dateEl) {
     const now = new Date();
@@ -24,17 +21,21 @@ window.addEventListener("load", async () => {
     });
   }
 
-  // Create Order
+  // ---------- LOAD PRODUCTS ----------
   order = new Order();
-
-  // Load Menu CSV
   const sheetCsvUrl =
     "https://docs.google.com/spreadsheets/d/e/2PACX-1vT8TYrKVClp5GXP5Sx7NYGpfRvEMCCNuL40vbcyhdwP6bnvQeQRqJ4xTv6BZUnC5nm7N2N_KwQlHZ2H/pub?gid=30403628&single=true&output=csv";
-  const rows = await loadMenuFromSheet(sheetCsvUrl);
-  order.menu = rows;
-  Ui.renderMenu(order);
 
-  // Start Passcode Gate
+  try {
+    const rows = await loadMenuFromSheet(sheetCsvUrl);
+    order.menu = rows;
+    Ui.renderMenu(order);
+    console.log("📦 Menu loaded:", order.menu.length, "items");
+  } catch (err) {
+    console.error("❌ Menu load failed:", err);
+  }
+
+  // ---------- ACTIVATE PASSCODE ----------
   initPasscodeGate();
 });
 
@@ -53,25 +54,30 @@ function initPasscodeGate() {
     return;
   }
 
-  const unlock = () => {
+  // ✅ Unlock logic
+  function unlock() {
     const entered = input.value.trim();
     if (entered === PASSCODE) {
-      console.log("✅ Correct passcode — unlocking POS");
+      console.log("🔓 Correct passcode — unlocking POS...");
       gate.style.transition = "opacity 0.4s ease";
       gate.style.opacity = "0";
+
       setTimeout(() => {
         gate.style.display = "none";
         sessionStorage.setItem("posUnlocked", "true");
+
+        // ✅ Activate POS
         attachPosListenersOnce();
+        console.log("🎯 POS is now active");
       }, 400);
     } else {
-      console.warn("❌ Wrong passcode:", entered);
+      console.warn("❌ Incorrect passcode:", entered);
       errorMsg.style.display = "block";
       input.value = "";
     }
-  };
+  }
 
-  // Auto-unlock for same session
+  // 🔁 Auto-unlock if already authenticated
   if (sessionStorage.getItem("posUnlocked") === "true") {
     console.log("🔓 Session already unlocked");
     gate.style.display = "none";
@@ -79,10 +85,14 @@ function initPasscodeGate() {
     return;
   }
 
+  // 🖱️ and ⌨️ Events
   button.addEventListener("click", unlock);
   input.addEventListener("keypress", e => {
     if (e.key === "Enter") unlock();
   });
+
+  // Focus the input field automatically
+  setTimeout(() => input.focus(), 300);
 }
 
 // ===========================================================
@@ -99,7 +109,7 @@ function attachPosListenersOnce() {
   const menuContainer = document.getElementById("menu");
 
   if (!clearBtn || !toggleReturnBtn || !menuContainer) {
-    console.warn("⚠️ Missing core buttons");
+    console.warn("⚠️ Some POS buttons missing");
     return;
   }
 
@@ -112,13 +122,13 @@ function attachPosListenersOnce() {
     toggleSubmitVisibility();
   });
 
-  // Return mode
+  // Toggle Return mode
   toggleReturnBtn.addEventListener("click", () => {
     isReturnMode = !isReturnMode;
     toggleReturnBtn.classList.toggle("active", isReturnMode);
   });
 
-  // Add product
+  // Add product to order
   menuContainer.addEventListener("click", e => {
     const item = e.target.closest(".menu-item");
     if (!item) return;
