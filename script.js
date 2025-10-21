@@ -285,9 +285,9 @@ function updatePaypadDisplay() {
 function openPaypad(method) {
   activeMethod = method;
 
-  // preload previously entered value if exists
+  // 🟢 Preload previous payment (if any)
   const prev = order._payment[method] || 0;
-  currentInput = String(Math.round(prev * 100));
+  currentInput = prev > 0 ? String(Math.round(prev * 100)) : "";
   updatePaypadDisplay();
 
   if (paymentOverlay) {
@@ -322,11 +322,14 @@ document.querySelectorAll(".paypad-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     const id = btn.getAttribute("data-id");
     if (!id) return;
+
     if (id === "clear") currentInput = "";
     else if (id === "back") currentInput = currentInput.slice(0, -1);
     else if (id === "close-sale") finalizePaypadAmount();
     else if (!isNaN(id)) currentInput += id;
+
     updatePaypadDisplay();
+    toggleSubmitVisibility();
   });
 });
 
