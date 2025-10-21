@@ -888,40 +888,54 @@ figcaption {
   }
 }
 
-/* ================= FORCE CALCULATOR ABOVE ALL ELSE ================= */
-@media (max-width: 900px) {
+/* ================= FINAL FIX — CALCULATOR ABOVE EVERYTHING ================= */
+#payment-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(6px);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 999999; /* overlay on top of all content */
+  transition: opacity 0.3s ease;
+}
+
+#payment-overlay.active {
+  display: flex;
+}
+
+.paypad {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #111;
+  border-radius: 12px;
+  box-shadow: 0 0 25px rgba(167, 225, 238, 0.4);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 20px;
+  z-index: 1000000; /* calculator itself above overlay */
+}
+
+/* --- Make sure it's perfect on mobile --- */
+@media (max-width: 768px) {
   #payment-overlay {
-    z-index: 999999 !important;  /* ensures dark overlay covers page */
-    position: fixed !important;
+    z-index: 999999 !important;
   }
 
   .paypad {
-    z-index: 1000000 !important;  /* calculator above overlay */
-    position: fixed !important;
+    z-index: 1000000 !important;
+    width: 92%;
+    max-width: 340px;
+    padding: 18px;
+    gap: 8px;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
   }
-}
-
-/* ================= FORCE OVERLAY ABOVE MAIN ================= */
-#payment-overlay {
-  position: fixed !important;
-  inset: 0 !important;            /* covers entire screen */
-  z-index: 999999 !important;     /* sits above main and all other content */
-  pointer-events: none;
-}
-
-#payment-overlay.active {
-  pointer-events: all !important;
-}
-
-#payment-overlay .paypad {
-  position: fixed !important;
-  top: 50% !important;
-  left: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  z-index: 1000000 !important;    /* calculator above overlay */
 }
 
 
