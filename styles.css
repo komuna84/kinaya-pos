@@ -1280,3 +1280,47 @@ body.overlay-active {
     font-size: 1.8rem;
   }
 }
+/* ===============================
+   🧩 FIX — Login Input Not Typable
+   =============================== */
+
+body.login-body {
+  overflow: visible !important; /* ✅ allow focusing on mobile */
+  -webkit-overflow-scrolling: touch;
+}
+
+.login-container {
+  position: relative;
+  z-index: 10;
+}
+
+#passcode-input {
+  position: relative;
+  z-index: 20;
+  pointer-events: auto !important;
+  opacity: 1 !important;
+  background: rgba(0, 0, 0, 0.7) !important;
+  color: #fff !important;
+}
+
+.login-container::before,
+.login-container::after {
+  pointer-events: none !important; /* ✅ ensures no invisible overlay blocks clicks */
+}
+
+/* Optional: mobile scale improvements */
+@media (max-width: 600px) {
+  .login-container {
+    width: 90%;
+    padding: 2rem 1.5rem;
+  }
+  #passcode-input,
+  #passcode-btn {
+    width: 100%;
+    font-size: 1rem;
+    padding: 12px;
+  }
+  .login-container h1 {
+    font-size: 1.5rem;
+  }
+}
