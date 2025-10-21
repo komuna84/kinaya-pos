@@ -287,24 +287,23 @@ th, td {
 }
 
 #toggle-return {
+  color: #A7E1EE;
+  background: transparent;
   transition: all 0.3s ease;
-  cursor: pointer;
-  transform-origin: center;
+}
+
+#toggle-return.active {
+  color: #e63946;
+  transform: rotate(-180deg);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 #toggle-return i {
   transition: all 0.3s ease;
-  display: inline-block;
-  transform-origin: center;
-}
-
-#toggle-return.active {
-  color: #e63946 !important;
-  transform: rotate(-180deg);
 }
 
 #toggle-return.active i {
-  color: #d9534f !important;
+  color: #d9534f;
   transform: scale(1.2);
 }
 
