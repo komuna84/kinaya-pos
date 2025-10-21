@@ -287,22 +287,24 @@ th, td {
 }
 
 #toggle-return {
-  background: none;
-  border: none;
+  transition: all 0.3s ease;
   cursor: pointer;
-  color: inherit;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.25s ease;
+  transform-origin: center;
 }
-#toggle-return:hover { transform: scale(1.15); }
+
+#toggle-return i {
+  transition: all 0.3s ease;
+  display: inline-block;
+  transform-origin: center;
+}
+
 #toggle-return.active {
-  color: #e63946;
+  color: #e63946 !important;
   transform: rotate(-180deg);
 }
+
 #toggle-return.active i {
-  color: #d9534f;
+  color: #d9534f !important;
   transform: scale(1.2);
 }
 
