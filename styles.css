@@ -1172,27 +1172,30 @@ body.login-body {
 }
 
 
-/* =======================
-   FULL-WIDTH SUBMIT BUTTON
-   ======================= */
+/* ================================
+   SUBMIT SALE BUTTON (WIDER INSIDE BOX)
+   ================================ */
+
 #submit-row {
-  width: 95%;                  /* ✅ wider inside white box */
-  margin: 1rem auto;           /* centers it neatly */
+  width: 100%;
   text-align: center;
+  margin: 1rem 0;
 }
 
 #submit-sale {
-  width: 100%;                 /* fills that 95% container */
+  width: 92%; /* ✅ fills most of the white box, with a small margin */
+  margin: 0 auto; /* center horizontally */
   padding: 14px 0;
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   font-weight: 600;
-  background: linear-gradient(90deg, #A7E1EE, #BFD8C1); /* soft Kinaya green/blue */
+  text-align: center;
+  background: linear-gradient(90deg, #A7E1EE, #BFD8C1); /* Kinaya green gradient */
   color: #111;
   border: none;
   border-radius: 10px;
   cursor: pointer;
-  box-shadow: 0 0 10px rgba(167, 225, 238, 0.4);
   transition: all 0.25s ease;
+  box-shadow: 0 0 10px rgba(167, 225, 238, 0.4);
 }
 
 #submit-sale:hover {
@@ -1200,16 +1203,17 @@ body.login-body {
   box-shadow: 0 0 16px rgba(167, 225, 238, 0.6);
 }
 
-/* optional smoother disabled/hidden state */
+/* Optional: disabled state when hidden */
 #submit-row:not(.visible) #submit-sale {
   opacity: 0.5;
   pointer-events: none;
 }
 
-/* Mobile tweak for fit */
+/* Mobile adjustment */
 @media (max-width: 768px) {
-  #submit-row {
-    width: 98%;
-    margin-bottom: 1rem;
+  #submit-sale {
+    width: 96%; /* slightly more breathing room on small screens */
+    font-size: 1rem;
   }
 }
+
