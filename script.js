@@ -365,7 +365,6 @@ const order = new Order();
 loadMenuFromSheet(sheetCsvUrl).then(rows => {
   order.menu = rows;
   Ui.renderMenu(order);
-  attachPosListenersOnce(); // ✅ ensure event listener attaches after menu render
 });
 
 
