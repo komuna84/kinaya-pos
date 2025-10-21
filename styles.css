@@ -349,18 +349,14 @@ th, td {
   .image-scroll img { width: 100px; }
 }
 
-/* ================= FORCE CALCULATOR TO TOP ================= */
-#payment-overlay,
-.paypad {
+/* ================= KEEP CALCULATOR ON TOP (SAFE VERSION) ================= */
+#payment-overlay {
   position: fixed !important;
   inset: 0;
-  z-index: 9999999 !important; /* ✅ top of all layers */
-}
-
-#payment-overlay {
+  z-index: 999999 !important; /* ✅ Above everything else */
   background: rgba(0, 0, 0, 0.85);
   backdrop-filter: blur(6px);
-  display: flex;
+  display: none;
   justify-content: center;
   align-items: center;
   transition: opacity 0.3s ease;
@@ -369,6 +365,7 @@ th, td {
 }
 
 #payment-overlay.active {
+  display: flex;
   opacity: 1;
   pointer-events: all;
 }
@@ -378,6 +375,6 @@ th, td {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 10000000 !important; /* ✅ even above overlay */
+  z-index: 1000000 !important; /* ✅ On top of overlay, but not stretching */
 }
 
