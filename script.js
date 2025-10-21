@@ -136,6 +136,121 @@ function attachPosListenersOnce() {
     if (data) order.addOrderLine(1, data, isReturnMode);
   });
 }
+// ===========================================================
+// 💳 PAYMENT / PAYPAD CALCULATOR (Restored)
+// ===========================================================
+function initPaypad() {
+  const paymentOverlay = document.getElementById("payment-overlay");
+  const closeBtn = document.getElementById("close-paypad-btn");
+  const cashBtn = document.getElementById("cash-btn");
+  const cardBtn = document.getElementById("card-btn");
+  const amountInput = document.getElementById("amount-paid-input");
+  const paymentTypeEl = document.getElementById("payment-type");
+  const changeEl = document.getElementById("change-amount");
+  const splitInfoEl = document.getElementById("split-info");
+  const paypadButtons = document.querySelectorAll(".paypad-btn");
+
+  if (!paymentOverlay || !cashBtn || !cardBtn) {
+    console.warn("⚠️ Paypad elements missing");
+    return;
+  }
+
+  let activeMethod = null;
+  let currentInput = "";
+
+  const updatePaypadDisplay = () => {
+    const display = document.getElementById("paypad-display");
+    const cents = parseFloat(currentInput);
+    const numeric = isNaN(cents) ? 0 : cents / 100;
+    if (display) display.textContent = `$${numeric.toFixed(2)}`;
+  };
+
+  const openPaypad = method => {
+    activeMethod = method;
+    currentInput = "";
+    updatePaypadDisplay();
+    paymentOverlay.style.display = "flex";
+    paymentOverlay.classList.add("active");
+    if (paymentTypeEl) paymentTypeEl.textContent = method.toUpperCase();
+  };
+
+  const closePaypad = () => {
+    activeMethod = null;
+    currentInput = "";
+    paymentOverlay.classList.remove("active");
+    setTimeout(() => (paymentOverlay.style.display = "none"), 250);
+  };
+
+  const finalizePaypadAmount = () => {
+    const cents = parseFloat(currentInput);
+    const amount = isNaN(cents) ? 0 : cents / 100;
+    if (amount <= 0 || !activeMethod) {
+      alert("Enter a valid amount");
+      return;
+    }
+    order._payment[activeMethod] = Utilities.roundToTwo(
+      (order._payment[activeMethod] || 0) + amount
+    );
+    updatePaymentUI();
+    toggleSubmitVisibility();
+    closePaypad();
+  };
+
+  // 🔢 Button Events
+  paypadButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-id");
+      if (!id) return;
+      if (id === "clear") currentInput = "";
+      else if (id === "back") currentInput = currentInput.slice(0, -1);
+      else if (id === "close-sale") finalizePaypadAmount();
+      else if (!isNaN(id)) currentInput += id;
+      updatePaypadDisplay();
+    });
+  });
+
+  // 💵 Main Buttons
+  cashBtn.addEventListener("click", () => openPaypad("cash"));
+  cardBtn.addEventListener("click", () => openPaypad("card"));
+  if (closeBtn) closeBtn.addEventListener("click", closePaypad);
+}
+
+// ✅ Run this right after unlocking
+function attachPosListenersOnce() {
+  if (posListenersAttached) return;
+  posListenersAttached = true;
+  console.log("🎯 POS listeners attached");
+
+  const clearBtn = document.getElementById("clear-btn");
+  const toggleReturnBtn = document.getElementById("toggle-return");
+  const menuContainer = document.getElementById("menu");
+
+  if (clearBtn)
+    clearBtn.addEventListener("click", () => {
+      order._order = [];
+      Ui.receiptDetails(order);
+      Ui.updateTotals(order);
+      updatePaymentUI(true);
+      toggleSubmitVisibility();
+    });
+
+  if (toggleReturnBtn)
+    toggleReturnBtn.addEventListener("click", () => {
+      isReturnMode = !isReturnMode;
+      toggleReturnBtn.classList.toggle("active", isReturnMode);
+    });
+
+  if (menuContainer)
+    menuContainer.addEventListener("click", e => {
+      const item = e.target.closest(".menu-item");
+      if (!item) return;
+      const data = item.getAttribute("data-sku");
+      if (data) order.addOrderLine(1, data, isReturnMode);
+    });
+
+  // ✅ Initialize paypad only after unlock
+  initPaypad();
+}
 
 // ===========================================================
 // ORDER MODEL
