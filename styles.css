@@ -825,49 +825,66 @@ figcaption {
 
 /* ================= IMAGE STRIP UNDER PRODUCTS (FINAL) ================= */
 
+/* Container that scrolls horizontally */
 .image-scroll {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center; /* ✅ true centering */
-  gap: 1.8rem;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 1.2rem;
   width: 90%;
   max-width: 850px;
+  overflow-x: auto;                /* ✅ scrolls within container */
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding: 1rem;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.03);
+  box-shadow: 0 0 12px rgba(0,0,0,0.4);
+}
+
+/* Hide scrollbar but keep scrolling */
+.image-scroll::-webkit-scrollbar {
+  display: none;
 }
 
 .image-scroll a {
   display: block;
+  flex: 0 0 auto;
+  scroll-snap-align: center;
   text-decoration: none;
 }
 
 .image-scroll img {
-  width: 150px;
+  display: block;
+  width: 120px;
   height: auto;
   border-radius: 10px;
   object-fit: cover;
-  box-shadow: 0 0 12px rgba(255,255,255,0.08);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  display: block;
   margin: 0 auto;
+  box-shadow: 0 0 10px rgba(255,255,255,0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .image-scroll img:hover {
-  transform: scale(1.06);
+  transform: scale(1.05);
   box-shadow: 0 0 18px rgba(167,225,238,0.35);
 }
 
-/* --- Mobile tweaks --- */
+/* --- Mobile adjustments --- */
 @media (max-width: 768px) {
   .image-gallery {
-    padding: 2rem 0 3rem;
+    padding: 1rem 0;
   }
 
   .image-scroll {
-    gap: 1.2rem;
+    gap: 1rem;
+    width: 95%;
+    padding: 0.8rem;
   }
 
   .image-scroll img {
-    width: 120px;
+    width: 100px;
   }
 }
 
