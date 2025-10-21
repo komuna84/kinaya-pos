@@ -1172,15 +1172,31 @@ body.login-body {
 }
 
 
-/* ===== SUBMIT PAYMENT BUTTON - FULL WIDTH ===== */
+/* =======================
+   FULL-WIDTH SUBMIT BUTTON
+   ======================= */
 #submit-row {
-  width: 100%;
-  margin-top: 1rem;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100vw;
+  margin: 0;
+  padding: 0.8rem 1rem;
+  background: rgba(18, 18, 18, 0.9);
+  box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.4);
+  z-index: 99999; /* ✅ ensures it's above .order and overlays */
+  display: none;  /* default hidden until visible */
+}
+
+#submit-row.visible {
+  display: block;
+  animation: fadeUp 0.3s ease forwards;
 }
 
 #submit-sale {
   width: 100%;
-  padding: 14px 0;
+  padding: 16px 0;
   font-size: 1.2rem;
   font-weight: 600;
   text-align: center;
@@ -1198,9 +1214,30 @@ body.login-body {
   box-shadow: 0 0 16px rgba(167, 225, 238, 0.6);
 }
 
-/* Optional: smoother disabled/hidden state */
-#submit-row:not(.visible) #submit-sale {
-  opacity: 0.5;
-  pointer-events: none;
+/* 🔹 subtle slide-up animation */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
+
+/* ✅ Mobile tweaks */
+@media (max-width: 768px) {
+  #submit-row {
+    padding: 1rem;
+    background: rgba(18, 18, 18, 0.95);
+  }
+
+  #submit-sale {
+    font-size: 1.1rem;
+    padding: 14px 0;
+    border-radius: 12px;
+  }
+}
+
 
