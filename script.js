@@ -328,7 +328,7 @@ loadMenuFromSheet(sheetCsvUrl).then(rows => {
 });
 
 // ===========================================================
-// PAYMENT + PAYPAD FIXED
+// PAYMENT + PAYPAD FIXED (STABLE VERSION)
 // ===========================================================
 const paymentOverlay = document.getElementById("payment-overlay");
 const closeBtn = document.getElementById("close-paypad-btn");
@@ -342,7 +342,7 @@ const splitInfoEl = document.getElementById("split-info");
 let activeMethod = null;
 let currentInput = "";
 
-// Live display updater
+// --- Update display safely ---
 function updatePaypadDisplay() {
   const display = document.getElementById("paypad-display");
   const cents = parseFloat(currentInput);
@@ -350,7 +350,7 @@ function updatePaypadDisplay() {
   if (display) display.textContent = `$${numeric.toFixed(2)}`;
 }
 
-// --- Open & Close Overlay Safely ---
+// --- Open / Close overlay ---
 function openPaypad(method) {
   activeMethod = method;
   currentInput = "";
@@ -361,42 +361,23 @@ function openPaypad(method) {
     paymentOverlay.style.pointerEvents = "all";
     paymentOverlay.classList.add("active");
   }
-
   if (paymentTypeEl) paymentTypeEl.textContent = method.toUpperCase();
 }
 
 function closePaypad() {
   activeMethod = null;
   currentInput = "";
-
-  if (paymentOverlay) {
-    paymentOverlay.classList.remove("active");
-    paymentOverlay.style.pointerEvents = "none";
-    paymentOverlay.style.opacity = "0";
-    // Smooth fade-out
-    setTimeout(() => {
-      paymentOverlay.style.display = "none";
-      paymentOverlay.style.opacity = "1";
-    }, 250);
-  }
+  if (!paymentOverlay) return;
+  paymentOverlay.classList.remove("active");
+  paymentOverlay.style.pointerEvents = "none";
+  paymentOverlay.style.opacity = "0";
+  setTimeout(() => {
+    paymentOverlay.style.display = "none";
+    paymentOverlay.style.opacity = "1";
+  }, 250);
 }
 
-if (cashBtn) cashBtn.addEventListener("click", () => openPaypad("cash"));
-if (cardBtn) cardBtn.addEventListener("click", () => openPaypad("card"));
-if (closeBtn) closeBtn.addEventListener("click", closePaypad);
-
-document.querySelectorAll(".paypad-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const id = btn.getAttribute("data-id");
-    if (!id) return;
-    if (id === "clear") currentInput = "";
-    else if (id === "back") currentInput = currentInput.slice(0, -1);
-    else if (id === "close-sale") finalizePaypadAmount();
-    else if (!isNaN(id)) currentInput += id;
-    updatePaypadDisplay();
-  });
-});
-
+// --- Finalize amount safely ---
 function finalizePaypadAmount() {
   const cents = parseFloat(currentInput);
   const amount = isNaN(cents) ? 0 : cents / 100;
@@ -409,6 +390,35 @@ function finalizePaypadAmount() {
   toggleSubmitVisibility();
   closePaypad();
 }
+
+// --- Attach handlers once DOM is ready ---
+document.addEventListener("DOMContentLoaded", () => {
+  if (cashBtn) cashBtn.onclick = () => openPaypad("cash");
+  if (cardBtn) cardBtn.onclick = () => openPaypad("card");
+  if (closeBtn) closeBtn.onclick = closePaypad;
+
+  document.querySelectorAll(".paypad-btn").forEach(btn => {
+    btn.onclick = () => {
+      const id = btn.getAttribute("data-id");
+      if (!id) return;
+      switch (id) {
+        case "clear":
+          currentInput = "";
+          break;
+        case "back":
+          currentInput = currentInput.slice(0, -1);
+          break;
+        case "close-sale":
+          finalizePaypadAmount();
+          break;
+        default:
+          if (!isNaN(id)) currentInput += id;
+          break;
+      }
+      updatePaypadDisplay();
+    };
+  });
+});
 
 // ===========================================================
 // PAYMENT UI + SUBMISSION
