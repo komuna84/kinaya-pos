@@ -480,16 +480,21 @@ loadMenuFromSheet(sheetCsvUrl).then(rows => {
 // ===========================================================
 const returnBtn = document.getElementById("toggle-return");
 if (returnBtn) {
-  returnBtn.addEventListener("click", () => {
+  returnBtn.addEventListener("click", e => {
+    e.preventDefault();
+    e.stopPropagation();
+
     isReturnMode = !isReturnMode;
 
-    // Toggle button state class
+    // 🔁 Toggle .active visually on both the button and icon
     returnBtn.classList.toggle("active", isReturnMode);
+    const icon = returnBtn.querySelector("i");
+    if (icon) icon.classList.toggle("active", isReturnMode);
 
-    // Toggle body class for background/visual indicator
+    // 🔁 Toggle background mode
     document.body.classList.toggle("return-mode", isReturnMode);
 
-    // Update header text
+    // 🔁 Update header label
     const header = document.querySelector("header h1");
     if (header) {
       header.textContent = isReturnMode
