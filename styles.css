@@ -1065,6 +1065,7 @@ figcaption {
 
 /* --- Paypad Box --- */
 .paypad {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(3, 110px);
   grid-template-rows: auto repeat(4, 100px) auto;
@@ -1075,9 +1076,11 @@ figcaption {
   border-radius: 16px;
   padding: 24px;
   box-shadow: 0 0 35px rgba(167, 225, 238, 0.3);
-  position: relative;
-  width: fit-content;
-  margin: 0 auto;
+  /* ✅ perfect centering */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 /* --- Display (Amount typed) --- */
