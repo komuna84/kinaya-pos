@@ -432,212 +432,31 @@ function submitSale() {
 
 
 // ===========================================================
-// Kinaya Rising POS — Full Stable Version (Split Payment)
+// MENU CLICK HANDLERS (add items to order)
 // ===========================================================
-
-const TAX_RATE = 0.07;
-const ENDPOINT = "https://script.google.com/macros/s/14LQqEsRumpXVeC7ZKEd8CX2FHZoztKHsuROG6DQg4uR_iZOBgcX9esxj/exec";
-
-let order = [];
-let cashPaid = 0;
-let cardPaid = 0;
-let isReturnMode = false;
-let currentMethod = null;
-let currentInput = "";
-
-// ---------- Utility ----------
-const fmt = num => `$${parseFloat(num || 0).toFixed(2)}`;
-
-// ---------- Load Menu ----------
 document.addEventListener("DOMContentLoaded", () => {
-  const menu = document.getElementById("menu");
-  const products = [
-    { sku: "B0F8NFSWXW", name: "Book - AoL Part 1", price: 14.98 },
-    { sku: "BKM-001", name: "Bookmarks", price: 2.00 },
-    { sku: "Button-001", name: "Buttons (individual)", price: 5.00 },
-    { sku: "Button-001-5pk", name: "Buttons (5 pack)", price: 15.00 },
-    { sku: "Cos-001", name: "Coaster", price: 10.00 },
-    { sku: "Jou-001", name: "Journal", price: 14.00 },
-    { sku: "Mug-sm-001", name: "Mug", price: 12.00 },
-    { sku: "posh-sm-nat-001", name: "Poster - Sonavra", price: 30.00 },
-    { sku: "posh-sm-nat-002", name: "Poster - Word of Understanding", price: 30.00 },
-    { sku: "TBA-001", name: "Tote Bag", price: 20.00 },
-  ];
+  const menuContainer = document.getElementById("menu");
+  if (!menuContainer) return;
 
-  // Render product tiles
-  menu.innerHTML = products.map(
-    p => `
-      <figure class="menu-item" data-sku="${p.sku}" data-name="${p.name}" data-price="${p.price}">
-        <img src="https://raw.githubusercontent.com/komuna84/kinaya-pos-assets/main/${p.sku}.png"
-             alt="${p.name}" class="menu-image" />
-        <figcaption>${p.name}</figcaption>
-        <figcaption>${p.sku}</figcaption>
-        <figcaption>$${p.price.toFixed(2)}</figcaption>
-      </figure>`
-  ).join("");
+  // Delegate clicks for dynamically rendered items
+  menuContainer.addEventListener("click", e => {
+    const figure = e.target.closest(".menu-item");
+    if (!figure) return;
 
-  // Attach product click events
-  document.querySelectorAll(".menu-item").forEach(item =>
-    item.addEventListener("click", () => addItem(item.dataset))
-  );
+    const data = figure.getAttribute("data-sku");
+    if (!data) return;
 
-  // Toolbar buttons
-  document.getElementById("cash-btn").onclick = () => openPaypad("cash");
-  document.getElementById("card-btn").onclick = () => openPaypad("card");
-  document.getElementById("clear-order-btn").onclick = clearOrder;
-  document.getElementById("toggle-return").onclick = toggleReturn;
+    // Add product (respects Return Mode)
+    order.addOrderLine(1, data, isReturnMode);
+  });
 });
 
-// ---------- Add / Remove ----------
-function addItem({ sku, name, price }) {
-  const existing = order.find(p => p.sku === sku);
-  if (existing) existing.qty++;
-  else order.push({ sku, name, price: parseFloat(price), qty: 1 });
-  updateUI();
-}
 
-function removeItem(sku) {
-  order = order.filter(p => p.sku !== sku);
-  updateUI();
-}
-
-// ---------- Totals ----------
-function calcTotals() {
-  const subtotal = order.reduce((s, i) => s + i.qty * i.price, 0);
-  const tax = subtotal * TAX_RATE;
-  const total = subtotal + tax;
-  return { subtotal, tax, total };
-}
-
-// ---------- Update UI ----------
-function updateUI() {
-  const body = document.getElementById("receipt-details");
-  body.innerHTML = "";
-  order.forEach(item => {
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td>${item.name}</td>
-      <td>${item.qty}</td>
-      <td>${fmt(item.price)}</td>
-      <td>${fmt(item.qty * item.price)}</td>
-      <td class="delete" onclick="removeItem('${item.sku}')"><i class="fa-solid fa-xmark"></i></td>`;
-    body.appendChild(row);
-  });
-
-  const { subtotal, tax, total } = calcTotals();
-  document.getElementById("subtotal-summary").textContent = fmt(subtotal);
-  document.getElementById("tax-summary").textContent = fmt(tax);
-  document.getElementById("grandtotal-summary").textContent = fmt(total);
-
-  const split = [];
-  if (cashPaid) split.push(fmt(cashPaid) + " Cash");
-  if (cardPaid) split.push(fmt(cardPaid) + " Card");
-  document.getElementById("split-info").textContent = split.join(" / ") || "None";
-
-  document.getElementById("amount-paid-input").value =
-    fmt(cashPaid + cardPaid);
-  document.getElementById("submit-row").style.display =
-    order.length && (cashPaid + cardPaid) >= total ? "block" : "none";
-}
-
-// ---------- Clear / Return ----------
-function clearOrder() {
-  if (!confirm("Clear current order?")) return;
-  order = [];
-  cashPaid = cardPaid = 0;
-  updateUI();
-}
-
-function toggleReturn() {
-  isReturnMode = !isReturnMode;
-  document.getElementById("toggle-return").classList.toggle("active", isReturnMode);
-}
-
-// ---------- Paypad ----------
-function openPaypad(method) {
-  currentMethod = method;
-  currentInput = "";
-  updatePaypadDisplay();
-  document.getElementById("payment-overlay").classList.add("active");
-
-  // Buttons
-  document.querySelectorAll(".paypad-btn").forEach(btn => {
-    btn.onclick = () => handlePaypad(btn.dataset.id);
-  });
-  document.getElementById("close-paypad-btn").onclick = closePaypad;
-}
-
-function handlePaypad(id) {
-  if (id === "clear") currentInput = "";
-  else if (id === "back") currentInput = currentInput.slice(0, -1);
-  else if (id === "close-sale") finalizePaypad();
-  else if (!isNaN(id)) currentInput += id;
-  updatePaypadDisplay();
-}
-
-function updatePaypadDisplay() {
-  document.getElementById("paypad-display").textContent =
-    fmt(parseFloat(currentInput || 0) / 100);
-}
-
-function closePaypad() {
-  document.getElementById("payment-overlay").classList.remove("active");
-}
-
-function finalizePaypad() {
-  const amount = parseFloat(currentInput || 0) / 100;
-  if (amount <= 0) return;
-  if (currentMethod === "cash") cashPaid += amount;
-  if (currentMethod === "card") cardPaid += amount;
-  closePaypad();
-  updateUI();
-}
-
-// ---------- Submit ----------
-async function submitSale() {
-  const { subtotal, tax, total } = calcTotals();
-  const date = new Date().toLocaleDateString("en-US");
-  const email = document.getElementById("customer-email").value.trim();
-  const payment = [cashPaid ? fmt(cashPaid) + " Cash" : "", cardPaid ? fmt(cardPaid) + " Card" : ""]
-    .filter(Boolean)
-    .join(" ");
-
-  const rows = order.map(i => ({
-    Date: date,
-    Sku: i.sku,
-    ProductTitle: i.name,
-    Quantity: i.qty,
-    Price: i.price,
-    Subtotal: i.qty * i.price,
-    Tax: tax,
-    Total: total,
-    Email: email,
-    Payment: payment,
-  }));
-
-  try {
-    const res = await fetch(ENDPOINT, {
-      method: "POST",
-      body: JSON.stringify(rows),
-      headers: { "Content-Type": "application/json" },
-    });
-    const text = await res.text();
-    if (text.includes("Success")) {
-      alert("✅ Sale recorded!");
-      clearOrder();
-    } else {
-      alert("❌ Error saving sale.");
-    }
-  } catch (err) {
-    alert("Error submitting sale: " + err);
-  }
-}
-
-// Submit button handler
-document.addEventListener("click", e => {
-  if (e.target && e.target.id === "submit-sale") submitSale();
-});
-
+// ===========================================================
+// FINAL INITIALIZATION
+// ===========================================================
+updatePaymentUI();
+toggleSubmitVisibility();
 
 // ===========================================================
 // FINAL INITIALIZATION
