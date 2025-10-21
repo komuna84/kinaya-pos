@@ -124,11 +124,15 @@ main {
 
 /* ---------- HEADER ---------- */
 header {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: #BFD8C1;
-  text-shadow: 0 0 8px rgba(191, 216, 193, 0.3);
-  font-size: 1.2rem;
-  padding: 12px 0;
+  background: linear-gradient(90deg, rgba(10, 30, 40, 0.9), rgba(20, 60, 80, 0.9));
+  color: #A7E1EE; /* Kinaya blue */
+  text-shadow: 0 0 10px rgba(167, 225, 238, 0.8), 0 0 20px rgba(80, 160, 190, 0.5);
+  font-size: 1.3rem;
+  letter-spacing: 0.05em;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(167, 225, 238, 0.25);
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 20, 30, 0.6);
 }
 
 header h1 {
@@ -396,14 +400,16 @@ body.overlay-active {
 /* --- Paypad Box --- */
 .paypad {
   display: grid;
-  grid-template-columns: repeat(3, 100px);
-  grid-template-rows: auto repeat(4, 100px) auto;
+  grid-template-columns: repeat(3, 1fr);  /* 3 equal columns */
+  grid-auto-rows: 80px;                   /* consistent square height */
   gap: 10px;
   background: #0f0f0f;
   border-radius: 14px;
   padding: 22px;
   box-shadow: 0 0 25px rgba(167, 225, 238, 0.35);
   text-align: center;
+  width: 340px;                           /* keep a compact square shape */
+  margin: auto;
 }
 
 /* --- Display --- */
@@ -414,8 +420,8 @@ body.overlay-active {
   color: #A7E1EE;
   background: rgba(255,255,255,0.05);
   border-radius: 8px;
-  padding: 10px 0;
-  margin-bottom: 6px;
+  padding: 14px 0;
+  margin-bottom: 4px;
 }
 
 /* --- Buttons --- */
@@ -425,14 +431,21 @@ body.overlay-active {
   border: 1px solid rgba(255,255,255,0.15);
   border-radius: 10px;
   font-size: 1.6rem;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+  aspect-ratio: 1 / 1; /* 💡 ensures perfect squares on all devices */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
 .paypad-btn:hover {
   background: rgba(167,225,238,0.15);
   transform: scale(1.05);
 }
 
+/* --- Enter Button (Full Width) --- */
 .paypad-btn.span3-col {
   grid-column: span 3;
   background: #A7E1EE;
@@ -440,8 +453,8 @@ body.overlay-active {
   font-weight: 700;
   border: none;
   border-radius: 8px;
-  font-size: 1.2rem;
-  padding: 12px 0;
+  font-size: 1.3rem;
+  height: 70px; /* keeps consistent balance */
 }
 .paypad-btn.span3-col:hover {
   background: #8fdff0;
