@@ -32,7 +32,6 @@ window.addEventListener("load", () => {
     gate.style.opacity = "0";
     setTimeout(() => {
       gate.style.display = "none";
-      gate.style.pointerEvents = "none"; // ✅ fully disable overlay touch blocking on mobile
       sessionStorage.setItem("posUnlocked", "true");
 
       // ✅ Render menu AFTER unlock
