@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // ===========================================================
 // ACCESS GATE - Require passcode before using POS
 // ===========================================================
-document.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("load", () => {
   const gate = document.getElementById("passcode-screen");
   const input = document.getElementById("passcode-input");
   const button = document.getElementById("passcode-btn");
@@ -26,16 +26,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (!gate || !input || !button) return;
 
-  const PASSCODE = "Lumina2025"; // 🪶 change this to whatever you want
+  const PASSCODE = "Lumina2025"; // 🌿 Change to your preferred code
 
-  // Optional: If they've entered it once, remember for this session
-  const unlocked = sessionStorage.getItem("posUnlocked");
-  if (unlocked === "true") {
+  // If user already unlocked during this session
+  if (sessionStorage.getItem("posUnlocked") === "true") {
     gate.style.display = "none";
     return;
   }
 
-  button.addEventListener("click", () => {
+  const unlock = () => {
     if (input.value.trim() === PASSCODE) {
       gate.style.opacity = "0";
       setTimeout(() => {
@@ -46,10 +45,11 @@ document.addEventListener("DOMContentLoaded", () => {
       errorMsg.style.display = "block";
       input.value = "";
     }
-  });
+  };
 
-  input.addEventListener("keypress", (e) => {
-    if (e.key === "Enter") button.click();
+  button.addEventListener("click", unlock);
+  input.addEventListener("keypress", e => {
+    if (e.key === "Enter") unlock();
   });
 });
 
