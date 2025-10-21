@@ -29,32 +29,30 @@ window.addEventListener("load", () => {
 
   const PASSCODE = "Lumina2025"; // 🌿 Change your access code
 
+  function unlockPOS() {
+    gate.style.opacity = "0";
+    setTimeout(() => {
+      gate.style.display = "none";
+      sessionStorage.setItem("posUnlocked", "true");
+
+      // 🧩 Initialize POS logic after unlock
+      initPOS();
+    }, 400);
+  }
+
   const unlock = () => {
     if (input.value.trim() === PASSCODE) {
-      gate.style.opacity = "0";
-      setTimeout(() => {
-        gate.style.display = "none";
-        sessionStorage.setItem("posUnlocked", "true");
-
-        // ✅ Load POS UI
-        Ui.renderMenu(order);
-        Ui.receiptDetails(order);
-        Ui.updateTotals(order);
-        updatePaymentUI();
-        toggleSubmitVisibility();
-        activatePOSListeners(); // rebind buttons
-      }, 400);
+      unlockPOS();
     } else {
       errorMsg.style.display = "block";
       input.value = "";
     }
   };
 
-  // Auto-bypass if already unlocked
+  // If already unlocked in session
   if (sessionStorage.getItem("posUnlocked") === "true") {
     gate.style.display = "none";
-    Ui.renderMenu(order);
-    activatePOSListeners();
+    initPOS(); // ✅ Immediately initialize
     return;
   }
 
@@ -65,41 +63,22 @@ window.addEventListener("load", () => {
 });
 
 // ===========================================================
-// ACTIVATE POS BUTTONS & LISTENERS
+// POS INITIALIZATION
 // ===========================================================
-function activatePOSListeners() {
-  const clearBtn = document.getElementById("clear-btn");
-  const toggleReturnBtn = document.getElementById("toggle-return");
-  const menuContainer = document.getElementById("menu");
+function initPOS() {
+  console.log("✅ POS Unlocked and Initialized");
 
-  if (!clearBtn || !toggleReturnBtn || !menuContainer) return;
+  // Reconnect menu events
+  Ui.renderMenu(order);
+  activatePOSListeners();
 
-  // 🗑️ Clear Order
-  clearBtn.addEventListener("click", () => {
-    order._order = [];
-    Ui.receiptDetails(order);
-    Ui.updateTotals(order);
-    updatePaymentUI(true);
-    toggleSubmitVisibility();
-  });
-
-  // 🔁 Toggle Return Mode
-  toggleReturnBtn.addEventListener("click", () => {
-    isReturnMode = !isReturnMode;
-    toggleReturnBtn.classList.toggle("active", isReturnMode);
-    console.log("Return Mode:", isReturnMode);
-  });
-
-  // 🖼️ Add Product
-  menuContainer.addEventListener("click", (e) => {
-    const item = e.target.closest(".menu-item");
-    if (!item) return;
-    const data = item.getAttribute("data-sku");
-    if (data) {
-      order.addOrderLine(1, data, isReturnMode);
-    }
-  });
+  // Refresh UI
+  Ui.receiptDetails(order);
+  Ui.updateTotals(order);
+  updatePaymentUI();
+  toggleSubmitVisibility();
 }
+
 
 // ===========================================================
 // CORE ORDER MODEL
