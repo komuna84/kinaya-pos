@@ -403,24 +403,24 @@ function toggleSubmitVisibility() {
   const hasEmail = emailInput && emailInput.value.trim();
   if (submitRow) submitRow.style.display = ready && hasEmail && order._order.length ? "table-row" : "none";
 }
-if (emailInput) {
-  // Restore previous email on load (session-level memory)
-  const savedEmail = sessionStorage.getItem("lastCustomerEmail");
-  if (savedEmail) emailInput.value = savedEmail;
-
-  // Save new email each time user types
-  emailInput.addEventListener("input", () => {
-    sessionStorage.setItem("lastCustomerEmail", emailInput.value.trim());
-    toggleSubmitVisibility();
-  });
-}
+if (emailInput) emailInput.addEventListener("input", toggleSubmitVisibility);
 
 if (submitBtn) submitBtn.addEventListener("click", () => modal.classList.remove("hidden"));
 if (modalCancel) modalCancel.addEventListener("click", () => modal.classList.add("hidden"));
-if (modalOk) modalOk.addEventListener("click", () => {
-  modal.classList.add("hidden");
-  submitSale();
-});
+if (modalOk) {
+  modalOk.addEventListener("click", () => {
+    modal.classList.add("hidden");
+    submitSale();
+
+    // After sale completes, refocus on email input
+    setTimeout(() => {
+      if (emailInput) {
+        emailInput.focus();
+        emailInput.select(); // highlights previous address if stored
+      }
+    }, 800); // short delay to let the UI reset first
+  });
+}
 
 function submitSale() {
   const email = (emailInput && emailInput.value.trim()) || "";
