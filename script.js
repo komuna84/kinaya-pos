@@ -342,6 +342,28 @@ function finalizePaypadAmount() {
   toggleSubmitVisibility();
   closePaypad();
 }
+// ===========================================================
+// TOOLBAR BUTTONS — Clear Order + Payment + Return
+// ===========================================================
+const clearOrderBtn = document.getElementById("clear-order-btn");
+
+if (clearOrderBtn) {
+  clearOrderBtn.addEventListener("click", () => {
+    if (!order._order.length) {
+      alert("🧾 No items to clear.");
+      return;
+    }
+    if (confirm("⚠️ Clear the current order?")) {
+      order._order = [];
+      order._payment = { cash: 0, card: 0 };
+      Ui.receiptDetails(order);
+      Ui.updateTotals(order);
+      updatePaymentUI(true);
+      toggleSubmitVisibility();
+      alert("🗑️ Order cleared.");
+    }
+  });
+}
 
 // ===========================================================
 // PAYMENT UI + SUBMISSION
