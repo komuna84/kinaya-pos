@@ -176,29 +176,39 @@
       </div>
     </div>
   </div>
-   <!-- Paypad Overlay -->
-      <div class="payment-grid" id="payment-overlay">
-        <div class="close-paypad">
-  <i class="fa-solid fa-xmark close-icon" id="close-paypad-btn"></i>
-  <div id="paypad-display" class="paypad-display">$0.00</div>
+  <!-- Paypad Overlay -->
+<div id="payment-overlay">
+  <div class="paypad" id="paypad">
+    <!-- Close button (inside box) -->
+    <button id="close-paypad-btn" class="paypad-close" title="Close">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+
+    <!-- Display -->
+    <div id="paypad-display" class="paypad-display">$0.00</div>
+
+    <!-- Keypad -->
+    <button class="paypad-btn number" data-id="7">7</button>
+    <button class="paypad-btn number" data-id="8">8</button>
+    <button class="paypad-btn number" data-id="9">9</button>
+
+    <button class="paypad-btn number" data-id="4">4</button>
+    <button class="paypad-btn number" data-id="5">5</button>
+    <button class="paypad-btn number" data-id="6">6</button>
+
+    <button class="paypad-btn number" data-id="1">1</button>
+    <button class="paypad-btn number" data-id="2">2</button>
+    <button class="paypad-btn number" data-id="3">3</button>
+
+    <button class="paypad-btn number" data-id="0">0</button>
+    <button class="paypad-btn" data-id="back">Back</button>
+    <button class="paypad-btn" data-id="clear">Clear</button>
+
+    <!-- Enter -->
+    <button class="paypad-btn span3-col" data-id="close-sale">Enter</button>
+  </div>
 </div>
 
-        <div class="paypad grid" id="paypad">
-          <button class="paypad-btn number" data-id="7">7</button>
-          <button class="paypad-btn number" data-id="8">8</button>
-          <button class="paypad-btn number" data-id="9">9</button>
-          <button class="paypad-btn number" data-id="4">4</button>
-          <button class="paypad-btn number" data-id="5">5</button>
-          <button class="paypad-btn number" data-id="6">6</button>
-          <button class="paypad-btn number" data-id="1">1</button>
-          <button class="paypad-btn number" data-id="2">2</button>
-          <button class="paypad-btn number" data-id="3">3</button>
-          <button class="paypad-btn number" data-id="0">0</button>
-          <button class="paypad-btn" data-id="back">Back</button>
-          <button class="paypad-btn" data-id="clear">Clear</button>
-          <button class="paypad-btn span3-col" data-id="close-sale">Enter</button>
-        </div>
-      </div>
     </section>
 </body>
 </html>
