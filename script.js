@@ -2,6 +2,9 @@
 // Kinaya Rising POS (Stable October 2025) - FIXED PAYPAD OVERLAY
 // ===========================================================
 
+// ---------- SAFETY GUARD ----------
+if (!window.order) window.order = new Order();
+
 // ---------- HEADER DATE ----------
 document.addEventListener("DOMContentLoaded", () => {
   const dateEl = document.getElementById("current-date");
@@ -51,19 +54,43 @@ window.addEventListener("load", () => {
       updatePaymentUI();
       toggleSubmitVisibility();
 
-      // Attach product listeners
+      // ---------- PRODUCT LISTENERS (fixed double-add) ----------
       const menuContainer = document.getElementById("menu");
       if (menuContainer) {
-        menuContainer.addEventListener("click", (e) => {
-          const item = e.target.closest(".menu-item");
-          if (!item) return;
-          const data = item.getAttribute("data-sku");
-          if (data) order.addOrderLine(1, data, false);
+        const cleanMenu = menuContainer.cloneNode(true);
+        menuContainer.parentNode.replaceChild(cleanMenu, menuContainer);
+
+        cleanMenu.querySelectorAll(".menu-item").forEach(item => {
+          item.addEventListener("click", () => {
+            const data = item.getAttribute("data-sku");
+            if (data) order.addOrderLine(1, data, order.isReturn || false);
+          });
         });
       }
 
       console.log("✅ POS fully unlocked");
     }, 500);
+  }
+
+  // ---------- CLEAR ORDER & RETURN BUTTONS ----------
+  const clearBtn = document.getElementById("clear-order-btn");
+  const returnBtn = document.getElementById("toggle-return");
+
+  if (clearBtn) {
+    clearBtn.addEventListener("click", () => {
+      order._order = [];
+      Ui.receiptDetails(order);
+      Ui.updateTotals(order);
+      updatePaymentUI(true);
+      toggleSubmitVisibility();
+    });
+  }
+
+  if (returnBtn) {
+    returnBtn.addEventListener("click", () => {
+      returnBtn.classList.toggle("active");
+      order.isReturn = returnBtn.classList.contains("active");
+    });
   }
 
   function tryUnlock() {
@@ -99,6 +126,7 @@ class Order {
     this._menu = [];
     this._order = [];
     this._payment = { cash: 0, card: 0 };
+    this.isReturn = false;
   }
 
   set menu(rows) {
@@ -320,7 +348,6 @@ const sheetCsvUrl =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vT8TYrKVClp5GXP5Sx7NYGpfRvEMCCNuL40vbcyhdwP6bnvQeQRqJ4xTv6BZUnC5nm7N2N_KwQlHZ2H/pub?gid=30403628&single=true&output=csv";
 
 const order = new Order();
-let isReturnMode = false;
 
 loadMenuFromSheet(sheetCsvUrl).then(rows => {
   order.menu = rows;
@@ -340,26 +367,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let currentValue = "";
 
-  // --- Helper to update display ---
   const updateDisplay = () => {
     display.textContent = currentValue || "0";
   };
 
-  // --- Open the paypad ---
   function openPaypad() {
     overlay.classList.add("active");
     document.body.classList.add("overlay-active");
-    currentValue = ""; // clear previous value
+    currentValue = "";
     updateDisplay();
   }
 
-  // --- Close paypad ---
   function closePaypad() {
     overlay.classList.remove("active");
     document.body.classList.remove("overlay-active");
   }
 
-  // --- Handle number press ---
   numberBtns.forEach(btn => {
     btn.onclick = () => {
       const val = btn.textContent.trim();
@@ -370,18 +393,19 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   });
 
-  // --- Handle Enter ---
   enterBtn.onclick = () => {
-    if (currentValue) {
-      amountInput.value = currentValue; // ✅ apply amount
+    const cents = parseFloat(currentValue);
+    const amount = isNaN(cents) ? 0 : cents / 100;
+    if (amount > 0) {
+      order._payment.cash = Utilities.roundToTwo(order._payment.cash + amount);
+      updatePaymentUI();
+      toggleSubmitVisibility();
+      document.querySelector("#submit-sale")?.click(); // ✅ auto-submit sale
     }
     closePaypad();
   };
 
-  // --- Handle Close ---
   closeBtn.onclick = closePaypad;
-
-  // --- Optional: open paypad on click in input ---
   amountInput.addEventListener("focus", openPaypad);
 });
 
@@ -395,6 +419,9 @@ function totalPaid() {
   return Object.values(order._payment).reduce((a, b) => a + b, 0);
 }
 function updatePaymentUI(reset = false) {
+  const amountInput = document.getElementById("amount-paid-input");
+  const changeEl = document.getElementById("change-amount");
+  const splitInfoEl = document.getElementById("split-info");
   const total = orderTotal();
   const paid = reset ? 0 : totalPaid();
   const change = Math.max(0, paid - total);
@@ -435,6 +462,7 @@ if (modalOk) modalOk.addEventListener("click", () => {
 function submitSale() {
   const email = (emailInput && emailInput.value.trim()) || "";
   const date = new Date().toLocaleDateString("en-US");
+  const splitInfoEl = document.getElementById("split-info");
   const split = splitInfoEl ? splitInfoEl.textContent : "";
   const rows = order._order.map(l => ({
     Date: date,
