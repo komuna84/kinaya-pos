@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Kinaya Rising POS — Login</title>
-  <link rel="stylesheet" href="styles.css" />
-</head>
+
   <!-- Fonts & Icons -->
   <link
     rel="stylesheet"
@@ -13,42 +13,57 @@
     referrerpolicy="no-referrer"
   />
   <link
-    href="https://fonts.googleapis.com/css2?family=Audiowide&family=Libre+Barcode+128&family=Roboto:wght@300;400;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Audiowide&family=Roboto:wght@300;400;700&display=swap"
     rel="stylesheet"
   />
 
-  <!-- Local Styles & Script -->
+  <!-- Local Styles -->
   <link rel="stylesheet" href="styles.css" />
 </head>
+
 <body class="login-body">
   <div class="login-container">
     <h1>🌿 Kinaya Rising POS</h1>
     <p>Enter Access Code</p>
-    <input type="password" id="passcode-input" placeholder="••••••••" />
+    <input
+      type="password"
+      id="passcode-input"
+      placeholder="Enter passcode"
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="off"
+      spellcheck="false"
+    />
     <br />
     <button id="passcode-btn">Unlock</button>
     <p id="passcode-error">Invalid passcode.</p>
   </div>
+
   <p class="login-footer">© 2025 Kinaya Rising</p>
+
   <script>
-    const PASSCODE = "Lumina2025";
-    const button = document.getElementById("passcode-btn");
-    const input = document.getElementById("passcode-input");
-    const error = document.getElementById("passcode-error");
+    window.addEventListener("DOMContentLoaded", () => {
+      const PASSCODE = "Lumina2025";
+      const button = document.getElementById("passcode-btn");
+      const input = document.getElementById("passcode-input");
+      const error = document.getElementById("passcode-error");
 
-    function unlock() {
-      const entered = input.value.trim();
-      if (entered === PASSCODE) {
-        sessionStorage.setItem("posUnlocked", "true");
-        window.location.href = "menu.html";
-      } else {
-        error.style.display = "block";
-        input.value = "";
+      function unlock() {
+        const entered = input.value.trim();
+        if (entered === PASSCODE) {
+          sessionStorage.setItem("posUnlocked", "true");
+          window.location.href = "menu.html"; // redirect target
+        } else {
+          error.style.display = "block";
+          input.value = "";
+        }
       }
-    }
 
-    button.onclick = unlock;
-    input.onkeypress = (e) => e.key === "Enter" && unlock();
+      // hide error while typing
+      input.addEventListener("input", () => (error.style.display = "none"));
+      button.addEventListener("click", unlock);
+      input.addEventListener("keypress", (e) => e.key === "Enter" && unlock());
+    });
   </script>
 </body>
 </html>
