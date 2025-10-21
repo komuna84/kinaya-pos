@@ -21,29 +21,33 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 
-<body class="login-body">
-  <div class="login-container">
+<body class="login-body" oncontextmenu="return false" autocomplete="off">
+  <div class="login-container" autocomplete="off">
     <h1>🌿 Kinaya Rising POS</h1>
     <p>Enter Access Code</p>
-    <input
-      type="password"
-      id="passcode-input"
-      placeholder="Enter passcode"
-      autocomplete="new-password"
-      autocorrect="off"
-      autocapitalize="off"
-      spellcheck="false"
-      inputmode="numeric"
-     />
-    <br />
-    <button id="passcode-btn">Unlock</button>
-    <p id="passcode-error">Invalid passcode.</p>
+
+    <form id="login-form" autocomplete="off">
+      <input
+        type="password"
+        id="passcode-input"
+        placeholder="Enter passcode"
+        inputmode="text"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+        name="fakepass"   <!-- trick to stop password manager -->
+        autocomplete="off"
+      />
+      <br />
+      <button id="passcode-btn" type="button">Unlock</button>
+      <p id="passcode-error">Invalid passcode.</p>
+    </form>
   </div>
 
   <p class="login-footer">© 2025 Kinaya Rising</p>
 
   <script>
-    window.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("DOMContentLoaded", () => {
       const PASSCODE = "Lumina2025";
       const button = document.getElementById("passcode-btn");
       const input = document.getElementById("passcode-input");
@@ -53,14 +57,13 @@
         const entered = input.value.trim();
         if (entered === PASSCODE) {
           sessionStorage.setItem("posUnlocked", "true");
-          window.location.href = "sale.html"; // redirect target
+          window.location.href = "sale.html"; // ✅ redirect to your sales POS
         } else {
           error.style.display = "block";
           input.value = "";
         }
       }
 
-      // hide error while typing
       input.addEventListener("input", () => (error.style.display = "none"));
       button.addEventListener("click", unlock);
       input.addEventListener("keypress", (e) => e.key === "Enter" && unlock());
