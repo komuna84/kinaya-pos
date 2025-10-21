@@ -29,17 +29,19 @@ window.addEventListener("load", () => {
 
   const PASSCODE = "Lumina2025"; // 🌿 Change to your preferred code
 
-  if (sessionStorage.getItem("posUnlocked") === "true") {
-    gate.style.display = "none";
-    return;
-  }
-
   const unlock = () => {
     if (input.value.trim() === PASSCODE) {
       gate.style.opacity = "0";
       setTimeout(() => {
         gate.style.display = "none";
         sessionStorage.setItem("posUnlocked", "true");
+
+        // ✅ reinitialize the real POS UI now
+        Ui.renderMenu(order);
+        Ui.receiptDetails(order);
+        Ui.updateTotals(order);
+        updatePaymentUI();
+        toggleSubmitVisibility();
       }, 400);
     } else {
       errorMsg.style.display = "block";
@@ -47,11 +49,18 @@ window.addEventListener("load", () => {
     }
   };
 
+  // If already unlocked this session
+  if (sessionStorage.getItem("posUnlocked") === "true") {
+    gate.style.display = "none";
+    return;
+  }
+
   button.addEventListener("click", unlock);
   input.addEventListener("keypress", e => {
     if (e.key === "Enter") unlock();
   });
 });
+
 
 // ===========================================================
 // CORE ORDER MODEL
