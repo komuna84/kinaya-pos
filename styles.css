@@ -1176,31 +1176,40 @@ body.login-body {
    SUBMIT SALE BUTTON (WIDER INSIDE BOX)
    ================================ */
 
+/* ================================
+   FIXED: Green Success Button Centered in White Box
+   ================================ */
 #submit-row {
-  text-align: center;
-  margin: 1.2rem 0;
+  display: flex;               /* ✅ flexbox centers horizontally */
+  justify-content: center;
+  align-items: center;
+  padding: 1rem 0;
+  width: 100%;
+  border: none;
 }
 
 #submit-sale {
-  background: #4CAF50;          /* ✅ clean success green */
+  background-color: #4CAF50;   /* ✅ classic success green */
   color: #fff;
   border: none;
   border-radius: 8px;
-  padding: 12px 40px;
+  padding: 12px 0;
+  width: 70%;                  /* ✅ wide rectangle instead of square */
+  max-width: 300px;            /* keep it reasonable */
   font-size: 1.1rem;
   font-weight: 600;
+  text-align: center;
   cursor: pointer;
-  transition: background 0.25s ease, transform 0.15s ease;
-  display: inline-block;        /* centers it nicely inside the row */
+  transition: background 0.25s ease, transform 0.2s ease;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 #submit-sale:hover {
-  background: #45A049;          /* darker hover green */
+  background-color: #45A049;   /* darker green on hover */
   transform: scale(1.03);
 }
 
-/* Disabled or hidden state */
+/* Disabled state */
 #submit-row:not(.visible) #submit-sale {
   opacity: 0.6;
   pointer-events: none;
@@ -1209,10 +1218,10 @@ body.login-body {
 /* Mobile tweak */
 @media (max-width: 768px) {
   #submit-sale {
-    width: 90%;                 /* ✅ looks great on phones */
-    padding: 14px 0;
+    width: 90%;
     font-size: 1rem;
   }
 }
+
 
 
