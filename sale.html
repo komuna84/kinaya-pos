@@ -77,60 +77,56 @@
 
           <!-- =============== SUMMARY =============== -->
           <div class="receipt-summary">
-            <table class="summary-table">
-              <tbody id="summary-section">
-                <tr><td class="dotted-border" colspan="3"></td></tr>
-                <tr><td class="empty-border" colspan="3"></td></tr>
+  <table class="summary-table">
+    <tbody id="summary-section">
+      <tr><td class="dotted-border" colspan="3"></td></tr>
+      <tr><td class="empty-border" colspan="3"></td></tr>
 
-                <tr><td>Subtotal:</td><td id="subtotal-summary">$0.00</td></tr>
-                <tr><td>Tax:</td><td id="tax-summary">$0.00</td></tr>
-                <tr><td>Grand Total:</td><td id="grandtotal-summary">$0.00</td></tr>
+      <tr><td>Subtotal:</td><td id="subtotal-summary">$0.00</td></tr>
+      <tr><td>Tax:</td><td id="tax-summary">$0.00</td></tr>
+      <tr><td>Grand Total:</td><td id="grandtotal-summary">$0.00</td></tr>
 
-                <tr><td class="dotted-border" colspan="3"></td></tr>
-                <tr><td class="empty-border" colspan="3"></td></tr>
+      <tr><td class="dotted-border" colspan="3"></td></tr>
+      <tr><td class="empty-border" colspan="3"></td></tr>
 
-                <tr>
-                  <td>Amount Paid:</td>
-                  <td><input type="currency" id="amount-paid-input" step="0.01" min="0" placeholder="0.00" /></td>
-                </tr>
+      <tr>
+        <td>Amount Paid:</td>
+        <td><input type="currency" id="amount-paid-input" step="0.01" min="0" placeholder="0.00" /></td>
+      </tr>
 
-                <tr><td id="change-title">Change:</td><td id="change-amount">$0.00</td></tr>
-                <tr><td>Payment Type:</td><td id="payment-type">Cash</td></tr>
-                <tr><td>Split Payment:</td><td id="split-info">None</td></tr>
+      <tr><td id="change-title">Change:</td><td id="change-amount">$0.00</td></tr>
+      <tr><td>Payment Type:</td><td id="payment-type">Cash</td></tr>
+      <tr><td>Split Payment:</td><td id="split-info">None</td></tr>
 
-                <tr><td class="dotted-border" colspan="3"></td></tr>
-                <tr><td class="empty-border" colspan="3"></td></tr>
+      <tr><td class="dotted-border" colspan="3"></td></tr>
+      <tr><td class="empty-border" colspan="3"></td></tr>
 
-                <tr>
-  <td>Email:</td>
-  <td colspan="2">
-    <input
-      type="email"
-      id="customer-email"
-      placeholder="customer@example.com"
-      style="width:100%;padding:4px;border:1px solid #333;border-radius:4px;
-             background:#111;color:#A7E1EE;"
-    />
-  </td>
-</tr>
-</tbody>
-</table> <!-- ✅ close your table before submit -->
+      <tr>
+        <td>Email:</td>
+        <td colspan="2">
+          <input
+            type="email"
+            id="customer-email"
+            placeholder="customer@example.com"
+            style="width:100%;padding:4px;border:1px solid #333;border-radius:4px;
+                   background:#111;color:#A7E1EE;"
+          />
+        </td>
+      </tr>
+    </tbody>
+  </table> <!-- ✅ close your table before submit -->
 
-<!-- ✅ Move submit button OUTSIDE the table -->
-<div id="submit-row" style="display:none;">
- <center><button id="submit-sale" class="submit-sale-btn">Submit Sale</button></center>
-</div>
+  <!-- ✅ Centered button BELOW the table -->
+  <div id="submit-row" style="display:none; text-align:center; padding:1rem 0;">
+    <button id="submit-sale" class="submit-sale-btn">Submit Sale</button>
+  </div>
+</div> <!-- closes .receipt-summary -->
 
+<!-- ✅ Only ONE footer remains -->
 <div class="receipt-footer">
   Thank You For Your Support!
 </div>
 
-        </div>
-      </article>
-
-      <div class="receipt-footer flex-column">
-        <p id="receipt-message">Thank You For Your Support!</p>
-      </div>
 
       <!-- Toolbar -->
       <div class="toolbar flex-row">
