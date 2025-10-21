@@ -1175,48 +1175,45 @@ body.login-body {
 /* ================================
    SUBMIT SALE BUTTON (WIDER INSIDE BOX)
    ================================ */
-
-/* ================================
-   FIXED: Green Success Button Centered in White Box
-   ================================ */
 #submit-row {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 1.2rem 0;
-  background: #fff; /* matches the order box */
+  width: 100%;
+  background: #fff;
+  padding: 1rem 0 1.5rem; /* space above + below */
+  box-sizing: border-box;
+  border-top: 1px dotted #ccc;
 }
 
 #submit-sale {
-  background: #4CAF50;
+  background-color: #4CAF50;     /* green success */
   color: #fff;
   border: none;
-  border-radius: 8px;
-  padding: 12px 40px;
+  border-radius: 10px;
+  padding: 12px 36px;
   font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.25s ease, transform 0.15s ease;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
 #submit-sale:hover {
-  background: #45A049;
+  background-color: #45A049;
   transform: scale(1.03);
 }
 
-/* Hidden state */
+/* Keep it hidden until visible */
 #submit-row:not(.visible) {
   display: none;
 }
 
-/* Mobile tweak */
+/* Mobile refinement */
 @media (max-width: 768px) {
   #submit-sale {
     width: 90%;
-    padding: 14px 0;
+    max-width: 300px;
+    text-align: center;
   }
 }
-
-
-
