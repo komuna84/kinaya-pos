@@ -373,6 +373,14 @@ if (clearOrderBtn) {
 }
 
 // ===========================================================
+// SUBMIT + EMAIL + TOGGLE VISIBILITY FIX
+// ===========================================================
+const emailInput = document.getElementById("customer-email");
+const submitRow = document.getElementById("submit-row");
+const submitBtn = document.getElementById("submit-sale");
+
+
+// ===========================================================
 // PAYMENT UI + SUBMISSION
 // ===========================================================
 function orderTotal() {
@@ -506,6 +514,60 @@ if (returnBtn) {
     }
   });
 }
+
+// ===========================================================
+// SUBMIT TOGGLE + MODAL CONFIRMATION LOGIC
+// ===========================================================
+function toggleSubmitVisibility() {
+  const ready = totalPaid() >= orderTotal();
+  const hasEmail = emailInput && emailInput.value.trim().length > 0;
+  const hasItems = order._order && order._order.length > 0;
+
+  if (!submitRow) return;
+
+  if (ready && hasEmail && hasItems) {
+    submitRow.style.display = "block"; // visible on all layouts
+    submitRow.classList.add("visible");
+  } else {
+    submitRow.style.display = "none";
+    submitRow.classList.remove("visible");
+  }
+}
+
+// --- Watch for email input changes ---
+if (emailInput) {
+  emailInput.addEventListener("input", toggleSubmitVisibility);
+}
+
+// --- Optional modal confirmation ---
+document.addEventListener("DOMContentLoaded", () => {
+  const modal = document.getElementById("submit-modal");
+  const modalCancel = document.getElementById("modal-cancel");
+  const modalOk = document.getElementById("modal-ok");
+
+  if (submitBtn && modal) {
+    submitBtn.addEventListener("click", () => modal.classList.remove("hidden"));
+  }
+
+  if (modalCancel && modal) {
+    modalCancel.addEventListener("click", () => modal.classList.add("hidden"));
+  }
+
+  if (modalOk && modal) {
+    modalOk.addEventListener("click", () => {
+      modal.classList.add("hidden");
+      submitSale();
+    });
+  }
+});
+
+// --- Enter key to confirm payment ---
+document.addEventListener("keydown", e => {
+  if (paymentOverlay?.classList.contains("active") && e.key === "Enter") {
+    finalizePaypadAmount();
+  }
+});
+
 
 // ===========================================================
 // FINAL INITIALIZATION
