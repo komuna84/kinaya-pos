@@ -29,17 +29,19 @@ window.addEventListener("load", () => {
 
   const PASSCODE = "Lumina2025"; // 🌿 Change to your preferred code
 
-  if (sessionStorage.getItem("posUnlocked") === "true") {
-    gate.style.display = "none";
-    return;
-  }
-
   const unlock = () => {
     if (input.value.trim() === PASSCODE) {
       gate.style.opacity = "0";
       setTimeout(() => {
         gate.style.display = "none";
         sessionStorage.setItem("posUnlocked", "true");
+
+        // ✅ reinitialize the real POS UI now
+        Ui.renderMenu(order);
+        Ui.receiptDetails(order);
+        Ui.updateTotals(order);
+        updatePaymentUI();
+        toggleSubmitVisibility();
       }, 400);
     } else {
       errorMsg.style.display = "block";
@@ -47,11 +49,18 @@ window.addEventListener("load", () => {
     }
   };
 
+  // If already unlocked this session
+  if (sessionStorage.getItem("posUnlocked") === "true") {
+    gate.style.display = "none";
+    return;
+  }
+
   button.addEventListener("click", unlock);
   input.addEventListener("keypress", e => {
     if (e.key === "Enter") unlock();
   });
 });
+
 
 // ===========================================================
 // CORE ORDER MODEL
@@ -464,3 +473,113 @@ function submitSale() {
 // ===========================================================
 updatePaymentUI();
 toggleSubmitVisibility();
+
+// ===================== RECONNECT BUTTONS AFTER UNLOCK =====================
+document.addEventListener("DOMContentLoaded", () => {
+  const passcodeScreen = document.getElementById("passcode-screen");
+  const passcodeInput = document.getElementById("passcode-input");
+  const passcodeBtn = document.getElementById("passcode-btn");
+  const passcodeError = document.getElementById("passcode-error");
+
+  const CORRECT_CODE = "2025"; // set your access code here
+
+  passcodeBtn.addEventListener("click", () => {
+    if (passcodeInput.value === CORRECT_CODE) {
+      passcodeScreen.style.opacity = "0";
+      setTimeout(() => {
+        passcodeScreen.style.display = "none";
+        initPOS(); // load POS logic AFTER unlock
+      }, 400);
+    } else {
+      passcodeError.style.display = "block";
+    }
+  });
+
+  passcodeInput.addEventListener("keypress", e => {
+    if (e.key === "Enter") passcodeBtn.click();
+  });
+});
+
+// ===================== MAIN POS INITIALIZATION =====================
+function initPOS() {
+  console.log("🔓 POS unlocked and initialized");
+
+  const clearBtn = document.getElementById("clear-btn");
+  const toggleReturnBtn = document.getElementById("toggle-return");
+  const menuContainer = document.getElementById("menu");
+  const receiptDetails = document.getElementById("receipt-details");
+
+  let returnMode = false;
+
+  // CLEAR ORDER
+  if (clearBtn) {
+    clearBtn.addEventListener("click", () => {
+      receiptDetails.innerHTML = "";
+      updateTotals();
+    });
+  }
+
+  // TOGGLE RETURN MODE
+  if (toggleReturnBtn) {
+    toggleReturnBtn.addEventListener("click", () => {
+      returnMode = !returnMode;
+      toggleReturnBtn.classList.toggle("active", returnMode);
+      console.log("🔁 Return mode:", returnMode);
+    });
+  }
+
+  // ADD PRODUCT FROM MENU
+  if (menuContainer) {
+    menuContainer.addEventListener("click", (e) => {
+      const item = e.target.closest(".menu-item");
+      if (!item) return;
+
+      const name = item.querySelector("figcaption:nth-child(2)")?.innerText || "Unknown";
+      const priceText = item.querySelector("figcaption:last-child")?.innerText || "$0.00";
+      const price = parseFloat(priceText.replace(/[^0-9.]/g, "")) || 0;
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${name}</td>
+        <td class="quantity">1</td>
+        <td class="price">$${price.toFixed(2)}</td>
+        <td class="subtotal">$${price.toFixed(2)}</td>
+        <td class="delete"><i class="fa-solid fa-xmark"></i></td>
+      `;
+      receiptDetails.appendChild(tr);
+      updateTotals();
+    });
+  }
+
+  // DELETE ITEM
+  receiptDetails.addEventListener("click", (e) => {
+    if (e.target.closest(".delete")) {
+      e.target.closest("tr").remove();
+      updateTotals();
+    }
+  });
+
+  // CALCULATOR EVENTS
+  const overlay = document.getElementById("payment-overlay");
+  const closeBtn = document.getElementById("close-paypad-btn");
+  const enterBtn = document.querySelector('[data-id="close-sale"]');
+
+  if (closeBtn) closeBtn.addEventListener("click", () => overlay.classList.remove("active"));
+  if (enterBtn) enterBtn.addEventListener("click", () => overlay.classList.remove("active"));
+}
+
+// ===================== BASIC TOTALS CALC =====================
+function updateTotals() {
+  let subtotal = 0;
+  document.querySelectorAll("#receipt-details tr").forEach(row => {
+    const sub = parseFloat(row.querySelector(".subtotal")?.innerText.replace(/[^0-9.]/g, "")) || 0;
+    subtotal += sub;
+  });
+
+  const tax = subtotal * 0.07;
+  const grand = subtotal + tax;
+
+  document.getElementById("subtotal-summary").textContent = `$${subtotal.toFixed(2)}`;
+  document.getElementById("tax-summary").textContent = `$${tax.toFixed(2)}`;
+  document.getElementById("grandtotal-summary").textContent = `$${grand.toFixed(2)}`;
+}
