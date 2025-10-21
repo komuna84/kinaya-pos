@@ -24,38 +24,60 @@ window.addEventListener("load", () => {
   const input = document.getElementById("passcode-input");
   const button = document.getElementById("passcode-btn");
   const errorMsg = document.getElementById("passcode-error");
+  const PASSCODE = "Lumina2025";
 
   if (!gate || !input || !button) return;
 
-  const PASSCODE = "Lumina2025"; // 🌿 Change to your preferred code
-
-  const unlock = () => {
-  if (input.value.trim() === PASSCODE) {
+  const unlockPOS = () => {
     gate.style.opacity = "0";
     setTimeout(() => {
       gate.style.display = "none";
       sessionStorage.setItem("posUnlocked", "true");
 
+      // ✅ Render menu AFTER unlock
       Ui.renderMenu(order);
       Ui.receiptDetails(order);
       Ui.updateTotals(order);
       updatePaymentUI();
       toggleSubmitVisibility();
 
-      // ✅ Safe: attach product click listeners only now
-      document.getElementById("menu").addEventListener("click", (e) => {
-        const item = e.target.closest(".menu-item");
-        if (!item) return;
-        const data = item.getAttribute("data-sku");
-        if (data) order.addOrderLine(1, data, false);
-      });
+      // ✅ Attach click event for products
+      const menuContainer = document.getElementById("menu");
+      if (menuContainer) {
+        menuContainer.addEventListener("click", e => {
+          const item = e.target.closest(".menu-item");
+          if (!item) return;
+          const data = item.getAttribute("data-sku");
+          if (data) order.addOrderLine(1, data, false);
+        });
+      }
     }, 400);
-  } else {
-    errorMsg.style.display = "block";
-    input.value = "";
-  }
-};
+  };
 
+  const tryUnlock = () => {
+    const entered = input.value.trim();
+    if (entered === PASSCODE) {
+      console.log("✅ Correct passcode. Unlocking POS...");
+      unlockPOS();
+    } else {
+      console.warn("❌ Incorrect passcode");
+      if (errorMsg) errorMsg.style.display = "block";
+      input.value = "";
+    }
+  };
+
+  // If already unlocked this session
+  if (sessionStorage.getItem("posUnlocked") === "true") {
+    gate.style.display = "none";
+    unlockPOS(); // directly open POS
+    return;
+  }
+
+  button.addEventListener("click", tryUnlock);
+  input.addEventListener("keypress", e => {
+    if (e.key === "Enter") tryUnlock();
+  });
+});
 // ===========================================================
 // CORE ORDER MODEL
 // ===========================================================
