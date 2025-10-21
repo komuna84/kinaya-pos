@@ -199,5 +199,16 @@
     </div>
   </div>
   <script src="script.js" defer></script>
+  <script>
+  // Prevent iOS double-tap zoom completely
+  let lastTouchEnd = 0;
+  document.addEventListener('touchend', function (event) {
+    const now = Date.now();
+    if (now - lastTouchEnd <= 300) {
+      event.preventDefault();
+    }
+    lastTouchEnd = now;
+  }, false);
+</script>
 </body>
 </html>
