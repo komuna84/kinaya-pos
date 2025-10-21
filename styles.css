@@ -938,5 +938,113 @@ figcaption {
   }
 }
 
+/* ==================== CLEAN FINAL PAYPAD FIX ==================== */
+#payment-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(6px);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 999999; /* above main + order panel */
+  transition: opacity 0.3s ease;
+}
+#payment-overlay.active {
+  display: flex;
+}
+
+.paypad {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  background: #111;
+  border-radius: 14px;
+  box-shadow: 0 0 25px rgba(167,225,238,0.4);
+  padding: 20px;
+  width: 90%;
+  max-width: 360px;
+  z-index: 1000000; /* calculator above overlay */
+}
+
+/* --- Display field --- */
+.paypad-display {
+  grid-column: span 3;
+  text-align: center;
+  font-size: 2rem;
+  color: #A7E1EE;
+  font-weight: bold;
+  border-bottom: 1px solid #333;
+  padding-bottom: 10px;
+  margin-bottom: 8px;
+}
+
+/* --- Buttons --- */
+.paypad-btn {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: #000;
+  color: #A7E1EE;
+  border: 1px solid #333;
+  border-radius: 10px;
+  font-size: 1.6rem;
+  transition: all 0.2s ease;
+}
+.paypad-btn:hover {
+  background: #1a1a1a;
+  color: #7fd7e6;
+}
+
+.paypad-btn.span3-col {
+  grid-column: span 3;
+  background: #A7E1EE;
+  color: #111;
+  font-weight: bold;
+  font-size: 1.2rem;
+  height: 56px;
+  border: none;
+  border-radius: 8px;
+  transition: all 0.25s ease;
+}
+.paypad-btn.span3-col:hover {
+  background: #8fdff0;
+  transform: scale(1.03);
+}
+
+/* --- Close button (X) --- */
+.close-icon {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  font-size: 2rem;
+  color: #A7E1EE;
+  cursor: pointer;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+.close-icon:hover {
+  transform: scale(1.2);
+  color: #7fd7e6;
+}
+
+/* --- Mobile sizing --- */
+@media (max-width: 768px) {
+  .paypad {
+    width: 92%;
+    max-width: 340px;
+    padding: 18px;
+    gap: 8px;
+  }
+  .paypad-btn {
+    font-size: 1.4rem;
+  }
+  .paypad-btn.span3-col {
+    height: 50px;
+    font-size: 1.1rem;
+  }
+}
 
 
