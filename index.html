@@ -2,213 +2,36 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Kinaya Rising POS</title>
-
-  <!-- Fonts & Icons -->
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
-    crossorigin="anonymous"
-    referrerpolicy="no-referrer"
-  />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Audiowide&family=Libre+Barcode+128&family=Roboto:wght@300;400;700&display=swap"
-    rel="stylesheet"
-  />
-
-  <!-- Local Styles & Script -->
+  <title>Kinaya Rising POS — Login</title>
   <link rel="stylesheet" href="styles.css" />
-  <script src="script.js" defer></script>
 </head>
-
-<body>
-  <header>
-    <h1>Kinaya Rising Purchase Order</h1>
-  </header>
-<!-- ==================== PASSCODE GATE ==================== -->
-<div id="passcode-screen" style="
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.95);
-  color: #A7E1EE;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 99999;
-  font-family: 'Audiowide', sans-serif;
-  text-align: center;
-  transition: opacity 0.4s ease;
-">
-  <h2 style="margin-bottom: 1.5rem;">🌿 Kinaya Rising POS</h2>
-  <p style="opacity:0.8;margin-bottom:1rem;">Enter Access Code</p>
-  <input id="passcode-input" type="password"
-    style="padding: 10px 14px; border-radius: 8px; border: 1px solid #A7E1EE; background: #111; color: #fff; text-align:center; font-size:1rem;">
-  <button id="passcode-btn"
-    style="margin-top: 1rem; background: #A7E1EE; color: #111; border: none; border-radius: 8px; padding: 8px 20px; font-weight: bold; cursor: pointer;">
-    Unlock
-  </button>
-  <p id="passcode-error" style="margin-top:1rem;color:#e63946;display:none;">Incorrect code.</p>
-</div>
-
-  <main class="main-container flex-row">
-    <!-- =============== RECEIPT / ORDER SECTION =============== -->
-    <section class="order flex-column">
-      <article class="receipt flex-column">
-        <div class="company-info flex-column">
-          <p id="company-name">Kinaya Rising</p>
-          <p id="company-website">KinayaRising.com</p>
-          <p id="company-email">KinayaRising@gmail.com</p>
-          <p id="invoice-number">Invoice #1000</p>
-          <p id="current-date"></p>
-        </div>
-
-        <div class="receipt-details">
-          <table class="details-details">
-            <thead>
-              <tr><td class="dotted-border" colspan="5"></td></tr>
-              <tr><td class="empty-border" colspan="5"></td></tr>
-              <tr>
-                <th class="product-name">Product Name</th>
-                <th class="quantity">Qty</th>
-                <th class="price">Price</th>
-                <th class="subtotal">Sub</th>
-                <th class="delete">Del</th>
-              </tr>
-              <tr><td class="dotted-border" colspan="5"></td></tr>
-              <tr><td class="empty-border" colspan="5"></td></tr>
-            </thead>
-
-            <tbody id="receipt-details">
-              <!-- Populated dynamically -->
-            </tbody>
-          </table>
-
-          <!-- =============== SUMMARY =============== -->
-          <div class="receipt-summary">
-            <table class="summary-table">
-              <tbody id="summary-section">
-                <tr><td class="dotted-border" colspan="3"></td></tr>
-                <tr><td class="empty-border" colspan="3"></td></tr>
-
-                <tr><td>Subtotal:</td><td id="subtotal-summary">$0.00</td></tr>
-                <tr><td>Tax:</td><td id="tax-summary">$0.00</td></tr>
-                <tr><td>Grand Total:</td><td id="grandtotal-summary">$0.00</td></tr>
-
-                <tr><td class="dotted-border" colspan="3"></td></tr>
-                <tr><td class="empty-border" colspan="3"></td></tr>
-
-                <tr>
-                  <td>Amount Paid:</td>
-                  <td><input type="currency" id="amount-paid-input" step="0.01" min="0" placeholder="0.00" /></td>
-                </tr>
-
-                <tr><td id="change-title">Change:</td><td id="change-amount">$0.00</td></tr>
-                <tr><td>Payment Type:</td><td id="payment-type">Cash</td></tr>
-                <tr><td>Split Payment:</td><td id="split-info">None</td></tr>
-
-                <tr><td class="dotted-border" colspan="3"></td></tr>
-                <tr><td class="empty-border" colspan="3"></td></tr>
-
-                <tr>
-                  <td>Email:</td>
-                  <td colspan="2">
-                    <input
-                      type="email"
-                      id="customer-email"
-                      placeholder="customer@example.com"
-                      style="width:100%;padding:4px;border:1px solid #333;border-radius:4px;
-                             background:#111;color:#A7E1EE;"
-                    />
-                  </td>
-                </tr>
-                <tr id="submit-row" style="display:none;">
-                  <td colspan="3" style="text-align:center;">
-                    <button id="submit-sale" class="submit-sale-btn">
-                      Submit Sale
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </article>
-
-      <div class="receipt-footer flex-column">
-        <p id="receipt-message">Thank You For Your Support!</p>
-      </div>
-
-      <!-- Toolbar -->
-      <div class="toolbar flex-row">
-        <button id="cash-btn" class="toolbar-btn" title="Cash Payment">
-          <i class="fa-solid fa-money-bill-wave"></i>
-        </button>
-        <button id="card-btn" class="toolbar-btn" title="Card Payment">
-          <i class="fa-solid fa-credit-card"></i>
-        </button>
-        <button id="clear-btn" class="toolbar-btn" title="Clear Order">
-          <i class="fa-solid fa-trash"></i>
-        </button>
-        <button id="toggle-return" class="toolbar-btn" title="Toggle Return Mode">
-          <i class="fa-solid fa-rotate-left"></i>
-        </button>
-      </div>
-    </section>
-
-    <!-- =============== MENU / PAYMENT SECTION =============== -->
-    <section class="menu-payment grid">
-      <div class="menu flex-row" id="menu">
-        <!-- Menu populated dynamically -->
-      </div>
-
-     
-  </main>
-
-  <!-- Submit Confirmation Modal -->
-  <div id="submit-modal" class="modal hidden">
-    <div class="modal-content">
-      <p>✅ Payment complete! Submit this ticket?</p>
-      <div class="modal-buttons">
-        <button id="modal-cancel">Cancel</button>
-        <button id="modal-ok">OK</button>
-      </div>
-    </div>
+<body class="login-body">
+  <div class="login-container">
+    <h1>Kinaya Rising POS</h1>
+    <input type="password" id="passcode-input" placeholder="Enter passcode" />
+    <button id="passcode-btn">Unlock</button>
+    <p id="passcode-error" style="color:#e63946;display:none;">Invalid passcode.</p>
   </div>
-  <!-- Paypad Overlay -->
-<div id="payment-overlay">
-  <div class="paypad" id="paypad">
-    <!-- Close button (inside box) -->
-    <button id="close-paypad-btn" class="paypad-close" title="Close">
-      <i class="fa-solid fa-xmark"></i>
-    </button>
 
-    <!-- Display -->
-    <div id="paypad-display" class="paypad-display">$0.00</div>
+  <script>
+    const PASSCODE = "Lumina2025";
+    const button = document.getElementById("passcode-btn");
+    const input = document.getElementById("passcode-input");
+    const error = document.getElementById("passcode-error");
 
-    <!-- Keypad -->
-    <button class="paypad-btn number" data-id="7">7</button>
-    <button class="paypad-btn number" data-id="8">8</button>
-    <button class="paypad-btn number" data-id="9">9</button>
+    function unlock() {
+      const entered = input.value.trim();
+      if (entered === PASSCODE) {
+        sessionStorage.setItem("posUnlocked", "true");
+        window.location.href = "menu.html"; // ✅ redirect to main menu
+      } else {
+        error.style.display = "block";
+        input.value = "";
+      }
+    }
 
-    <button class="paypad-btn number" data-id="4">4</button>
-    <button class="paypad-btn number" data-id="5">5</button>
-    <button class="paypad-btn number" data-id="6">6</button>
-
-    <button class="paypad-btn number" data-id="1">1</button>
-    <button class="paypad-btn number" data-id="2">2</button>
-    <button class="paypad-btn number" data-id="3">3</button>
-
-    <button class="paypad-btn number" data-id="0">0</button>
-    <button class="paypad-btn" data-id="back">Back</button>
-    <button class="paypad-btn" data-id="clear">Clear</button>
-
-    <!-- Enter -->
-    <button class="paypad-btn span3-col" data-id="close-sale">Enter</button>
-  </div>
-</div>
-
-    </section>
+    button.onclick = unlock;
+    input.onkeypress = e => e.key === "Enter" && unlock();
+  </script>
 </body>
 </html>
