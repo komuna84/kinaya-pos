@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ===========================================================
-// ACCESS GATE + POS LISTENER FIX
+// ACCESS GATE + POS LISTENER FIX (FINAL)
 // ===========================================================
 let isReturnMode = false;
 let posListenersAttached = false;
@@ -52,37 +52,39 @@ function attachPosListenersOnce() {
     const item = e.target.closest(".menu-item");
     if (!item) return;
     const data = item.getAttribute("data-sku");
-    if (data) {
-      order.addOrderLine(1, data, isReturnMode);
-    }
+    if (data) order.addOrderLine(1, data, isReturnMode);
   });
 }
 
-// --- Unlock Screen ---
-document.addEventListener("DOMContentLoaded", () => {   // ✅ FIXED HERE
+// ===========================================================
+// PASSCODE GATE (FIXED)
+// ===========================================================
+document.addEventListener("DOMContentLoaded", () => {
   const gate = document.getElementById("passcode-screen");
   const input = document.getElementById("passcode-input");
   const button = document.getElementById("passcode-btn");
   const errorMsg = document.getElementById("passcode-error");
+  const PASSCODE = "Lumina2025";
 
   if (!gate || !input || !button) return;
-  const PASSCODE = "Lumina2025";
 
   const unlock = () => {
     if (input.value.trim() === PASSCODE) {
+      gate.style.transition = "opacity 0.4s ease";
       gate.style.opacity = "0";
       setTimeout(() => {
         gate.style.display = "none";
         sessionStorage.setItem("posUnlocked", "true");
         Ui.renderMenu(order);
-        attachPosListenersOnce(); // ✅ attach listeners AFTER unlocking
+        attachPosListenersOnce();
       }, 400);
     } else {
-      errorMsg.style.display = "block";
+      if (errorMsg) errorMsg.style.display = "block";
       input.value = "";
     }
   };
 
+  // If already unlocked this session
   if (sessionStorage.getItem("posUnlocked") === "true") {
     gate.style.display = "none";
     Ui.renderMenu(order);
@@ -96,64 +98,6 @@ document.addEventListener("DOMContentLoaded", () => {   // ✅ FIXED HERE
   });
 });
 
-
-  // Toggle return mode
-  if (toggleReturnBtn) {
-    toggleReturnBtn.addEventListener("click", () => {
-      isReturnMode = !isReturnMode;
-      toggleReturnBtn.classList.toggle("active", isReturnMode);
-      // console.log("Return Mode:", isReturnMode);
-    });
-  }
-
-  // Add product (event delegation for dynamically rendered menu)
-  if (menuContainer) {
-    menuContainer.addEventListener("click", (e) => {
-      const item = e.target.closest(".menu-item");
-      if (!item) return;
-      const data = item.getAttribute("data-sku");
-      if (data) order.addOrderLine(1, data, isReturnMode);
-    });
-  }
-}
-
-// Bind listeners as soon as DOM is ready (safe even while locked)
-document.addEventListener("DOMContentLoaded", attachPosListenersOnce);
-
-// Simple passcode gate — just hides the overlay when correct
-window.addEventListener("load", () => {
-  const gate = document.getElementById("passcode-screen");
-  const input = document.getElementById("passcode-input");
-  const button = document.getElementById("passcode-btn");
-  const errorMsg = document.getElementById("passcode-error");
-  if (!gate || !input || !button) return;
-
-  const PASSCODE = "Lumina2025";
-
-  // If already unlocked in this session, hide overlay
-  if (sessionStorage.getItem("posUnlocked") === "true") {
-    gate.style.display = "none";
-    return;
-  }
-
-  const unlock = () => {
-    if ((input.value || "").trim() === PASSCODE) {
-      gate.style.opacity = "0";
-      setTimeout(() => {
-        gate.style.display = "none";
-        sessionStorage.setItem("posUnlocked", "true");
-        // Menu may already be rendered by loader; if not, render again safely:
-        Ui.renderMenu(order); // harmless if already rendered
-      }, 300);
-    } else {
-      errorMsg && (errorMsg.style.display = "block");
-      input.value = "";
-    }
-  };
-
-  button.addEventListener("click", unlock);
-  input.addEventListener("keypress", (e) => { if (e.key === "Enter") unlock(); });
-});
 
 // ===========================================================
 // CORE ORDER MODEL
