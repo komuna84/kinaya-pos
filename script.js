@@ -559,3 +559,22 @@ if (gallery) {
     gallery.classList.add("active");
   });
 }
+// =======================================================
+// CLOSE PAYPAD BUTTON FIX (MOBILE + DESKTOP)
+// =======================================================
+document.addEventListener("DOMContentLoaded", () => {
+  const overlay = document.getElementById("payment-overlay");
+  const closeBtn = document.getElementById("close-paypad-btn");
+  const fallbackBtn = document.querySelector(".paypad-close"); // fallback in case older markup
+
+  const closeAction = () => {
+    if (overlay) overlay.classList.remove("active");
+  };
+
+  if (closeBtn) {
+    closeBtn.addEventListener("click", closeAction);
+  } else if (fallbackBtn) {
+    fallbackBtn.addEventListener("click", closeAction);
+  }
+});
+
