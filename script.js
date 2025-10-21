@@ -434,22 +434,43 @@ function submitSale() {
 // ===========================================================
 // MENU CLICK HANDLERS (add items to order)
 // ===========================================================
-document.addEventListener("DOMContentLoaded", () => {
+
+// ✅ Move menu click logic inside the .then() where the menu loads
+loadMenuFromSheet(sheetCsvUrl).then(rows => {
+  order.menu = rows;
+  Ui.renderMenu(order);
+
   const menuContainer = document.getElementById("menu");
-  if (!menuContainer) return;
+  if (menuContainer) {
+    menuContainer.addEventListener("click", e => {
+      const figure = e.target.closest(".menu-item");
+      if (!figure) return;
 
-  // Delegate clicks for dynamically rendered items
-  menuContainer.addEventListener("click", e => {
-    const figure = e.target.closest(".menu-item");
-    if (!figure) return;
+      const data = figure.getAttribute("data-sku");
+      if (!data) return;
 
-    const data = figure.getAttribute("data-sku");
-    if (!data) return;
-
-    // Add product (respects Return Mode)
-    order.addOrderLine(1, data, isReturnMode);
-  });
+      order.addOrderLine(1, data, isReturnMode);
+    });
+  }
 });
+
+
+// ===========================================================
+// RETURN MODE VISUAL TOGGLE (optional visual indicator)
+// ===========================================================
+const returnBtn = document.getElementById("toggle-return");
+if (returnBtn) {
+  returnBtn.addEventListener("click", () => {
+    isReturnMode = !isReturnMode;
+    document.body.classList.toggle("return-mode", isReturnMode);
+    const header = document.querySelector("header h1");
+    if (header) {
+      header.textContent = isReturnMode
+        ? "🔴 RETURN MODE ACTIVE"
+        : "Kinaya Rising Purchase Order";
+    }
+  });
+}
 
 
 // ===========================================================
@@ -457,3 +478,4 @@ document.addEventListener("DOMContentLoaded", () => {
 // ===========================================================
 updatePaymentUI();
 toggleSubmitVisibility();
+
