@@ -272,8 +272,12 @@ async function submitSale() {
   const date = new Date().toLocaleDateString("en-US");
   const email = (emailInput && emailInput.value.trim()) || "";
   const split = splitInfoEl ? splitInfoEl.textContent : "";
-  const emailToggle = document.getElementById("email-toggle");
-  const sharedEmail = emailToggle && emailToggle.checked ? "Yes" : "No";
+
+  // ✅ Detect if user typed a variation of "no receipt"
+  const isNoReceipt = ["no", "n/a", "none", "no receipt", "no email"].includes(
+    email.toLowerCase()
+  );
+  const subscribe = isNoReceipt ? "No" : "Yes";
 
   const invoice = Math.floor(Date.now() / 1000).toString().slice(-4);
 
@@ -288,17 +292,20 @@ async function submitSale() {
     Total: Utilities.roundToTwo(l.subtotal + l.tax),
     "Invoice #": invoice,
     Email: email || "—",
-    "Email Shared?": sharedEmail,
+    Subscribe: subscribe,
     Payment: split
   }));
 
   try {
-    await fetch("https://script.google.com/macros/s/AKfycbz1Z9NnfDCxWSxirvAE2tKK-mB9135X_uEuei2Wg-r-qptcpT2sNCPWObcGTbAibCZBFw/exec", {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(rows)
-    });
+    await fetch(
+      "https://script.google.com/macros/s/AKfycbz1Z9NnfDCxWSxirvAE2tKK-mB9135X_uEuei2Wg-r-qptcpT2sNCPWObcGTbAibCZBFw/exec",
+      {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(rows)
+      }
+    );
 
     alert("✅ Sale submitted successfully!");
 
@@ -308,6 +315,7 @@ async function submitSale() {
     Ui.updateTotals(order);
     updatePaymentUI(true);
     toggleSubmitVisibility();
+
     if (paymentTypeEl) paymentTypeEl.textContent = "—";
     if (splitInfoEl) splitInfoEl.textContent = "None";
     if (emailInput) emailInput.value = "";
@@ -354,11 +362,16 @@ function toggleSubmitVisibility() {
   const emailInput = document.getElementById("email-input");
   if (!submitRow) return;
 
-  const emailEntered = emailInput && emailInput.value.trim().length > 0;
-  const canSubmit = amountPaid >= grandTotal && emailEntered && order._order.length > 0;
+  const emailValue = (emailInput && emailInput.value.trim().toLowerCase()) || "";
+  const hasEmail = emailValue.length > 0;
+  const canSubmit =
+    amountPaid >= grandTotal &&
+    order._order.length > 0 &&
+    hasEmail;
 
   submitRow.style.display = canSubmit ? "block" : "none";
 }
+
 
 // ===========================================================
 // PAYPAD / PAYMENT LOGIC — FINAL FORMATTED VERSION
