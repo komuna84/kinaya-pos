@@ -368,23 +368,21 @@ function toggleSubmitVisibility() {
 
   const amountPaidInput = document.getElementById("amount-paid-input");
   const changeEl = document.getElementById("change-amount");
-  const grandTotalEl = document.getElementById("grandtotal-summary");
   const submitRow = document.getElementById("submit-row");
   const emailInput = document.getElementById("email-input");
 
   let buffer = "";
 
-  // --- Format number as currency with .00 ---
   function formatCurrency(val) {
     return `$${(parseFloat(val) || 0).toFixed(2)}`;
   }
 
-  // --- Render keypad display ---
+  // --- Display value in dollars (e.g. typing 2008 → $20.08)
   function renderDisplay() {
-    displayEl.textContent = formatCurrency(buffer);
+    const num = parseFloat(buffer || "0") / 100;
+    displayEl.textContent = formatCurrency(num);
   }
 
-  // --- Recalculate change + submit visibility ---
   function recalcTotals() {
     const subtotal = order._order.reduce((a, l) => a + l.subtotal, 0);
     const tax = order._order.reduce((a, l) => a + l.tax, 0);
@@ -393,6 +391,7 @@ function toggleSubmitVisibility() {
     const paid = parseFloat(amountPaidInput.value) || 0;
     const change = paid - grandTotal;
 
+    // Change is *display-only*
     changeEl.textContent = formatCurrency(change);
     changeEl.classList.toggle("positive-change", change >= 0);
     changeEl.classList.toggle("negative-change", change < 0);
@@ -402,15 +401,13 @@ function toggleSubmitVisibility() {
       paid >= grandTotal && emailOk && order._order.length > 0 ? "block" : "none";
   }
 
-  // --- Commit payment when Enter pressed ---
   function commitPayment() {
-    const value = parseFloat(buffer) || 0;
+    const value = parseFloat(buffer || "0") / 100;
     amountPaidInput.value = value.toFixed(2);
     recalcTotals();
     overlay.classList.add("hidden");
   }
 
-  // --- Paypad buttons ---
   buttons.forEach(btn => {
     btn.addEventListener("click", () => {
       const val = btn.dataset.value;
@@ -422,14 +419,10 @@ function toggleSubmitVisibility() {
     });
   });
 
-  // --- Close button ---
   if (closeBtn) {
-    closeBtn.addEventListener("click", () => {
-      overlay.classList.add("hidden");
-    });
+    closeBtn.addEventListener("click", () => overlay.classList.add("hidden"));
   }
 
-  // --- Manual input live recalculation + .00 formatting ---
   amountPaidInput.addEventListener("input", recalcTotals);
   amountPaidInput.addEventListener("blur", () => {
     const val = parseFloat(amountPaidInput.value) || 0;
