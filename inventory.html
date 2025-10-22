@@ -164,44 +164,43 @@ td img:hover {
 }
 
 /* ---------- FLOATING TOTALS ON MOBILE ---------- */
+/* ---------- MOBILE TOTAL BAR (STAY UNTIL BUTTON) ---------- */
 @media (max-width: 768px) {
-  .inventory-container { padding-bottom: 10rem; }
-
-  .inventory-table-wrapper {
-    overflow-x: auto;
-    overflow-y: visible;
-    max-width: 95vw;
-  }
-
-  table.inventory-table { min-width: 600px; }
-
-  th, td { font-size: 0.8rem; padding: 6px; }
-  td img { width: 45px; height: 45px; }
-  .inv-input { width: 45px; }
-
   .total-summary {
-    position: fixed;
-    bottom: 65px; /* above nav */
-    left: 50%;
-    transform: translateX(-50%);
-    width: 90%;
-    max-width: 700px;
+    position: sticky;              /* follows scroll until near button */
+    bottom: 70px;                  /* keeps above nav bar */
+    left: 0;
+    width: 100%;
     background: rgba(11, 11, 11, 0.9);
     backdrop-filter: blur(8px);
-    border: 1px solid rgba(167,225,238,0.15);
-    box-shadow: 0 0 15px rgba(167,225,238,0.4);
-    border-radius: 12px;
-    z-index: 9999;
+    border-top: 1px solid rgba(167,225,238,0.15);
+    box-shadow: 0 -2px 10px rgba(167,225,238,0.25);
+    border-radius: 0;
+    z-index: 10;
     padding: 0.8rem;
     font-size: 0.9rem;
+    text-align: center;
+    color: #A7E1EE;
   }
 
+  /* make sure container allows scrolling past button cleanly */
+  .inventory-container {
+    padding-bottom: 9rem; /* room for totals + button + nav */
+  }
+
+  /* remove any hide animations (always visible) */
   .total-summary.hide {
-    transform: translateY(20px);
-    opacity: 0;
-    pointer-events: none;
+    transform: none !important;
+    opacity: 1 !important;
+    pointer-events: all !important;
+  }
+
+  /* tighten spacing on mobile */
+  .submit-sale-btn {
+    margin-bottom: 5.2rem;
   }
 }
+
 
 /* ---------- SAVE BUTTON ---------- */
 .submit-sale-btn {
