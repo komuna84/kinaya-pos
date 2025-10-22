@@ -11,7 +11,109 @@
     html, body {
       touch-action: manipulation;
       overscroll-behavior: contain;
+      background-color: #0b0b0b;
+      color: #A7E1EE;
+      font-family: "Roboto", sans-serif;
     }
+
+    table.inventory-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(255,255,255,0.02);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 8px 10px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    th {
+      background: rgba(167,225,238,0.1);
+      font-weight: 700;
+      color: #A7E1EE;
+    }
+
+    .inv-input {
+      width: 70px;
+      text-align: center;
+      background: #111;
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #A7E1EE;
+      border-radius: 6px;
+      padding: 4px;
+    }
+
+    .inventory-actions {
+      text-align: center;
+      margin-top: 1.5rem;
+    }
+
+    .submit-sale-btn {
+      background: #A7E1EE;
+      color: #111;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 28px;
+      cursor: pointer;
+      font-size: 1rem;
+      box-shadow: 0 0 10px rgba(167,225,238,0.4);
+      transition: all 0.3s ease;
+    }
+
+    .submit-sale-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 18px rgba(167,225,238,0.6);
+    }
+
+    /* Modal for future editing */
+    .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    .modal.active { display: flex; }
+
+    .modal-content {
+      background: #111;
+      border-radius: 12px;
+      padding: 20px;
+      width: 90%;
+      max-width: 420px;
+      color: #A7E1EE;
+      box-shadow: 0 0 20px rgba(167,225,238,0.3);
+    }
+
+    .modal-content h2 {
+      margin-bottom: 10px;
+      font-family: "Audiowide", sans-serif;
+      color: #A7E1EE;
+    }
+
+    .modal-buttons {
+      text-align: right;
+      margin-top: 1rem;
+    }
+
+    .modal-buttons button {
+      margin-left: 10px;
+      background: #A7E1EE;
+      color: #111;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      cursor: pointer;
+    }
+
   </style>
 
   <!-- Fonts & Icons -->
@@ -26,10 +128,6 @@
     rel="stylesheet"
   />
 
-  <!-- Styles -->
-  <link rel="stylesheet" href="styles.css" />
-
-  <!-- Session lock -->
   <script>
     if (sessionStorage.getItem("posUnlocked") !== "true") {
       window.location.href = "index.html";
@@ -49,7 +147,6 @@
         <p>Update received, damaged, and returned quantities below. Totals and net assets update automatically.</p>
       </div>
 
-      <!-- Inventory Table -->
       <div class="inventory-table-wrapper">
         <table class="inventory-table">
           <thead>
@@ -71,193 +168,184 @@
         </table>
       </div>
 
-      <!-- Save Button -->
       <div class="inventory-actions">
         <button id="save-inventory" class="submit-sale-btn">💾 Save Changes</button>
       </div>
     </section>
   </main>
 
-  <!-- Kinaya Navigation -->
   <nav class="kinaya-nav">
     <a href="sale.html" class="nav-btn">
-      <i class="fas fa-cash-register"></i>
-      <span>Sales</span>
+      <i class="fas fa-cash-register"></i><span>Sales</span>
     </a>
     <a href="inventory.html" class="nav-btn active">
-      <i class="fas fa-boxes"></i>
-      <span>Inventory</span>
+      <i class="fas fa-boxes"></i><span>Inventory</span>
     </a>
     <a href="data.html" class="nav-btn">
-      <i class="fas fa-chart-line"></i>
-      <span>Data</span>
+      <i class="fas fa-chart-line"></i><span>Data</span>
     </a>
   </nav>
 
-  <!-- ===================== SCRIPTS ===================== -->
- <script>
-  // Prevent iOS double-tap zoom completely
-  let lastTouchEnd = 0;
-  document.addEventListener("touchend", event => {
-    const now = Date.now();
-    if (now - lastTouchEnd <= 300) event.preventDefault();
-    lastTouchEnd = now;
-  }, false);
+  <!-- Future detail modal -->
+  <div id="inventory-modal" class="modal">
+    <div class="modal-content">
+      <h2 id="modal-title">Edit Product</h2>
+      <p>SKU: <span id="modal-sku"></span></p>
+      <label>Received: <input id="modal-received" type="number" /></label><br />
+      <label>Damaged: <input id="modal-damaged" type="number" /></label><br />
+      <label>Returned: <input id="modal-returned" type="number" /></label>
+      <div class="modal-buttons">
+        <button id="modal-cancel">Cancel</button>
+        <button id="modal-save">Save</button>
+      </div>
+    </div>
+  </div>
 
-  // Highlight active nav
-  document.addEventListener("DOMContentLoaded", () => {
-    const links = document.querySelectorAll(".nav-btn");
-    const current = window.location.pathname.split("/").pop();
-    links.forEach(link => {
-      if (link.getAttribute("href") === current) {
-        link.classList.add("active");
-      }
-    });
-  });
-</script>
-
-<!-- Inventory Logic -->
+  <!-- ===================== LOGIC ===================== -->
 <script>
-  // ✅ Your live Apps Script endpoint
-  const INVENTORY_SHEET_URL =
-    "https://script.google.com/macros/s/AKfycbxrv2qEiZ5mOIa9w_cnde4n9rZdJERT08bqja7gUz2V_4GtkwAYodfuufIroRCwUVolnw/exec";
+const INVENTORY_SHEET_URL =
+  "https://script.google.com/macros/s/AKfycbxrv2qEiZ5mOIa9w_cnde4n9rZdJERT08bqja7gUz2V_4GtkwAYodfuufIroRCwUVolnw/exec";
+const POS_SHEET_ID = "1tQZt8ZYIWdBYHxDuZxH3emBQ8PNUcxpDZVwm07x28sg";
 
-  // ✅ Main POS workbook ID
-  const POS_SHEET_ID = "1tQZt8ZYIWdBYHxDuZxH3emBQ8PNUcxpDZVwm07x28sg";
+document.addEventListener("DOMContentLoaded", async () => {
+  const tableBody = document.getElementById("inventory-body");
+  const saveBtn = document.getElementById("save-inventory");
+  const modal = document.getElementById("inventory-modal");
 
-  document.addEventListener("DOMContentLoaded", async () => {
-    const tableBody = document.getElementById("inventory-body");
-    const saveBtn = document.getElementById("save-inventory");
+  let allProducts = await loadInventoryData();
+  renderTable(allProducts);
 
-    // Load data
-    let products = await loadInventoryData();
-    renderTable(products);
+  // Live update fields
+  tableBody.addEventListener("input", e => {
+    if (!e.target.matches(".inv-input")) return;
+    updateStockAndAssets(e.target.closest("tr"));
+  });
 
-    // Update live calculations
-    tableBody.addEventListener("input", e => {
-      if (!e.target.matches(".inv-input")) return;
-      const row = e.target.closest("tr");
-      updateStockAndAssets(row);
-    });
+  // Row click → open modal
+  tableBody.addEventListener("click", e => {
+    const row = e.target.closest("tr[data-sku]");
+    if (!row) return;
+    openModal(row.dataset.sku);
+  });
 
-    // Save button
-    saveBtn.addEventListener("click", async () => {
-      const updated = collectUpdatedData();
-      await saveInventoryData(updated);
-    });
+  document.getElementById("modal-cancel").addEventListener("click", () =>
+    modal.classList.remove("active")
+  );
+  document.getElementById("modal-save").addEventListener("click", async () => {
+    const sku = document.getElementById("modal-sku").textContent;
+    const received = parseInt(document.getElementById("modal-received").value) || 0;
+    const damaged = parseInt(document.getElementById("modal-damaged").value) || 0;
+    const returned = parseInt(document.getElementById("modal-returned").value) || 0;
 
-    // ==========================================================
-    // Data Load
-    // ==========================================================
-    async function loadInventoryData() {
-      try {
-        // 👇 Ask the Apps Script to load from the POS sheet in your workbook
-        const res = await fetch(`${INVENTORY_SHEET_URL}?mode=inventory&id=${POS_SHEET_ID}`);
-        const data = await res.json();
-        return data || [];
-      } catch (err) {
-        console.error("❌ Error loading inventory:", err);
-        tableBody.innerHTML = `<tr><td colspan="9" style="color:#e63946;text-align:center;">Error loading data. Check your Apps Script link.</td></tr>`;
-        return [];
-      }
+    const product = allProducts.find(p => p.Sku === sku);
+    if (product) {
+      product.Received = received;
+      product.Damaged = damaged;
+      product.Returned = returned;
+      renderTable(allProducts);
+      await saveInventoryData([product]);
     }
+    modal.classList.remove("active");
+  });
 
-    // ==========================================================
-    // Render Table
-    // ==========================================================
-    function renderTable(data) {
-      if (!data || !data.length) {
-        tableBody.innerHTML = `
-          <tr><td colspan="9" style="text-align:center;color:#A7E1EE;opacity:0.7;">
-            No products found in your POS sheet.
-          </td></tr>`;
-        return;
-      }
+  // ====== Load from Apps Script OR fallback CSV ======
+  async function loadInventoryData() {
+    try {
+      const res = await fetch(`${INVENTORY_SHEET_URL}?mode=inventory&id=${POS_SHEET_ID}`);
+      if (res.ok) return await res.json();
+      throw new Error("Apps Script returned error");
+    } catch {
+      console.warn("⚠️ Falling back to direct CSV");
+      const csvUrl =
+        "https://docs.google.com/spreadsheets/d/e/2PACX-1vT8TYrKVClp5GXP5Sx7NYGpfRvEMCCNuL40vbcyhdwP6bnvQeQRqJ4xTv6BZUnC5nm7N2N_KwQlHZ2H/pub?gid=30403628&single=true&output=csv";
+      const res = await fetch(csvUrl);
+      const text = await res.text();
+      const rows = text.trim().split(/\r?\n/).map(r => r.split(","));
+      const headers = rows.shift();
+      return rows.map(r => {
+        const get = name => r[headers.indexOf(name)] || "";
+        return {
+          Sku: get("Sku"),
+          Product: get("Product Title"),
+          Price: parseFloat(get("Price").replace(/[^\d.]/g, "")) || 0,
+          Received: 0, Damaged: 0, Returned: 0, Sold: 0
+        };
+      });
+    }
+  }
 
-      tableBody.innerHTML = data.map(item => {
-        const price = parseFloat(item.Price || 0);
-        const sold = parseInt(item.Sold || 0);
-        const received = parseInt(item.Received || 0);
-        const damaged = parseInt(item.Damaged || 0);
-        const returned = parseInt(item.Returned || 0);
-        const inStock = (received - sold - damaged + returned) || 0;
-        const netAssets = (inStock * price).toFixed(2);
-
+  function renderTable(data) {
+    if (!data.length) {
+      tableBody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:#A7E1EE;">No products found.</td></tr>`;
+      return;
+    }
+    tableBody.innerHTML = data
+      .map(item => {
+        const price = parseFloat(item.Price) || 0;
+        const sold = item.Sold || 0;
+        const received = item.Received || 0;
+        const damaged = item.Damaged || 0;
+        const returned = item.Returned || 0;
+        const inStock = Math.max(received - sold - damaged + returned, 0);
+        const net = (inStock * price).toFixed(2);
         return `
           <tr data-sku="${item.Sku}">
             <td>${item.Sku}</td>
             <td>${item.Product}</td>
             <td>$${price.toFixed(2)}</td>
-            <td><input type="number" class="inv-input" data-field="Received" value="${received}" min="0" /></td>
-            <td><input type="number" class="inv-input" data-field="Damaged" value="${damaged}" min="0" /></td>
-            <td><input type="number" class="inv-input" data-field="Returned" value="${returned}" min="0" /></td>
+            <td><input class="inv-input" data-field="Received" type="number" value="${received}" /></td>
+            <td><input class="inv-input" data-field="Damaged" type="number" value="${damaged}" /></td>
+            <td><input class="inv-input" data-field="Returned" type="number" value="${returned}" /></td>
             <td>${sold}</td>
             <td class="stock">${inStock}</td>
-            <td class="assets">$${netAssets}</td>
+            <td class="assets">$${net}</td>
           </tr>`;
-      }).join("");
+      })
+      .join("");
+  }
+
+  function updateStockAndAssets(row) {
+    const price = parseFloat(row.children[2].textContent.replace("$","")) || 0;
+    const received = parseInt(row.querySelector('[data-field="Received"]').value) || 0;
+    const damaged = parseInt(row.querySelector('[data-field="Damaged"]').value) || 0;
+    const returned = parseInt(row.querySelector('[data-field="Returned"]').value) || 0;
+    const sold = parseInt(row.children[6].textContent) || 0;
+    const inStock = Math.max(received - sold - damaged + returned, 0);
+    const net = (inStock * price).toFixed(2);
+    row.querySelector(".stock").textContent = inStock;
+    row.querySelector(".assets").textContent = `$${net}`;
+  }
+
+  async function saveInventoryData(updatedRows) {
+    saveBtn.textContent = "Saving...";
+    saveBtn.disabled = true;
+    try {
+      const res = await fetch(INVENTORY_SHEET_URL, {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({mode:"updateInventory", id:POS_SHEET_ID, data:updatedRows})
+      });
+      const result = await res.json();
+      alert(result.status === "success" ? "✅ Saved!" : "⚠️ Save failed.");
+    } catch (e) {
+      alert("❌ Error saving changes.");
+      console.error(e);
     }
+    saveBtn.textContent = "💾 Save Changes";
+    saveBtn.disabled = false;
+  }
 
-    // ==========================================================
-    // Live Update
-    // ==========================================================
-    function updateStockAndAssets(row) {
-      const price = parseFloat(row.children[2].textContent.replace("$", "")) || 0;
-      const received = parseInt(row.querySelector('[data-field="Received"]').value) || 0;
-      const damaged = parseInt(row.querySelector('[data-field="Damaged"]').value) || 0;
-      const returned = parseInt(row.querySelector('[data-field="Returned"]').value) || 0;
-      const sold = parseInt(row.children[6].textContent) || 0;
-
-      const inStock = Math.max(received - sold - damaged + returned, 0);
-      const netAssets = (inStock * price).toFixed(2);
-
-      row.querySelector(".stock").textContent = inStock;
-      row.querySelector(".assets").textContent = `$${netAssets}`;
-    }
-
-    // ==========================================================
-    // Collect & Save
-    // ==========================================================
-    function collectUpdatedData() {
-      return Array.from(tableBody.querySelectorAll("tr[data-sku]")).map(row => ({
-        Sku: row.dataset.sku,
-        Received: parseInt(row.querySelector('[data-field="Received"]').value) || 0,
-        Damaged: parseInt(row.querySelector('[data-field="Damaged"]').value) || 0,
-        Returned: parseInt(row.querySelector('[data-field="Returned"]').value) || 0,
-      }));
-    }
-
-    async function saveInventoryData(updatedRows) {
-      saveBtn.textContent = "Saving...";
-      saveBtn.disabled = true;
-
-      try {
-        const res = await fetch(INVENTORY_SHEET_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            mode: "updateInventory",
-            id: POS_SHEET_ID, // 👈 write back to the same workbook
-            data: updatedRows,
-          }),
-        });
-
-        const result = await res.json();
-        if (result.status === "success") {
-          alert("✅ Inventory updated successfully!");
-        } else {
-          alert("⚠️ Failed to save inventory changes.");
-        }
-      } catch (err) {
-        console.error("❌ Error saving inventory:", err);
-        alert("❌ Could not save inventory changes.");
-      }
-
-      saveBtn.textContent = "💾 Save Changes";
-      saveBtn.disabled = false;
-    }
-  });
+  function openModal(sku) {
+    const product = allProducts.find(p => p.Sku === sku);
+    if (!product) return;
+    document.getElementById("modal-title").textContent = product.Product;
+    document.getElementById("modal-sku").textContent = sku;
+    document.getElementById("modal-received").value = product.Received;
+    document.getElementById("modal-damaged").value = product.Damaged;
+    document.getElementById("modal-returned").value = product.Returned;
+    modal.classList.add("active");
+  }
+});
 </script>
-
 </body>
 </html>
