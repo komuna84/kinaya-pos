@@ -1292,11 +1292,18 @@ body.login-body {
   color: #7fd7e6;
 }
 
-/* Active state — highlight current page */
+/* Active state — subtle Kinaya blue glow */
 .nav-btn.active {
-  color: #BFD8C1;
-  text-shadow: 0 0 8px rgba(191,216,193,0.6);
+  color: #A7E1EE;
+  background: rgba(167, 225, 238, 0.1);
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(167, 225, 238, 0.25);
+  text-shadow: 0 0 6px rgba(167, 225, 238, 0.4);
+  transform: scale(1.05);
+   padding: 8px 14px;
+  border-radius: 10px;
 }
+
 
 /* Mobile adjustments */
 @media (max-width: 768px) {
@@ -1307,3 +1314,4 @@ body.login-body {
     font-size: 1.2rem;
   }
 }
+
