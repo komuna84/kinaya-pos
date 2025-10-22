@@ -358,64 +358,79 @@ function toggleSubmitVisibility() {
 }
 
 // ===========================================================
-// PAYPAD / PAYMENT LOGIC
+// PAYPAD / PAYMENT LOGIC — FIXED FINAL VERSION
 // ===========================================================
 (function setupPaypad() {
   const overlay = document.getElementById("payment-overlay");
-  const paymentTypeEl = document.getElementById("payment-type");
   const displayEl = document.getElementById("paypad-display");
   const buttons = document.querySelectorAll(".paypad-btn");
-  const closeBtn = document.getElementById("paypad-close");
+  const closeBtn = document.getElementById("close-paypad-btn");
+  const amountPaidInput = document.getElementById("amount-paid-input");
+  const changeEl = document.getElementById("change-amount");
+  const grandTotalEl = document.getElementById("grandtotal-summary");
+  const submitRow = document.getElementById("submit-row");
+  const emailInput = document.getElementById("customer-email");
 
   let buffer = "";
 
+  // --- Recalculate change and visibility ---
+  function recalcTotals() {
+    const subtotal = order._order.reduce((a, l) => a + l.subtotal, 0);
+    const tax = order._order.reduce((a, l) => a + l.tax, 0);
+    const grandTotal = subtotal + tax;
+
+    const paid = parseFloat(amountPaidInput.value) || 0;
+    const change = paid - grandTotal;
+
+    changeEl.textContent =
+      change >= 0
+        ? `$${change.toFixed(2)}`
+        : `($${Math.abs(change).toFixed(2)})`;
+
+    const emailOk = emailInput && emailInput.value.trim().length > 0;
+    submitRow.style.display = paid >= grandTotal && emailOk ? "block" : "none";
+  }
+
+  // --- Update onscreen paypad display ---
   function renderDisplay() {
-    if (displayEl) displayEl.textContent = `$${buffer || "0"}`;
+    displayEl.textContent = `$${buffer || "0"}`;
   }
 
+  // --- When Enter is pressed ---
   function commitPayment() {
-    amountPaid = parseFloat(buffer) || 0;
+    const value = parseFloat(buffer) || 0;
+    amountPaidInput.value = value.toFixed(2);
     renderDisplay();
-    updatePaymentUI(true);
-    toggleSubmitVisibility();
+    recalcTotals();
+    overlay.classList.add("hidden"); // close paypad
   }
 
-  // --- Paypad key handling ---
+  // --- Paypad buttons ---
   buttons.forEach(btn => {
     btn.addEventListener("click", () => {
       const val = btn.dataset.value;
-
-      if (val === "C") {
-        buffer = "";
-      } else if (val === "←") {
-        buffer = buffer.slice(0, -1);
-      } else if (val === "Enter") {
-        commitPayment();
-        if (overlay) overlay.classList.add("hidden");
-        return;
-      } else {
-        buffer += val;
-      }
+      if (val === "C") buffer = "";
+      else if (val === "←") buffer = buffer.slice(0, -1);
+      else if (val === "Enter") return commitPayment();
+      else buffer += val;
       renderDisplay();
     });
   });
 
-  // --- Close overlay manually ---
+  // --- Close with X ---
   if (closeBtn) {
     closeBtn.addEventListener("click", () => {
-      if (overlay) overlay.classList.add("hidden");
+      overlay.classList.add("hidden");
     });
   }
 
-  // --- Prevent scroll wheel changing numbers accidentally ---
-  document.addEventListener("wheel", e => {
-    if (document.activeElement.tagName === "INPUT" && document.activeElement.type === "number") {
-      e.preventDefault();
-    }
-  }, { passive: false });
+  // --- Update change live if manually editing field ---
+  amountPaidInput.addEventListener("input", recalcTotals);
+  emailInput.addEventListener("input", recalcTotals);
 
   renderDisplay();
 })();
+
 
 // ===========================================================
 // RETURN MODE + CLEAR ORDER + EVENT GUARDS
