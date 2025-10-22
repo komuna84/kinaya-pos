@@ -186,6 +186,22 @@
     .inv-input { width: 45px; }
     .inventory-container { padding-bottom: 6rem; }
   }
+    /* --- Fix Image Size in Inventory Table --- */
+.inventory-table td img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.02);
+  box-shadow: 0 0 8px rgba(167,225,238,0.2);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.inventory-table td img:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 12px rgba(167,225,238,0.4);
+}
+
 </style>
 
 
