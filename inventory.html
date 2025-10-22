@@ -16,10 +16,9 @@
       font-family: "Roboto", sans-serif;
       touch-action: manipulation;
       overscroll-behavior: contain;
-      min-height: 100vh;
+      height: 100%;
     }
 
-    /* ---------- HEADER ---------- */
     header {
       text-align: center;
       padding: 1rem 0;
@@ -33,18 +32,15 @@
       text-shadow: 0 0 10px rgba(167,225,238,0.4);
     }
 
-    /* ---------- CONTAINER ---------- */
     .inventory-container {
       max-width: 1100px;
       margin: 0 auto;
       padding: 1rem;
       display: flex;
       flex-direction: column;
-      min-height: calc(100vh - 130px);
-      padding-bottom: 7rem;
+      height: calc(100vh - 130px); /* keeps room for footer/nav */
     }
 
-    /* ---------- HEADER TEXT ---------- */
     .inventory-header h2 {
       font-family: "Audiowide", sans-serif;
       font-size: 1.2rem;
@@ -57,7 +53,7 @@
       margin-bottom: 1rem;
     }
 
-    /* ---------- TABLE WRAPPER ---------- */
+    /* -------- TABLE -------- */
     .inventory-table-wrapper {
       flex: 1;
       display: flex;
@@ -78,7 +74,6 @@
     .table-scroll::-webkit-scrollbar {
       width: 6px;
     }
-
     .table-scroll::-webkit-scrollbar-thumb {
       background: #A7E1EE;
       border-radius: 10px;
@@ -121,7 +116,7 @@
       background: rgba(167,225,238,0.05);
     }
 
-    /* ---------- IMAGES ---------- */
+    /* -------- IMAGES -------- */
     td img {
       width: 55px;
       height: 55px;
@@ -136,7 +131,7 @@
       box-shadow: 0 0 10px rgba(167,225,238,0.5);
     }
 
-    /* ---------- INPUTS ---------- */
+    /* -------- INPUTS -------- */
     .inv-input {
       width: 60px;
       text-align: center;
@@ -147,12 +142,12 @@
       padding: 4px;
     }
 
-    /* ---------- TOTALS BAR ---------- */
+    /* -------- TOTALS BAR -------- */
     .total-summary {
       text-align: center;
       font-size: 1rem;
       color: #A7E1EE;
-      margin: 0.8rem auto 0.5rem auto;
+      margin: 0.8rem auto 1rem auto;
       padding: 0.8rem 1rem;
       background: rgba(167,225,238,0.05);
       border-radius: 10px;
@@ -165,7 +160,20 @@
       transition: all 0.3s ease;
     }
 
-    /* ---------- SAVE BUTTON ---------- */
+    @media (max-width: 768px) {
+      .total-summary {
+        position: sticky;
+        bottom: 65px;
+        z-index: 10;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(6px);
+        border: 1px solid rgba(167,225,238,0.15);
+        box-shadow: 0 0 12px rgba(167,225,238,0.3);
+        font-size: 0.95rem;
+      }
+    }
+
+    /* -------- SAVE BUTTON -------- */
     .submit-sale-btn {
       background: #A7E1EE;
       color: #0b0b0b;
@@ -178,7 +186,7 @@
       box-shadow: 0 0 10px rgba(167,225,238,0.4);
       transition: all 0.3s ease;
       display: block;
-      margin: 1rem auto 1.5rem auto;
+      margin: 1rem auto 2rem auto;
     }
 
     .submit-sale-btn:hover {
@@ -186,7 +194,7 @@
       box-shadow: 0 0 18px rgba(167,225,238,0.6);
     }
 
-    /* ---------- NAV ---------- */
+    /* -------- NAV -------- */
     .kinaya-nav {
       position: fixed;
       bottom: 0;
@@ -226,56 +234,11 @@
       transform: scale(1.05);
     }
 
-    /* ---------- MOBILE FIXES ---------- */
     @media (max-width: 768px) {
-      body {
-        background-color: #0b0b0b !important;
-      }
-
-      .inventory-container {
-        min-height: auto;
-        padding-bottom: 5rem;
-      }
-
-      .inventory-table-wrapper {
-        overflow: visible;
-        background: transparent;
-        box-shadow: none;
-      }
-
-      .table-scroll {
-        overflow: visible;
-      }
-
-      table.inventory-table {
-        display: block;
-        width: 100%;
-      }
-
-      th, td {
-        font-size: 0.8rem;
-        padding: 6px;
-      }
-
-      td img {
-        width: 45px;
-        height: 45px;
-      }
-
-      .inv-input {
-        width: 45px;
-      }
-
-      .total-summary {
-        position: sticky;
-        bottom: 65px;
-        z-index: 10;
-        background: rgba(0, 0, 0, 0.7);
-        backdrop-filter: blur(6px);
-        border: 1px solid rgba(167,225,238,0.15);
-        box-shadow: 0 0 12px rgba(167,225,238,0.3);
-        font-size: 0.95rem;
-      }
+      th, td { font-size: 0.75rem; padding: 6px; }
+      td img { width: 45px; height: 45px; }
+      .inv-input { width: 45px; }
+      .inventory-container { padding-bottom: 6rem; }
     }
   </style>
 
