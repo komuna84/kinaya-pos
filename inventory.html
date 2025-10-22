@@ -16,7 +16,7 @@
   font-family: "Roboto", sans-serif;
   touch-action: manipulation;
   overscroll-behavior: contain;
-  height: 100%;
+  min-height: 100%;
 }
 
 /* ---------- HEADER ---------- */
@@ -40,7 +40,7 @@ header h1 {
   padding: 1rem;
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 130px);
+  padding-bottom: 7rem; /* makes room for nav */
 }
 
 /* ---------- SECTION HEADER ---------- */
@@ -58,36 +58,17 @@ header h1 {
 
 /* ---------- TABLE ---------- */
 .inventory-table-wrapper {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  overflow-x: auto; /* only horizontal scroll */
+  -webkit-overflow-scrolling: touch;
   border-radius: 12px;
   box-shadow: 0 0 12px rgba(167,225,238,0.1);
   background: rgba(255,255,255,0.02);
 }
 
-.table-scroll {
-  flex: 1;
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-  scrollbar-color: #A7E1EE rgba(255,255,255,0.1);
-}
-
-.table-scroll::-webkit-scrollbar {
-  height: 8px;
-  width: 8px;
-}
-.table-scroll::-webkit-scrollbar-thumb {
-  background: #A7E1EE;
-  border-radius: 10px;
-}
-
 table.inventory-table {
   width: 100%;
+  min-width: 950px; /* enable side scroll */
   border-collapse: collapse;
-  min-width: 950px; /* ensures horizontal scroll area */
   position: relative;
 }
 
@@ -98,7 +79,6 @@ th, td {
   white-space: nowrap;
 }
 
-/* ---------- STICKY HEADER ---------- */
 th {
   background: rgba(167,225,238,0.08);
   font-weight: 700;
@@ -112,17 +92,17 @@ th {
   backdrop-filter: blur(5px);
 }
 
-/* ---------- STICKY FIRST COLUMN ---------- */
+/* ---------- FROZEN FIRST COLUMN ---------- */
 th:first-child,
 td:first-child {
   position: sticky;
   left: 0;
   background: rgba(11, 11, 11, 0.95);
   backdrop-filter: blur(3px);
-  z-index: 5;
+  z-index: 4;
 }
 
-/* ---------- ROWS ---------- */
+/* ---------- ROW STYLING ---------- */
 td {
   font-size: 0.85rem;
   vertical-align: middle;
@@ -174,7 +154,6 @@ td img:hover {
   letter-spacing: 0.02em;
   width: 95%;
   max-width: 800px;
-  flex-shrink: 0;
   transition: all 0.3s ease;
 }
 
@@ -245,13 +224,13 @@ td img:hover {
     padding-bottom: 6rem;
   }
 
-  .table-scroll {
-    overflow-x: auto;
-    overflow-y: hidden;
+  .inventory-table-wrapper {
+    overflow-x: auto; /* enable sideways scroll */
+    overflow-y: visible; /* no internal vertical scroll */
   }
 
   table.inventory-table {
-    min-width: 800px; /* enables side scroll */
+    min-width: 800px;
   }
 
   th, td {
@@ -279,6 +258,7 @@ td img:hover {
     font-size: 0.95rem;
   }
 }
+
 
   </style>
 
