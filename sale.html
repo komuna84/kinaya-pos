@@ -147,27 +147,26 @@
   </div>
 
   <div id="payment-overlay" class="hidden">
+  <div class="paypad" id="paypad">
     <button id="close-paypad-btn" class="paypad-close" title="Close">
-    <i class="fa-solid fa-xmark"></i>
+      <i class="fa-solid fa-xmark"></i>
     </button>
-    <div id="payment-type">—</div>
-    <div id="paypad-display" class="paypad-display">$0.00</div>
 
-    <div class="paypad-grid">
-      <button class="paypad-btn" data-value="7">7</button>
-      <button class="paypad-btn" data-value="8">8</button>
-      <button class="paypad-btn" data-value="9">9</button>
-      <button class="paypad-btn" data-value="4">4</button>
-      <button class="paypad-btn" data-value="5">5</button>
-      <button class="paypad-btn" data-value="6">6</button>
-      <button class="paypad-btn" data-value="1">1</button>
-      <button class="paypad-btn" data-value="2">2</button>
-      <button class="paypad-btn" data-value="3">3</button>
-      <button class="paypad-btn" data-value="0">0</button>
-      <button class="paypad-btn" data-value="C">C</button>
-      <button class="paypad-btn" data-value="←">←</button>
-      <button class="paypad-btn" data-value="Enter">Enter</button>
-    </div>
+    <div id="paypad-display" class="paypad-display">$0</div>
+
+    <button class="paypad-btn number" data-value="7">7</button>
+    <button class="paypad-btn number" data-value="8">8</button>
+    <button class="paypad-btn number" data-value="9">9</button>
+    <button class="paypad-btn number" data-value="4">4</button>
+    <button class="paypad-btn number" data-value="5">5</button>
+    <button class="paypad-btn number" data-value="6">6</button>
+    <button class="paypad-btn number" data-value="1">1</button>
+    <button class="paypad-btn number" data-value="2">2</button>
+    <button class="paypad-btn number" data-value="3">3</button>
+    <button class="paypad-btn number" data-value="0">0</button>
+    <button class="paypad-btn" data-value="C">C</button>
+    <button class="paypad-btn" data-value="←">←</button>
+    <button class="paypad-btn span3-col" data-value="Enter">Enter</button>
   </div>
 </div>
 <script src="script.js" defer></script>
