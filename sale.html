@@ -4,17 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<style>
-  html, body {
-    /* Disable double-tap zoom, keep scroll working */
-    touch-action: manipulation;
-    overscroll-behavior: contain;
-  }
-</style>
+  <style>
+    html, body {
+      touch-action: manipulation;
+      overscroll-behavior: contain;
+    }
+  </style>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Kinaya Rising POS</title>
 
-  <!-- Fonts & Icons -->
   <link
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
@@ -26,27 +24,31 @@
     rel="stylesheet"
   />
 
-  <!-- Local Styles & Script -->
   <link rel="stylesheet" href="styles.css" />
   <script>
-    // ✅ Session lock check
     if (sessionStorage.getItem("posUnlocked") !== "true") {
       window.location.href = "index.html";
     }
   </script>
   <script src="script.js" defer></script>
 </head>
-<nav class="pos-nav">
-  <button class="nav-btn active" id="nav-sales">Sales</button>
-  <button class="nav-btn" id="nav-inventory">Inventory</button>
+
+<nav class="kinaya-nav">
+  <a href="sale.html" class="nav-btn">
+    <i class="fas fa-cash-register"></i><span>Sales</span>
+  </a>
+  <a href="inventory.html" class="nav-btn">
+    <i class="fas fa-boxes"></i><span>Inventory</span>
+  </a>
+  <a href="data.html" class="nav-btn">
+    <i class="fas fa-chart-line"></i><span>Data</span>
+  </a>
 </nav>
+
 <body>
-  <header>
-    <h1>Kinaya Rising Purchase Order</h1>
-  </header>
+  <header><h1>Kinaya Rising Purchase Order</h1></header>
 
   <main class="main-container flex-row">
-    <!-- =============== RECEIPT / ORDER SECTION =============== -->
     <section class="order flex-column">
       <article class="receipt flex-column">
         <div class="company-info flex-column">
@@ -72,91 +74,64 @@
               <tr><td class="dotted-border" colspan="5"></td></tr>
               <tr><td class="empty-border" colspan="5"></td></tr>
             </thead>
-
-            <tbody id="receipt-details">
-              <!-- Populated dynamically -->
-            </tbody>
+            <tbody id="receipt-details"></tbody>
           </table>
 
-          <!-- =============== SUMMARY =============== -->
           <div class="receipt-summary">
-  <table class="summary-table">
-    <tbody id="summary-section">
-      <tr><td class="dotted-border" colspan="3"></td></tr>
-      <tr><td class="empty-border" colspan="3"></td></tr>
+            <table class="summary-table">
+              <tbody id="summary-section">
+                <tr><td class="dotted-border" colspan="3"></td></tr>
+                <tr><td class="empty-border" colspan="3"></td></tr>
+                <tr><td>Subtotal:</td><td id="subtotal-summary">$0.00</td></tr>
+                <tr><td>Tax:</td><td id="tax-summary">$0.00</td></tr>
+                <tr><td>Grand Total:</td><td id="grandtotal-summary">$0.00</td></tr>
+                <tr><td class="dotted-border" colspan="3"></td></tr>
+                <tr><td class="empty-border" colspan="3"></td></tr>
+                <tr>
+                  <td>Amount Paid:</td>
+                  <td><input type="number" id="amount-paid-input" step="0.01" min="0" placeholder="0.00" /></td>
+                </tr>
+                <tr><td id="change-title">Change:</td><td id="change-amount">$0.00</td></tr>
+                <tr><td>Payment Type:</td><td id="payment-type">Cash</td></tr>
+                <tr><td>Split Payment:</td><td id="split-info">None</td></tr>
+                <tr><td class="dotted-border" colspan="3"></td></tr>
+                <tr><td class="empty-border" colspan="3"></td></tr>
+                <tr>
+                  <td>Email:</td>
+                  <td colspan="2">
+                    <input
+                      type="email"
+                      id="customer-email"
+                      placeholder="customer@example.com"
+                      style="width:100%;padding:4px;border:1px solid #333;border-radius:4px;background:#111;color:#A7E1EE;"
+                    />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
 
-      <tr><td>Subtotal:</td><td id="subtotal-summary">$0.00</td></tr>
-      <tr><td>Tax:</td><td id="tax-summary">$0.00</td></tr>
-      <tr><td>Grand Total:</td><td id="grandtotal-summary">$0.00</td></tr>
+            <div id="submit-row" style="display:none; text-align:center; padding:1rem 0;">
+              <button id="submit-sale" class="submit-sale-btn">Submit Sale</button>
+            </div>
+          </div>
 
-      <tr><td class="dotted-border" colspan="3"></td></tr>
-      <tr><td class="empty-border" colspan="3"></td></tr>
+          <div class="receipt-footer">Thank You For Your Support!</div>
 
-      <tr>
-        <td>Amount Paid:</td>
-        <td><input type="currency" id="amount-paid-input" step="0.01" min="0" placeholder="0.00" /></td>
-      </tr>
-
-      <tr><td id="change-title">Change:</td><td id="change-amount">$0.00</td></tr>
-      <tr><td>Payment Type:</td><td id="payment-type">Cash</td></tr>
-      <tr><td>Split Payment:</td><td id="split-info">None</td></tr>
-
-      <tr><td class="dotted-border" colspan="3"></td></tr>
-      <tr><td class="empty-border" colspan="3"></td></tr>
-
-      <tr>
-        <td>Email:</td>
-        <td colspan="2">
-          <input
-            type="email"
-            id="customer-email"
-            placeholder="customer@example.com"
-            style="width:100%;padding:4px;border:1px solid #333;border-radius:4px;
-                   background:#111;color:#A7E1EE;"
-          />
-        </td>
-      </tr>
-    </tbody>
-  </table> <!-- ✅ close your table before submit -->
-
-  <!-- ✅ Centered button BELOW the table -->
-  <div id="submit-row" style="display:none; text-align:center; padding:1rem 0;">
-    <button id="submit-sale" class="submit-sale-btn">Submit Sale</button>
-  </div>
-</div> <!-- closes .receipt-summary -->
-
-<!-- ✅ Only ONE footer remains -->
-<div class="receipt-footer">
-  Thank You For Your Support!
-</div>
-
-
-      <!-- Toolbar -->
-      <div class="toolbar flex-row">
-        <button id="cash-btn" class="toolbar-btn" title="Cash Payment">
-          <i class="fa-solid fa-money-bill-wave"></i>
-        </button>
-        <button id="card-btn" class="toolbar-btn" title="Card Payment">
-          <i class="fa-solid fa-credit-card"></i>
-        </button>
-        <button id="clear-order-btn" class="toolbar-btn" title="Clear Order">
-          <i class="fa-solid fa-trash"></i>
-        </button>
-        <button id="toggle-return" class="toolbar-btn" title="Toggle Return Mode">
-          <i class="fa-solid fa-rotate-left"></i>
-        </button>
-      </div>
+          <div class="toolbar flex-row">
+            <button id="cash-btn" class="toolbar-btn" title="Cash Payment"><i class="fa-solid fa-money-bill-wave"></i></button>
+            <button id="card-btn" class="toolbar-btn" title="Card Payment"><i class="fa-solid fa-credit-card"></i></button>
+            <button id="clear-order-btn" class="toolbar-btn" title="Clear Order"><i class="fa-solid fa-trash"></i></button>
+            <button id="toggle-return" class="toolbar-btn" title="Toggle Return Mode"><i class="fa-solid fa-rotate-left"></i></button>
+          </div>
+        </div>
+      </article>
     </section>
 
-    <!-- =============== MENU / PAYMENT SECTION =============== -->
     <section class="menu-payment grid">
-      <div class="menu flex-row" id="menu">
-        <!-- Menu populated dynamically -->
-      </div>
+      <div class="menu flex-row" id="menu"></div>
     </section>
   </main>
 
-  <!-- Submit Confirmation Modal -->
   <div id="submit-modal" class="modal hidden">
     <div class="modal-content">
       <p>✅ Payment complete! Submit this ticket?</p>
@@ -167,49 +142,89 @@
     </div>
   </div>
 
-  <!-- Paypad Overlay -->
   <div id="payment-overlay">
     <div class="paypad" id="paypad">
-      <!-- Close button -->
-      <button id="close-paypad-btn" class="paypad-close" title="Close">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
-
-      <!-- Display -->
+      <button id="close-paypad-btn" class="paypad-close" title="Close"><i class="fa-solid fa-xmark"></i></button>
       <div id="paypad-display" class="paypad-display">$0.00</div>
-
-      <!-- Keypad -->
       <button class="paypad-btn number" data-id="7">7</button>
       <button class="paypad-btn number" data-id="8">8</button>
       <button class="paypad-btn number" data-id="9">9</button>
-
       <button class="paypad-btn number" data-id="4">4</button>
       <button class="paypad-btn number" data-id="5">5</button>
       <button class="paypad-btn number" data-id="6">6</button>
-
       <button class="paypad-btn number" data-id="1">1</button>
       <button class="paypad-btn number" data-id="2">2</button>
       <button class="paypad-btn number" data-id="3">3</button>
-
       <button class="paypad-btn number" data-id="0">0</button>
       <button class="paypad-btn" data-id="back">Back</button>
       <button class="paypad-btn" data-id="clear">Clear</button>
-
-      <!-- Enter -->
-      <button class="paypad-btn span3-col" data-id="close-sale">Enter</button>
+      <button class="paypad-btn span3-col" data-id="enter">Enter</button>
     </div>
   </div>
-  <script src="script.js" defer></script>
+
   <script>
-  // Prevent iOS double-tap zoom completely
-  let lastTouchEnd = 0;
-  document.addEventListener('touchend', function (event) {
-    const now = Date.now();
-    if (now - lastTouchEnd <= 300) {
-      event.preventDefault();
-    }
-    lastTouchEnd = now;
-  }, false);
-</script>
+    // Disable iOS double-tap zoom
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', e => {
+      const now = Date.now();
+      if (now - lastTouchEnd <= 300) e.preventDefault();
+      lastTouchEnd = now;
+    }, false);
+
+    // ====== RESTORE FUNCTIONALITY ======
+    document.addEventListener("DOMContentLoaded", () => {
+      let paypadValue = "";
+      let isReturnMode = false;
+      const overlay = document.getElementById("payment-overlay");
+      const display = document.getElementById("paypad-display");
+      const amountPaidInput = document.getElementById("amount-paid-input");
+
+      // menu item click
+      document.addEventListener("click", e => {
+        const menuItem = e.target.closest(".menu-item");
+        if (menuItem) {
+          const data = menuItem.getAttribute("data-sku");
+          order.addOrderLine(1, data, isReturnMode);
+        }
+      });
+
+      // toolbar buttons
+      document.getElementById("toggle-return").addEventListener("click", e => {
+        isReturnMode = !isReturnMode;
+        e.currentTarget.classList.toggle("active", isReturnMode);
+      });
+      document.getElementById("clear-order-btn").addEventListener("click", () => {
+        order._order = [];
+        Ui.receiptDetails(order);
+        Ui.updateTotals(order);
+      });
+
+      // paypad buttons
+      document.querySelectorAll(".paypad-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = btn.dataset.id;
+          if (id === "back") paypadValue = paypadValue.slice(0, -1);
+          else if (id === "clear") paypadValue = "";
+          else if (id === "enter") {
+            amountPaidInput.value = parseFloat(paypadValue || 0).toFixed(2);
+            overlay.classList.add("hidden");
+            amountPaidInput.dispatchEvent(new Event("input"));
+          } else paypadValue += id;
+          display.textContent = "$" + (parseFloat(paypadValue || 0) || 0);
+        });
+      });
+
+      // live change calculation
+      amountPaidInput.addEventListener("input", () => {
+        const subtotal = order._order.reduce((s, l) => s + l.subtotal, 0);
+        const tax = order._order.reduce((s, l) => s + l.tax, 0);
+        const total = subtotal + tax;
+        const paid = parseFloat(amountPaidInput.value) || 0;
+        const change = paid - total;
+        document.getElementById("change-amount").textContent =
+          change >= 0 ? "$" + change.toFixed(2) : `($${Math.abs(change).toFixed(2)})`;
+      });
+    });
+  </script>
 </body>
 </html>
