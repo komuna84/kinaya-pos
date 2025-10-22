@@ -28,16 +28,17 @@
 
     <form id="login-form" autocomplete="off">
       <input
-        type="password"
-        id="passcode-input"
-        placeholder="Enter passcode"
-        inputmode="text"
-        autocorrect="off"
-        autocapitalize="off"
-        spellcheck="false"
-        name="fakepass"   <!-- trick to stop password manager -->
-        autocomplete="off"
-      />
+      <input
+  type="password"
+  id="passcode-input"
+  placeholder="Enter Passcode"
+  autocomplete="new-password"
+  autocorrect="off"
+  autocapitalize="off"
+  spellcheck="false"
+  inputmode="numeric"
+  pattern="[0-9]*"
+/>
       <br />
       <button id="passcode-btn" type="button">Unlock</button>
       <p id="passcode-error">Invalid passcode.</p>
