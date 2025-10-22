@@ -1294,29 +1294,42 @@ body.login-body {
 /* Hover effect */
 .nav-btn:hover {
   transform: scale(1.1);
-  color: #7fd7e6;
+  color: #bff4ff;
 }
 
-/* 🌿 Active: glowing Kinaya aura + dark icon/text */
+/* 🌿 Active: bright Kinaya glow + white text/icon */
 .nav-btn.active {
-  background: rgba(167, 225, 238, 0.2);
-  box-shadow: 0 0 10px rgba(167, 225, 238, 0.3);
-  transform: scale(1.05);
+  background: radial-gradient(circle at center, rgba(167,225,238,0.25) 0%, rgba(10,30,40,0.9) 100%);
+  box-shadow: 
+    0 0 15px rgba(167,225,238,0.6),
+    0 0 30px rgba(167,225,238,0.4),
+    inset 0 0 8px rgba(255,255,255,0.15);
+  transform: scale(1.08);
+  border-radius: 12px;
+  animation: kinaya-glow 3s ease-in-out infinite;
 }
 
+/* White icon + text for active button */
 .nav-btn.active i,
 .nav-btn.active span {
-  color: #0a1e28; /* dark slate/ink color for contrast */
+  color: #fff;
+  text-shadow: 0 0 10px rgba(255,255,255,0.6);
 }
 
-/* Optional: gentle glow pulse */
+/* 🌿 Gentle breathing glow */
 @keyframes kinaya-glow {
-  0%, 100% { box-shadow: 0 0 10px rgba(167,225,238,0.25); }
-  50% { box-shadow: 0 0 20px rgba(167,225,238,0.4); }
-}
-
-.nav-btn.active {
-  animation: kinaya-glow 3s ease-in-out infinite;
+  0%, 100% {
+    box-shadow:
+      0 0 15px rgba(167,225,238,0.6),
+      0 0 30px rgba(167,225,238,0.4),
+      inset 0 0 8px rgba(255,255,255,0.15);
+  }
+  50% {
+    box-shadow:
+      0 0 25px rgba(167,225,238,0.8),
+      0 0 45px rgba(167,225,238,0.6),
+      inset 0 0 12px rgba(255,255,255,0.2);
+  }
 }
 
 /* Mobile adjustments */
@@ -1328,4 +1341,5 @@ body.login-body {
     font-size: 1.2rem;
   }
 }
+
 
