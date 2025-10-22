@@ -9,21 +9,29 @@ const POS_SHEET_ID = "1tQZt8ZYIWdBYHxDuZxH3emBQ8PNUcxpDZVwm07x28sg";
 document.addEventListener("DOMContentLoaded", async () => {
   const tableBody = document.getElementById("inventory-body");
   const saveBtn = document.getElementById("save-inventory");
+  const totalSummary = document.getElementById("total-summary");
 
   let products = await loadInventoryData();
   renderTable(products);
+  updateTotals(products);
 
   tableBody.addEventListener("input", e => {
     if (!e.target.matches(".inv-input")) return;
     const row = e.target.closest("tr");
     updateStockAndAssets(row);
+    products = collectUpdatedDataFromDOM(products);
+    updateTotals(products);
   });
 
   saveBtn.addEventListener("click", async () => {
     const updated = collectUpdatedData();
     await saveInventoryData(updated);
+    updateTotals(updated);
   });
 
+  // ===========================================================
+  // LOAD INVENTORY DATA
+  // ===========================================================
   async function loadInventoryData() {
     try {
       const res = await fetch(`${INVENTORY_SHEET_URL}?mode=inventory&id=${POS_SHEET_ID}`);
@@ -36,47 +44,52 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
+  // ===========================================================
+  // RENDER INVENTORY TABLE
+  // ===========================================================
   function renderTable(data) {
-  if (!data || !data.length) {
-    tableBody.innerHTML = `
-      <tr><td colspan="10" style="text-align:center;color:#A7E1EE;opacity:0.7;">
-        No products found.
-      </td></tr>`;
-    return;
+    if (!data || !data.length) {
+      tableBody.innerHTML = `
+        <tr><td colspan="10" style="text-align:center;color:#A7E1EE;opacity:0.7;">
+          No products found.
+        </td></tr>`;
+      return;
+    }
+
+    tableBody.innerHTML = data.map(item => {
+      const price = parseFloat(item.Price || 0);
+      const sold = parseInt(item.Sold || 0);
+      const received = parseInt(item.Received || 0);
+      const damaged = parseInt(item.Damaged || 0);
+      const returned = parseInt(item.Returned || 0);
+      const inStock = Math.max(received - sold - damaged + returned, 0);
+      const netAssets = (inStock * price).toFixed(2);
+
+      return `
+        <tr data-sku="${item.Sku}">
+          <td><img src="${item.Image || 'https://via.placeholder.com/60?text=No+Img'}" alt="${item.Product}" /></td>
+          <td>${item.Sku}</td>
+          <td>${item.Product}</td>
+          <td>$${price.toFixed(2)}</td>
+          <td><input type="number" class="inv-input" data-field="Received" value="${received}" min="0" /></td>
+          <td><input type="number" class="inv-input" data-field="Damaged" value="${damaged}" min="0" /></td>
+          <td><input type="number" class="inv-input" data-field="Returned" value="${returned}" min="0" /></td>
+          <td>${sold}</td>
+          <td class="stock">${inStock}</td>
+          <td class="assets">$${netAssets}</td>
+        </tr>`;
+    }).join("");
   }
 
-  tableBody.innerHTML = data.map(item => {
-    const price = parseFloat(item.Price || 0);
-    const sold = parseInt(item.Sold || 0);
-    const received = parseInt(item.Received || 0);
-    const damaged = parseInt(item.Damaged || 0);
-    const returned = parseInt(item.Returned || 0);
-    const inStock = Math.max(received - sold - damaged + returned, 0);
-    const netAssets = (inStock * price).toFixed(2);
-
-    return `
-      <tr data-sku="${item.Sku}">
-        <td><img src="${item.Image || 'https://via.placeholder.com/60?text=No+Img'}" alt="${item.Product}" /></td>
-        <td>${item.Sku}</td>
-        <td>${item.Product}</td>
-        <td>$${price.toFixed(2)}</td>
-        <td><input type="number" class="inv-input" data-field="Received" value="${received}" min="0" /></td>
-        <td><input type="number" class="inv-input" data-field="Damaged" value="${damaged}" min="0" /></td>
-        <td><input type="number" class="inv-input" data-field="Returned" value="${returned}" min="0" /></td>
-        <td>${sold}</td>
-        <td class="stock">${inStock}</td>
-        <td class="assets">$${netAssets}</td>
-      </tr>`;
-  }).join("");
-}
-
-
+  // ===========================================================
+  // UPDATE STOCK AND NET ASSETS
+  // ===========================================================
   function updateStockAndAssets(row) {
-    const price = parseFloat(row.children[2].textContent.replace("$", "")) || 0;
+    const price = parseFloat(row.children[3].textContent.replace("$", "")) || 0;
     const received = parseInt(row.querySelector('[data-field="Received"]').value) || 0;
     const damaged = parseInt(row.querySelector('[data-field="Damaged"]').value) || 0;
     const returned = parseInt(row.querySelector('[data-field="Returned"]').value) || 0;
-    const sold = parseInt(row.children[6].textContent) || 0;
+    const sold = parseInt(row.children[7].textContent) || 0;
 
     const inStock = Math.max(received - sold - damaged + returned, 0);
     const netAssets = (inStock * price).toFixed(2);
@@ -85,6 +98,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     row.querySelector(".assets").textContent = `$${netAssets}`;
   }
 
+  // ===========================================================
+  // COLLECT UPDATED DATA (for saving)
+  // ===========================================================
   function collectUpdatedData() {
     return Array.from(tableBody.querySelectorAll("tr[data-sku]")).map(row => ({
       Sku: row.dataset.sku,
@@ -94,6 +110,27 @@ document.addEventListener("DOMContentLoaded", async () => {
     }));
   }
 
+  // ===========================================================
+  // COLLECT FROM DOM (for live updates)
+  // ===========================================================
+  function collectUpdatedDataFromDOM(existing) {
+    return Array.from(tableBody.querySelectorAll("tr[data-sku]")).map(row => {
+      const sku = row.dataset.sku;
+      const price = parseFloat(row.children[3].textContent.replace("$", "")) || 0;
+      const received = parseInt(row.querySelector('[data-field="Received"]').value) || 0;
+      const damaged = parseInt(row.querySelector('[data-field="Damaged"]').value) || 0;
+      const returned = parseInt(row.querySelector('[data-field="Returned"]').value) || 0;
+      const sold = parseInt(row.children[7].textContent) || 0;
+      const inStock = Math.max(received - sold - damaged + returned, 0);
+      const netAssets = (inStock * price).toFixed(2);
+
+      return { Sku: sku, InStock: inStock, NetAssets: netAssets, Received: received };
+    });
+  }
+
+  // ===========================================================
+  // SAVE TO GOOGLE SHEET
+  // ===========================================================
   async function saveInventoryData(updatedRows) {
     saveBtn.textContent = "Saving...";
     saveBtn.disabled = true;
@@ -121,4 +158,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     saveBtn.textContent = "💾 Save Changes";
     saveBtn.disabled = false;
   }
+
+  // ===========================================================
+  // 🧮 TOTAL SUMMARY BAR
+  // ===========================================================
+  function updateTotals(products) {
+    if (!Array.isArray(products) || !products.length) return;
+    const totalItems = products.reduce((sum, p) => sum + (parseFloat(p.InStock) || 0), 0);
+    const totalValue = products.reduce((sum, p) => sum + (parseFloat(p.NetAssets) || 0), 0);
+    const totalReceived = products.reduce((sum, p) => sum + (parseFloat(p.Received) || 0), 0);
+
+    if (totalSummary) {
+      totalSummary.innerHTML = `
+        💰 <strong>Total Items:</strong> ${totalItems} |
+        🏷️ <strong>Total Value:</strong> $${totalValue.toFixed(2)} |
+        📦 <strong>Received:</strong> ${totalReceived}
+      `;
+    }
+  }
 });
+
