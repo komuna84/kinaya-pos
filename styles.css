@@ -416,21 +416,15 @@ figcaption {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 99999;
-  opacity: 0;
-  pointer-events: none;
+  z-index: 999999;
   transition: opacity 0.3s ease;
 }
 
-#payment-overlay.active {
-  opacity: 1;
-  pointer-events: all;
+/* Hide anything with the .hidden class */
+.hidden {
+  display: none !important;
 }
 
-/* Lock scroll when overlay is active */
-body.overlay-active {
-  overflow: hidden;
-}
 
 /* --- Paypad Box --- */
 .paypad {
@@ -1051,118 +1045,6 @@ body.overlay-active {
   }
 }
 
-/* ================= FINAL CONSOLIDATED PAYPAD ================= */
-#payment-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(6px);
-  justify-content: center;
-  align-items: center;
-  z-index: 999999;
-  transition: opacity 0.3s ease;
-}
-#payment-overlay.active {
-  display: flex;
-}
-
-/* Paypad Box (Centered Modal) */
-.paypad {
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(3, 110px);
-  grid-template-rows: auto repeat(4, 100px) auto;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-  background: #0f0f0f;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 0 35px rgba(167, 225, 238, 0.3);
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-/* Display Field */
-.paypad-display {
-  grid-column: span 3;
-  text-align: center;
-  font-size: 2rem;
-  font-weight: 600;
-  color: #A7E1EE;
-  background: rgba(255,255,255,0.05);
-  border-radius: 10px;
-  padding: 12px 0;
-  box-shadow: inset 0 0 10px rgba(167,225,238,0.25);
-  margin-bottom: 4px;
-}
-
-/* Buttons */
-.paypad-btn {
-  background: rgba(255,255,255,0.04);
-  color: #A7E1EE;
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 8px;
-  font-size: 1.6rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-.paypad-btn:hover {
-  background: rgba(167,225,238,0.15);
-  transform: scale(1.05);
-}
-.paypad-btn.span3-col {
-  grid-column: span 3;
-  background: #A7E1EE;
-  color: #111;
-  font-weight: bold;
-  font-size: 1.3rem;
-  border: none;
-  border-radius: 10px;
-  padding: 12px 0;
-  margin-top: 6px;
-}
-.paypad-btn.span3-col:hover {
-  background: #7fd7e6;
-}
-
-/* Close Button */
-#close-paypad-btn {
-  position: absolute;
-  top: 12px;
-  right: 16px;
-  background: transparent;
-  border: none;
-  color: #A7E1EE;
-  font-size: 2rem;
-  cursor: pointer;
-  transition: transform 0.25s ease, color 0.25s ease;
-}
-#close-paypad-btn:hover {
-  transform: scale(1.15);
-  color: #fff;
-}
-
-/* --- Mobile Adjustments --- */
-@media (max-width: 768px) {
-  .paypad {
-    grid-template-columns: repeat(3, 90px);
-    grid-template-rows: auto repeat(4, 80px) auto;
-    gap: 8px;
-    padding: 18px;
-    width: 92%;
-    max-width: 340px;
-  }
-  .paypad-display {
-    font-size: 1.8rem;
-  }
-  .paypad-btn {
-    font-size: 1.4rem;
-  }
-}
 /* ===============================
    🧩 FIX — Login Input Not Typable
    =============================== */
