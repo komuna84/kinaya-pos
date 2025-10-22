@@ -8,232 +8,239 @@
 
   <!-- ====== BASE STYLES ====== -->
   <style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    background-color: #0b0b0b;
-    color: #A7E1EE;
-    font-family: "Roboto", sans-serif;
-    touch-action: manipulation;
-    overscroll-behavior: contain;
-  }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: #0b0b0b;
+      color: #A7E1EE;
+      font-family: "Roboto", sans-serif;
+      touch-action: manipulation;
+      overscroll-behavior: contain;
+      height: 100%;
+    }
 
-  header {
-    text-align: center;
-    padding: 1rem 0;
-    background: radial-gradient(circle at top, rgba(167,225,238,0.12), transparent 60%);
-  }
+    header {
+      text-align: center;
+      padding: 1rem 0;
+      background: radial-gradient(circle at top, rgba(167,225,238,0.12), transparent 60%);
+    }
 
-  header h1 {
-    font-family: "Audiowide", sans-serif;
-    font-size: 1.6rem;
-    color: #A7E1EE;
-    text-shadow: 0 0 10px rgba(167,225,238,0.4);
-  }
+    header h1 {
+      font-family: "Audiowide", sans-serif;
+      font-size: 1.6rem;
+      color: #A7E1EE;
+      text-shadow: 0 0 10px rgba(167,225,238,0.4);
+    }
 
-  .inventory-container {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 1rem;
-  }
+    .inventory-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 130px); /* keeps room for footer/nav */
+    }
 
-  .inventory-header h2 {
-    font-family: "Audiowide", sans-serif;
-    font-size: 1.2rem;
-    margin-bottom: 0.3rem;
-  }
+    .inventory-header h2 {
+      font-family: "Audiowide", sans-serif;
+      font-size: 1.2rem;
+      margin-bottom: 0.3rem;
+    }
 
-  .inventory-header p {
-    font-size: 0.9rem;
-    color: rgba(167,225,238,0.7);
-    margin-bottom: 1rem;
-  }
+    .inventory-header p {
+      font-size: 0.9rem;
+      color: rgba(167,225,238,0.7);
+      margin-bottom: 1rem;
+    }
 
-  /* -------- TABLE -------- */
-  .inventory-table-wrapper {
-    overflow-x: auto;
-    border-radius: 12px;
-    box-shadow: 0 0 12px rgba(167,225,238,0.1);
-  }
+    /* -------- TABLE -------- */
+    .inventory-table-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-radius: 12px;
+      box-shadow: 0 0 12px rgba(167,225,238,0.1);
+      background: rgba(255,255,255,0.02);
+    }
 
-  table.inventory-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: rgba(255,255,255,0.02);
-  }
+    .table-scroll {
+      flex: 1;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #A7E1EE rgba(255,255,255,0.1);
+    }
 
-  th, td {
-    padding: 10px 12px;
-    text-align: left;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-  }
+    .table-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+    .table-scroll::-webkit-scrollbar-thumb {
+      background: #A7E1EE;
+      border-radius: 10px;
+    }
 
-  th {
-    background: rgba(167,225,238,0.08);
-    font-weight: 700;
-    color: #A7E1EE;
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-  }
+    table.inventory-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
 
-  td {
-    font-size: 0.85rem;
-    vertical-align: middle;
-  }
+    th, td {
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
 
-  /* -------- IMAGES -------- */
-  td img {
-    width: 55px;
-    height: 55px;
-    object-fit: cover;
-    border-radius: 8px;
-    box-shadow: 0 0 6px rgba(167,225,238,0.2);
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
-  }
+    th {
+      background: rgba(167,225,238,0.08);
+      font-weight: 700;
+      color: #A7E1EE;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      backdrop-filter: blur(5px);
+    }
 
-  td img:hover {
-    transform: scale(1.2);
-    box-shadow: 0 0 10px rgba(167,225,238,0.5);
-  }
+    td {
+      font-size: 0.85rem;
+      vertical-align: middle;
+    }
 
-  /* -------- INPUTS -------- */
-  .inv-input {
-    width: 60px;
-    text-align: center;
-    background: #111;
-    border: 1px solid rgba(255,255,255,0.2);
-    color: #A7E1EE;
-    border-radius: 6px;
-    padding: 4px;
-  }
+    tr:nth-child(even) {
+      background: rgba(255,255,255,0.02);
+    }
 
-  tr:nth-child(even) {
-    background: rgba(255,255,255,0.02);
-  }
+    tr:hover {
+      background: rgba(167,225,238,0.05);
+    }
 
-  tr:hover {
-    background: rgba(167,225,238,0.05);
-  }
+    /* -------- IMAGES -------- */
+    td img {
+      width: 55px;
+      height: 55px;
+      object-fit: cover;
+      border-radius: 8px;
+      box-shadow: 0 0 6px rgba(167,225,238,0.2);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
 
-  /* -------- BUTTON -------- */
-  .inventory-actions {
-    text-align: center;
-    margin-top: 1.5rem;
-  }
+    td img:hover {
+      transform: scale(1.15);
+      box-shadow: 0 0 10px rgba(167,225,238,0.5);
+    }
 
-  .submit-sale-btn {
-    background: #A7E1EE;
-    color: #0b0b0b;
-    font-weight: 600;
-    border: none;
-    border-radius: 8px;
-    padding: 12px 28px;
-    cursor: pointer;
-    font-size: 1rem;
-    box-shadow: 0 0 10px rgba(167,225,238,0.4);
-    transition: all 0.3s ease;
-  }
+    /* -------- INPUTS -------- */
+    .inv-input {
+      width: 60px;
+      text-align: center;
+      background: #111;
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #A7E1EE;
+      border-radius: 6px;
+      padding: 4px;
+    }
 
-  .submit-sale-btn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 18px rgba(167,225,238,0.6);
-  }
+    /* -------- TOTALS BAR -------- */
+    .total-summary {
+      text-align: center;
+      font-size: 1rem;
+      color: #A7E1EE;
+      margin: 0.8rem auto 1rem auto;
+      padding: 0.8rem 1rem;
+      background: rgba(167,225,238,0.05);
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(167,225,238,0.2);
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      width: 95%;
+      max-width: 800px;
+      flex-shrink: 0;
+      transition: all 0.3s ease;
+    }
 
-  /* -------- NAV -------- */
-  .kinaya-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: rgba(10,30,40,0.95);
-    backdrop-filter: blur(8px);
-    border-top: 1px solid rgba(167,225,238,0.25);
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    padding: 0.6rem 0;
-    z-index: 10000;
-  }
+    @media (max-width: 768px) {
+      .total-summary {
+        position: sticky;
+        bottom: 65px;
+        z-index: 10;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(6px);
+        border: 1px solid rgba(167,225,238,0.15);
+        box-shadow: 0 0 12px rgba(167,225,238,0.3);
+        font-size: 0.95rem;
+      }
+    }
 
-  .nav-btn {
-    color: #A7E1EE;
-    text-decoration: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.25rem;
-    font-size: 0.9rem;
-    padding: 8px 14px;
-    border-radius: 10px;
-    transition: all 0.25s ease;
-  }
+    /* -------- SAVE BUTTON -------- */
+    .submit-sale-btn {
+      background: #A7E1EE;
+      color: #0b0b0b;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 28px;
+      cursor: pointer;
+      font-size: 1rem;
+      box-shadow: 0 0 10px rgba(167,225,238,0.4);
+      transition: all 0.3s ease;
+      display: block;
+      margin: 1rem auto 2rem auto;
+    }
 
-  .nav-btn i {
-    font-size: 1.4rem;
-  }
+    .submit-sale-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 18px rgba(167,225,238,0.6);
+    }
 
-  .nav-btn.active {
-    color: #fff;
-    background: rgba(167,225,238,0.1);
-    box-shadow: 0 0 15px rgba(167,225,238,0.4);
-    transform: scale(1.05);
-  }
+    /* -------- NAV -------- */
+    .kinaya-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(10,30,40,0.95);
+      backdrop-filter: blur(8px);
+      border-top: 1px solid rgba(167,225,238,0.25);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 0.6rem 0;
+      z-index: 10000;
+    }
 
-  @media (max-width: 768px) {
-    th, td { font-size: 0.75rem; padding: 6px; }
-    td img { width: 45px; height: 45px; }
-    .inv-input { width: 45px; }
-    .inventory-container { padding-bottom: 6rem; }
-  }
-    /* --- Fix Image Size in Inventory Table --- */
-.inventory-table td img {
-  width: 60px;
-  height: 60px;
-  object-fit: cover;
-  border-radius: 8px;
-  background: rgba(255,255,255,0.02);
-  box-shadow: 0 0 8px rgba(167,225,238,0.2);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-}
+    .nav-btn {
+      color: #A7E1EE;
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.9rem;
+      padding: 8px 14px;
+      border-radius: 10px;
+      transition: all 0.25s ease;
+    }
 
-.inventory-table td img:hover {
-  transform: scale(1.15);
-  box-shadow: 0 0 12px rgba(167,225,238,0.4);
-}
-/* --- Inventory Totals Bar --- */
-.total-summary {
-  text-align: center;
-  font-size: 1rem;
-  color: #A7E1EE;
-  margin: 0.8rem auto 1rem auto;
-  padding: 0.8rem 1rem;
-  background: rgba(167,225,238,0.05);
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(167,225,238,0.2);
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  width: 95%;
-  max-width: 800px;
-  transition: all 0.3s ease;
-}
+    .nav-btn i {
+      font-size: 1.4rem;
+    }
 
-/* --- Optional Sticky Bar for Mobile --- */
-@media (max-width: 768px) {
-  .total-summary {
-    position: sticky;
-    bottom: 60px; /* keeps it above your bottom nav bar */
-    z-index: 10;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(6px);
-    border: 1px solid rgba(167,225,238,0.15);
-    box-shadow: 0 0 12px rgba(167,225,238,0.3);
-    font-size: 0.95rem;
-  }
-}
+    .nav-btn.active {
+      color: #fff;
+      background: rgba(167,225,238,0.1);
+      box-shadow: 0 0 15px rgba(167,225,238,0.4);
+      transform: scale(1.05);
+    }
 
-</style>
-
+    @media (max-width: 768px) {
+      th, td { font-size: 0.75rem; padding: 6px; }
+      td img { width: 45px; height: 45px; }
+      .inv-input { width: 45px; }
+      .inventory-container { padding-bottom: 6rem; }
+    }
+  </style>
 
   <link
     href="https://fonts.googleapis.com/css2?family=Audiowide&family=Roboto:wght@300;400;700&display=swap"
@@ -275,12 +282,11 @@
             </tbody>
           </table>
         </div>
-      <div id="total-summary" class="total-summary"></div>
+
+        <div id="total-summary" class="total-summary"></div>
       </div>
 
-      <div class="inventory-actions">
-        <button id="save-inventory" class="submit-sale-btn">💾 Save Changes</button>
-      </div>
+      <button id="save-inventory" class="submit-sale-btn">💾 Save Changes</button>
     </section>
   </main>
 
