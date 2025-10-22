@@ -42,7 +42,7 @@
 </nav>
 <body>
   <header>
-    <h1>Kinaya Rising Purchase Order</h1>
+    <h1>Purchase Order</h1>
   </header>
 
   <main class="main-container flex-row">
@@ -211,5 +211,54 @@
     lastTouchEnd = now;
   }, false);
 </script>
+ <script>
+document.addEventListener("DOMContentLoaded", () => {
+  let isReturnMode = false;
+  const returnBtn = document.getElementById("toggle-return");
+  const overlay = document.getElementById("payment-overlay");
+  const paypadDisplay = document.getElementById("paypad-display");
+  const amountPaidInput = document.getElementById("amount-paid-input");
+  let paypadValue = "";
+
+  // ---- RETURN MODE ----
+  returnBtn.addEventListener("click", () => {
+    isReturnMode = !isReturnMode;
+    returnBtn.classList.toggle("active", isReturnMode);
+    returnBtn.title = isReturnMode ? "Return Mode Active" : "Toggle Return Mode";
+  });
+
+  // ---- OPEN PAYPAD WHEN CLICKING AMOUNT PAID ----
+  amountPaidInput.addEventListener("focus", () => {
+    overlay.classList.remove("hidden");
+    paypadValue = "";
+    paypadDisplay.textContent = "$0.00";
+  });
+
+  // ---- CLOSE PAYPAD ----
+  document.getElementById("close-paypad-btn").addEventListener("click", () => {
+    overlay.classList.add("hidden");
+  });
+
+  // ---- PAYPAD BUTTONS ----
+  document.querySelectorAll(".paypad-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.id;
+      if (id === "back") {
+        paypadValue = paypadValue.slice(0, -1);
+      } else if (id === "clear") {
+        paypadValue = "";
+      } else if (id === "close-sale") {
+        const val = parseFloat(paypadValue || 0).toFixed(2);
+        amountPaidInput.value = val;
+        overlay.classList.add("hidden");
+        amountPaidInput.dispatchEvent(new Event("input"));
+      } else {
+        paypadValue += id;
+      }
+      paypadDisplay.textContent = "$" + (parseFloat(paypadValue || 0) || 0);
+    });
+  });
+});
+</script>         
 </body>
 </html>
