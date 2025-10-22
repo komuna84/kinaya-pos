@@ -1254,3 +1254,56 @@ body.login-body {
     text-align: center;
   }
 }
+/* ============================
+   🌿 KINAYA NAV BAR
+============================ */
+.kinaya-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(10, 30, 40, 0.95);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid rgba(167,225,238,0.25);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0.6rem 0;
+  z-index: 10000;
+}
+
+.nav-btn {
+  color: #A7E1EE;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.nav-btn i {
+  font-size: 1.4rem;
+}
+
+.nav-btn:hover {
+  transform: scale(1.1);
+  color: #7fd7e6;
+}
+
+/* Active state — highlight current page */
+.nav-btn.active {
+  color: #BFD8C1;
+  text-shadow: 0 0 8px rgba(191,216,193,0.6);
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .nav-btn span {
+    font-size: 0.75rem;
+  }
+  .nav-btn i {
+    font-size: 1.2rem;
+  }
+}
