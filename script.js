@@ -272,6 +272,8 @@ async function submitSale() {
   const date = new Date().toLocaleDateString("en-US");
   const email = (emailInput && emailInput.value.trim()) || "";
   const split = splitInfoEl ? splitInfoEl.textContent : "";
+  const emailToggle = document.getElementById("email-toggle");
+  const sharedEmail = emailToggle && emailToggle.checked ? "Yes" : "No";
 
   const invoice = Math.floor(Date.now() / 1000).toString().slice(-4);
 
@@ -285,7 +287,8 @@ async function submitSale() {
     Tax: l.tax,
     Total: Utilities.roundToTwo(l.subtotal + l.tax),
     "Invoice #": invoice,
-    Email: email,
+    Email: email || "—",
+    "Email Shared?": sharedEmail,
     Payment: split
   }));
 
@@ -297,7 +300,7 @@ async function submitSale() {
       body: JSON.stringify(rows)
     });
 
-    alert("✅ Sale submitted successfully! Check your sheet for confirmation.");
+    alert("✅ Sale submitted successfully!");
 
     order._order = [];
     order._payment = { cash: 0, card: 0 };
