@@ -601,3 +601,138 @@ if (navSales && navInventory) {
 // ===========================================================
 updatePaymentUI();
 toggleSubmitVisibility();
+
+// ===========================================================
+// Kinaya Rising POS — Inventory Page Logic
+// ===========================================================
+
+// ✅ Google Apps Script endpoint (same one used by your POS)
+const INVENTORY_SHEET_URL =
+  "https://script.google.com/macros/s/AKfycbxrv2qEiZ5mOIa9w_cnde4n9rZdJERT08bqja7gUz2V_4GtkwAYodfuufIroRCwUVolnw/exec";
+
+document.addEventListener("DOMContentLoaded", async () => {
+  const tableBody = document.getElementById("inventory-body");
+  const saveBtn = document.getElementById("save-inventory");
+
+  if (!tableBody) return;
+
+  // 🌿 Load inventory data
+  let products = await loadInventoryData();
+  renderTable(products);
+
+  // 🧮 Live updates for inputs
+  tableBody.addEventListener("input", e => {
+    if (!e.target.matches(".inv-input")) return;
+    const row = e.target.closest("tr");
+    updateStockAndAssets(row);
+  });
+
+  // 💾 Save Changes
+  saveBtn.addEventListener("click", async () => {
+    const updated = collectUpdatedData();
+    await saveInventoryData(updated);
+  });
+
+  // ===========================================================
+  // Functions
+  // ===========================================================
+
+  async function loadInventoryData() {
+    try {
+      const res = await fetch(`${INVENTORY_SHEET_URL}?mode=inventory`);
+      const data = await res.json();
+      return data || [];
+    } catch (err) {
+      console.error("❌ Error loading inventory data:", err);
+      return [];
+    }
+  }
+
+  function renderTable(data) {
+    if (!data || !data.length) {
+      tableBody.innerHTML = `
+        <tr><td colspan="9" style="text-align:center;color:#A7E1EE;opacity:0.7;">
+          No products found. Check your Google Sheet connection.
+        </td></tr>`;
+      return;
+    }
+
+    tableBody.innerHTML = data
+      .map(item => {
+        const price = parseFloat(item.Price || 0);
+        const sold = parseInt(item.Sold || 0);
+        const received = parseInt(item.Received || 0);
+        const damaged = parseInt(item.Damaged || 0);
+        const returned = parseInt(item.Returned || 0);
+        const inStock = (received - sold - damaged + returned) || 0;
+        const netAssets = (inStock * price).toFixed(2);
+
+        return `
+          <tr data-sku="${item.Sku}">
+            <td>${item.Sku}</td>
+            <td>${item.Product}</td>
+            <td>$${price.toFixed(2)}</td>
+            <td><input type="number" class="inv-input" data-field="Received" value="${received}" min="0" /></td>
+            <td><input type="number" class="inv-input" data-field="Damaged" value="${damaged}" min="0" /></td>
+            <td><input type="number" class="inv-input" data-field="Returned" value="${returned}" min="0" /></td>
+            <td>${sold}</td>
+            <td class="stock">${inStock}</td>
+            <td class="assets">$${netAssets}</td>
+          </tr>`;
+      })
+      .join("");
+  }
+
+  function updateStockAndAssets(row) {
+    const price = parseFloat(row.children[2].textContent.replace("$", "")) || 0;
+    const received = parseInt(row.querySelector('[data-field="Received"]').value) || 0;
+    const damaged = parseInt(row.querySelector('[data-field="Damaged"]').value) || 0;
+    const returned = parseInt(row.querySelector('[data-field="Returned"]').value) || 0;
+    const sold = parseInt(row.children[6].textContent) || 0;
+
+    const inStock = Math.max(received - sold - damaged + returned, 0);
+    const netAssets = (inStock * price).toFixed(2);
+
+    row.querySelector(".stock").textContent = inStock;
+    row.querySelector(".assets").textContent = `$${netAssets}`;
+  }
+
+  function collectUpdatedData() {
+    return Array.from(tableBody.querySelectorAll("tr[data-sku]")).map(row => ({
+      Sku: row.dataset.sku,
+      Received: parseInt(row.querySelector('[data-field="Received"]').value) || 0,
+      Damaged: parseInt(row.querySelector('[data-field="Damaged"]').value) || 0,
+      Returned: parseInt(row.querySelector('[data-field="Returned"]').value) || 0,
+    }));
+  }
+
+  async function saveInventoryData(updatedRows) {
+    saveBtn.textContent = "Saving...";
+    saveBtn.disabled = true;
+
+    try {
+      const res = await fetch(INVENTORY_SHEET_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: "updateInventory",
+          data: updatedRows,
+        }),
+      });
+
+      const result = await res.json();
+      if (result.status === "success") {
+        alert("✅ Inventory updated successfully!");
+      } else {
+        alert("⚠️ Failed to save inventory.");
+      }
+    } catch (err) {
+      console.error("❌ Error saving inventory:", err);
+      alert("❌ Could not save inventory changes.");
+    }
+
+    saveBtn.textContent = "💾 Save Changes";
+    saveBtn.disabled = false;
+  }
+});
+
