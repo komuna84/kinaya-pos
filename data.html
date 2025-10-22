@@ -1,1 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<style>
+  html, body {
+    /* Disable double-tap zoom, keep scroll working */
+    touch-action: manipulation;
+    overscroll-behavior: contain;
+  }
+</style>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Kinaya Rising POS</title>
 
+  <!-- Fonts & Icons -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Audiowide&family=Libre+Barcode+128&family=Roboto:wght@300;400;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Local Styles & Script -->
+  <link rel="stylesheet" href="styles.css" />
+  <script>
+    // ✅ Session lock check
+    if (sessionStorage.getItem("posUnlocked") !== "true") {
+      window.location.href = "index.html";
+    }
+  </script>
+  <script src="script.js" defer></script>
+</head>
+<nav class="kinaya-nav">
+  <a href="sale.html" class="nav-btn">
+    <i class="fas fa-cash-register"></i>
+    <span>Sales</span>
+  </a>
+  <a href="inventory.html" class="nav-btn">
+    <i class="fas fa-boxes"></i>
+    <span>Inventory</span>
+  </a>
+  <a href="data.html" class="nav-btn">
+    <i class="fas fa-chart-line"></i>
+    <span>Data</span>
+  </a>
+</nav>
+
+<body>
+  <header>
+    <h1>Kinaya Rising Purchase Order</h1>
+  </header>
+
+  <body>
+    
+  </body>
+
+  <script src="script.js" defer></script>
+  <script>
+  // Prevent iOS double-tap zoom completely
+  let lastTouchEnd = 0;
+  document.addEventListener('touchend', function (event) {
+    const now = Date.now();
+    if (now - lastTouchEnd <= 300) {
+      event.preventDefault();
+    }
+    lastTouchEnd = now;
+  }, false);
+
+    document.addEventListener("DOMContentLoaded", () => {
+  const links = document.querySelectorAll(".nav-btn");
+  const current = window.location.pathname.split("/").pop();
+  links.forEach(link => {
+    if (link.getAttribute("href") === current) {
+      link.classList.add("active");
+    }
+  });
+});
+</script>
+          
+</body>
+</html>
