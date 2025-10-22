@@ -15,6 +15,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   renderTable(products);
   updateTotals(products);
 
+  // ===========================================================
+  // LIVE UPDATES
+  // ===========================================================
   tableBody.addEventListener("input", e => {
     if (!e.target.matches(".inv-input")) return;
     const row = e.target.closest("tr");
@@ -23,6 +26,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     updateTotals(products);
   });
 
+  // ===========================================================
+  // SAVE CHANGES
+  // ===========================================================
   saveBtn.addEventListener("click", async () => {
     const updated = collectUpdatedData();
     await saveInventoryData(updated);
@@ -71,9 +77,9 @@ document.addEventListener("DOMContentLoaded", async () => {
           <td>${item.Sku}</td>
           <td>${item.Product}</td>
           <td>$${price.toFixed(2)}</td>
-          <td><input type="number" class="inv-input" data-field="Received" value="${received}" min="0" /></td>
-          <td><input type="number" class="inv-input" data-field="Damaged" value="${damaged}" min="0" /></td>
-          <td><input type="number" class="inv-input" data-field="Returned" value="${returned}" min="0" /></td>
+          <td><input type="number" inputmode="numeric" pattern="[0-9]*" class="inv-input" data-field="Received" value="${received}" min="0" /></td>
+          <td><input type="number" inputmode="numeric" pattern="[0-9]*" class="inv-input" data-field="Damaged" value="${damaged}" min="0" /></td>
+          <td><input type="number" inputmode="numeric" pattern="[0-9]*" class="inv-input" data-field="Returned" value="${returned}" min="0" /></td>
           <td>${sold}</td>
           <td class="stock">${inStock}</td>
           <td class="assets">$${netAssets}</td>
@@ -111,7 +117,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // ===========================================================
-  // COLLECT FROM DOM (for live updates)
+  // COLLECT FROM DOM (for live totals)
   // ===========================================================
   function collectUpdatedDataFromDOM(existing) {
     return Array.from(tableBody.querySelectorAll("tr[data-sku]")).map(row => {
@@ -176,5 +182,22 @@ document.addEventListener("DOMContentLoaded", async () => {
       `;
     }
   }
-});
 
+  // ===========================================================
+  // ✨ QUALITY-OF-LIFE FEATURES
+  // ===========================================================
+
+  // Auto-select all text on focus
+  document.addEventListener("focusin", e => {
+    if (e.target.classList.contains("inv-input")) {
+      e.target.select();
+    }
+  });
+
+  // Prevent accidental scroll changing numbers
+  document.addEventListener("wheel", e => {
+    if (document.activeElement.classList.contains("inv-input")) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+});
