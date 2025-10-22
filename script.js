@@ -501,3 +501,16 @@ function toggleSubmitVisibility() {
   toggleSubmitVisibility();
 })();
 
+// ===========================================================
+// MENU ITEM CLICK HANDLER (Add Products to Order)
+// ===========================================================
+document.addEventListener("click", e => {
+  const menuItem = e.target.closest(".menu-item");
+  if (!menuItem) return;
+
+  const data = menuItem.getAttribute("data-sku");
+  if (!data) return;
+
+  // Add the product to the current order
+  order.addOrderLine(1, data, isReturnMode);
+});
