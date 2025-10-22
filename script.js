@@ -315,28 +315,110 @@ async function submitSale() {
 }
 
 // ===========================================================
-// STUBS (prevent missing function errors)
+// PAYMENT + UI INTERACTIONS — FINAL BUILD
 // ===========================================================
+
+// ---------- GLOBAL UI HANDLERS ----------
+let amountPaid = 0;
+let paymentType = "";
+let grandTotal = 0;
+
 function updatePaymentUI(reset = false) {
   const overlay = document.getElementById("payment-overlay");
-  if (reset && overlay) overlay.classList.add("hidden");
+  const amountDisplay = document.getElementById("amount-paid");
+  const grandDisplay = document.getElementById("grandtotal-summary");
+
+  if (reset) {
+    amountPaid = 0;
+    paymentType = "";
+    if (overlay) overlay.classList.add("hidden");
+  }
+
+  if (grandDisplay) {
+    const text = grandDisplay.textContent.replace(/[^0-9.]/g, "");
+    grandTotal = parseFloat(text) || 0;
+  }
+
+  if (amountDisplay) {
+    amountDisplay.textContent = `$${amountPaid.toFixed(2)}`;
+  }
+
+  toggleSubmitVisibility();
 }
 
 function toggleSubmitVisibility() {
   const submitRow = document.getElementById("submit-row");
+  const emailInput = document.getElementById("email-input");
   if (!submitRow) return;
-  const hasItems = order._order && order._order.length > 0;
-  submitRow.style.display = hasItems ? "block" : "none";
+
+  const emailEntered = emailInput && emailInput.value.trim().length > 0;
+  const canSubmit = amountPaid >= grandTotal && emailEntered && order._order.length > 0;
+
+  submitRow.style.display = canSubmit ? "block" : "none";
 }
 
 // ===========================================================
-// FINAL INIT
+// PAYPAD / PAYMENT LOGIC
 // ===========================================================
-updatePaymentUI();
-toggleSubmitVisibility();
+(function setupPaypad() {
+  const overlay = document.getElementById("payment-overlay");
+  const paymentTypeEl = document.getElementById("payment-type");
+  const displayEl = document.getElementById("paypad-display");
+  const buttons = document.querySelectorAll(".paypad-btn");
+  const closeBtn = document.getElementById("paypad-close");
+
+  let buffer = "";
+
+  function renderDisplay() {
+    if (displayEl) displayEl.textContent = `$${buffer || "0"}`;
+  }
+
+  function commitPayment() {
+    amountPaid = parseFloat(buffer) || 0;
+    renderDisplay();
+    updatePaymentUI(true);
+    toggleSubmitVisibility();
+  }
+
+  // --- Paypad key handling ---
+  buttons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const val = btn.dataset.value;
+
+      if (val === "C") {
+        buffer = "";
+      } else if (val === "←") {
+        buffer = buffer.slice(0, -1);
+      } else if (val === "Enter") {
+        commitPayment();
+        if (overlay) overlay.classList.add("hidden");
+        return;
+      } else {
+        buffer += val;
+      }
+      renderDisplay();
+    });
+  });
+
+  // --- Close overlay manually ---
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => {
+      if (overlay) overlay.classList.add("hidden");
+    });
+  }
+
+  // --- Prevent scroll wheel changing numbers accidentally ---
+  document.addEventListener("wheel", e => {
+    if (document.activeElement.tagName === "INPUT" && document.activeElement.type === "number") {
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  renderDisplay();
+})();
 
 // ===========================================================
-// INTERACTION FIXES — RETURN MODE, CLEAR WARNING, PAYPAD
+// RETURN MODE + CLEAR ORDER + EVENT GUARDS
 // ===========================================================
 (function setupInteractionFixes() {
   const header = document.querySelector("header h1");
@@ -346,8 +428,9 @@ toggleSubmitVisibility();
   const cardBtn = document.getElementById("card-btn");
   const overlay = document.getElementById("payment-overlay");
   const paymentTypeEl = document.getElementById("payment-type");
+  const emailInput = document.getElementById("email-input");
 
-  // --- Return mode banner ---
+  // --- Return banner ---
   function updateReturnBanner() {
     let banner = document.getElementById("return-banner");
     if (!banner) {
@@ -368,7 +451,7 @@ toggleSubmitVisibility();
     banner.style.display = isReturnMode ? "block" : "none";
   }
 
-  // --- Toggle return mode (uses global isReturnMode) ---
+  // --- Toggle return mode ---
   if (returnBtn) {
     returnBtn.addEventListener("click", () => {
       isReturnMode = !isReturnMode;
@@ -389,18 +472,32 @@ toggleSubmitVisibility();
       order._order = [];
       Ui.receiptDetails(order);
       Ui.updateTotals(order);
-      updatePaymentUI();
+      amountPaid = 0;
+      updatePaymentUI(true);
       toggleSubmitVisibility();
     });
   }
 
-  // --- Paypad overlay logic ---
+  // --- Paypad openers ---
   function openPaypad(type) {
+    paymentType = type;
     if (paymentTypeEl) paymentTypeEl.textContent = type;
     if (overlay) overlay.classList.remove("hidden");
   }
 
   if (cashBtn) cashBtn.addEventListener("click", () => openPaypad("Cash"));
   if (cardBtn) cardBtn.addEventListener("click", () => openPaypad("Card"));
+
+  // --- Email input triggers submit visibility ---
+  if (emailInput) {
+    emailInput.addEventListener("input", toggleSubmitVisibility);
+  }
+
+  // --- Prevent accidental form reloads ---
+  document.addEventListener("submit", e => e.preventDefault());
+
+  // --- Initialize on load ---
+  updatePaymentUI(true);
+  toggleSubmitVisibility();
 })();
 
