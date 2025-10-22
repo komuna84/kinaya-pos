@@ -240,6 +240,17 @@
       .inv-input { width: 45px; }
       .inventory-container { padding-bottom: 6rem; }
     }
+    /* --- Extra Scroll Space for Desktop & Mobile --- */
+.inventory-container {
+  padding-bottom: 7rem; /* enough space for Save button to scroll above nav */
+}
+
+@media (max-width: 768px) {
+  .inventory-container {
+    padding-bottom: 8rem; /* slightly more on mobile to account for sticky total bar */
+  }
+}
+
   </style>
 
   <link
