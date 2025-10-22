@@ -568,6 +568,33 @@ document.addEventListener("keydown", e => {
   }
 });
 
+// ===========================================================
+// VIEW SWITCHER — Sales ↔ Inventory
+// ===========================================================
+const navSales = document.getElementById("nav-sales");
+const navInventory = document.getElementById("nav-inventory");
+const salesView = document.getElementById("sales-view");
+const inventoryView = document.getElementById("inventory-view");
+
+function switchView(target) {
+  if (target === "sales") {
+    salesView.style.display = "flex";
+    inventoryView.style.display = "none";
+    navSales.classList.add("active");
+    navInventory.classList.remove("active");
+  } else {
+    salesView.style.display = "none";
+    inventoryView.style.display = "flex";
+    navSales.classList.remove("active");
+    navInventory.classList.add("active");
+  }
+}
+
+if (navSales && navInventory) {
+  navSales.addEventListener("click", () => switchView("sales"));
+  navInventory.addEventListener("click", () => switchView("inventory"));
+}
+
 
 // ===========================================================
 // FINAL INITIALIZATION
