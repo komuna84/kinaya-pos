@@ -358,7 +358,7 @@ function toggleSubmitVisibility() {
 }
 
 // ===========================================================
-// PAYPAD / PAYMENT LOGIC — FINAL SYNCED VERSION (for input field)
+// PAYPAD / PAYMENT LOGIC — FINAL FORMATTED VERSION
 // ===========================================================
 (function setupPaypad() {
   const overlay = document.getElementById("payment-overlay");
@@ -374,9 +374,14 @@ function toggleSubmitVisibility() {
 
   let buffer = "";
 
-  // --- Render number on paypad display ---
+  // --- Format number as currency with .00 ---
+  function formatCurrency(val) {
+    return `$${(parseFloat(val) || 0).toFixed(2)}`;
+  }
+
+  // --- Render keypad display ---
   function renderDisplay() {
-    displayEl.textContent = `$${buffer || "0"}`;
+    displayEl.textContent = formatCurrency(buffer);
   }
 
   // --- Recalculate change + submit visibility ---
@@ -388,10 +393,9 @@ function toggleSubmitVisibility() {
     const paid = parseFloat(amountPaidInput.value) || 0;
     const change = paid - grandTotal;
 
-    changeEl.textContent =
-      change >= 0
-        ? `$${change.toFixed(2)}`
-        : `($${Math.abs(change).toFixed(2)})`;
+    changeEl.textContent = formatCurrency(change);
+    changeEl.classList.toggle("positive-change", change >= 0);
+    changeEl.classList.toggle("negative-change", change < 0);
 
     const emailOk = emailInput && emailInput.value.trim().length > 0;
     submitRow.style.display =
@@ -425,8 +429,14 @@ function toggleSubmitVisibility() {
     });
   }
 
-  // --- Manual edits also recalc instantly ---
+  // --- Manual input live recalculation + .00 formatting ---
   amountPaidInput.addEventListener("input", recalcTotals);
+  amountPaidInput.addEventListener("blur", () => {
+    const val = parseFloat(amountPaidInput.value) || 0;
+    amountPaidInput.value = val.toFixed(2);
+    recalcTotals();
+  });
+
   if (emailInput) emailInput.addEventListener("input", recalcTotals);
 
   renderDisplay();
