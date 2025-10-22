@@ -380,9 +380,36 @@ function toggleSubmitVisibility() {
   }
 
   // --- Render keypad display ---
-  function renderDisplay() {
-    displayEl.textContent = formatCurrency(buffer);
-  }
+  let buffer = "";
+
+// --- Render keypad display (handles cents properly) ---
+function renderDisplay() {
+  const num = parseFloat(buffer || "0") / 100; // divides by 100 to move decimal
+  displayEl.textContent = formatCurrency(num);
+}
+
+// --- Commit payment when Enter pressed ---
+function commitPayment() {
+  const value = parseFloat(buffer || "0") / 100;
+  amountPaidInput.value = value.toFixed(2);
+  recalcTotals();
+  overlay.classList.add("hidden");
+}
+
+// --- Paypad buttons ---
+buttons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    const val = btn.dataset.value;
+
+    if (val === "C") buffer = "";
+    else if (val === "←") buffer = buffer.slice(0, -1);
+    else if (val === "Enter") return commitPayment();
+    else buffer += val;
+
+    renderDisplay();
+  });
+});
+
 
   // --- Recalculate change + submit visibility ---
   function recalcTotals() {
