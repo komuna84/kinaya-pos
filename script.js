@@ -442,6 +442,11 @@ function toggleSubmitVisibility() {
   renderDisplay();
 })();
 
+document.getElementById("change-amount").addEventListener("blur", e => {
+  const val = parseFloat(e.target.value) || 0;
+  e.target.value = val.toFixed(2);
+});
+
 // ===========================================================
 // RETURN MODE + CLEAR ORDER + EVENT GUARDS
 // ===========================================================
