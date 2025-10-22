@@ -201,17 +201,35 @@
   transform: scale(1.15);
   box-shadow: 0 0 12px rgba(167,225,238,0.4);
 }
+/* --- Inventory Totals Bar --- */
 .total-summary {
   text-align: center;
   font-size: 1rem;
   color: #A7E1EE;
-  margin-top: 1rem;
-  padding: 0.8rem;
+  margin: 0.8rem auto 1rem auto;
+  padding: 0.8rem 1rem;
   background: rgba(167,225,238,0.05);
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(167,225,238,0.2);
   font-weight: 500;
   letter-spacing: 0.02em;
+  width: 95%;
+  max-width: 800px;
+  transition: all 0.3s ease;
+}
+
+/* --- Optional Sticky Bar for Mobile --- */
+@media (max-width: 768px) {
+  .total-summary {
+    position: sticky;
+    bottom: 60px; /* keeps it above your bottom nav bar */
+    z-index: 10;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(167,225,238,0.15);
+    box-shadow: 0 0 12px rgba(167,225,238,0.3);
+    font-size: 0.95rem;
+  }
 }
 
 </style>
