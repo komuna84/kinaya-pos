@@ -40,7 +40,7 @@ header h1 {
   padding: 1rem;
   display: flex;
   flex-direction: column;
-  padding-bottom: 7rem; /* space for nav */
+  padding-bottom: 8rem; /* space for floating bar + nav */
 }
 
 /* ---------- SECTION HEADER ---------- */
@@ -58,14 +58,13 @@ header h1 {
 
 /* ---------- TABLE ---------- */
 .inventory-table-wrapper {
-  overflow-x: auto; /* only horizontal scroll */
+  overflow-x: auto; /* horizontal only */
   -webkit-overflow-scrolling: touch;
   border-radius: 12px;
   box-shadow: 0 0 12px rgba(167,225,238,0.1);
   background: rgba(255,255,255,0.02);
 }
 
-/* ensures horizontal scrolling */
 table.inventory-table {
   width: 100%;
   border-collapse: collapse;
@@ -93,7 +92,7 @@ th {
   backdrop-filter: blur(5px);
 }
 
-/* ---------- FIXED FIRST COLUMN (Image) ---------- */
+/* ---------- FIXED FIRST COLUMN ---------- */
 th:first-child,
 td:first-child {
   position: sticky;
@@ -103,18 +102,13 @@ td:first-child {
   z-index: 5;
 }
 
-/* ---------- ROW STYLES ---------- */
+/* ---------- ROWS ---------- */
 td {
   font-size: 0.85rem;
   vertical-align: middle;
 }
-
-tr:nth-child(even) {
-  background: rgba(255,255,255,0.02);
-}
-tr:hover {
-  background: rgba(167,225,238,0.05);
-}
+tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+tr:hover { background: rgba(167,225,238,0.05); }
 
 /* ---------- IMAGES ---------- */
 td img {
@@ -155,7 +149,47 @@ td img:hover {
   letter-spacing: 0.02em;
   width: 95%;
   max-width: 800px;
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* ---------- FLOATING TOTALS ON MOBILE ---------- */
+@media (max-width: 768px) {
+  .inventory-container { padding-bottom: 10rem; }
+
+  .inventory-table-wrapper {
+    overflow-x: auto;
+    overflow-y: visible;
+    max-width: 95vw;
+  }
+
+  table.inventory-table { min-width: 600px; }
+
+  th, td { font-size: 0.8rem; padding: 6px; }
+  td img { width: 45px; height: 45px; }
+  .inv-input { width: 45px; }
+
+  .total-summary {
+    position: fixed;
+    bottom: 65px; /* above nav */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 700px;
+    background: rgba(11, 11, 11, 0.9);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(167,225,238,0.15);
+    box-shadow: 0 0 15px rgba(167,225,238,0.4);
+    border-radius: 12px;
+    z-index: 9999;
+    padding: 0.8rem;
+    font-size: 0.9rem;
+  }
+
+  .total-summary.hide {
+    transform: translateY(20px);
+    opacity: 0;
+    pointer-events: none;
+  }
 }
 
 /* ---------- SAVE BUTTON ---------- */
@@ -173,7 +207,6 @@ td img:hover {
   display: block;
   margin: 1rem auto 2rem auto;
 }
-
 .submit-sale-btn:hover {
   transform: scale(1.05);
   box-shadow: 0 0 18px rgba(167,225,238,0.6);
@@ -207,158 +240,12 @@ td img:hover {
   border-radius: 10px;
   transition: all 0.25s ease;
 }
-
-.nav-btn i {
-  font-size: 1.4rem;
-}
-
+.nav-btn i { font-size: 1.4rem; }
 .nav-btn.active {
   color: #fff;
   background: rgba(167,225,238,0.1);
   box-shadow: 0 0 15px rgba(167,225,238,0.4);
   transform: scale(1.05);
-}
-
-/* ---------- MOBILE ---------- */
-@media (max-width: 768px) {
-  .inventory-container {
-    padding-bottom: 6rem;
-  }
-
-  /* make table horizontally scrollable with 4 columns visible */
-  .inventory-table-wrapper {
-    overflow-x: auto;
-    overflow-y: visible;
-  }
-
-  table.inventory-table {
-    width: 100%;
-    min-width: 600px;
-  }
-
-  th, td {
-    font-size: 0.8rem;
-    padding: 6px;
-  }
-
-  td img {
-    width: 45px;
-    height: 45px;
-  }
-
-  .inv-input {
-    width: 45px;
-  }
-
-  /* only show ~4 columns at a time via max-width scroll area */
-  .inventory-table-wrapper {
-    max-width: 95vw;
-  }
-
-  .total-summary {
-    position: sticky;
-    bottom: 65px;
-    z-index: 10;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(6px);
-    border: 1px solid rgba(167,225,238,0.15);
-    box-shadow: 0 0 12px rgba(167,225,238,0.3);
-    font-size: 0.95rem;
-  }
-}
-
-
-    /* -------- SAVE BUTTON -------- */
-    .submit-sale-btn {
-      background: #A7E1EE;
-      color: #0b0b0b;
-      font-weight: 600;
-      border: none;
-      border-radius: 8px;
-      padding: 12px 28px;
-      cursor: pointer;
-      font-size: 1rem;
-      box-shadow: 0 0 10px rgba(167,225,238,0.4);
-      transition: all 0.3s ease;
-      display: block;
-      margin: 1rem auto 2rem auto;
-    }
-
-    .submit-sale-btn:hover {
-      transform: scale(1.05);
-      box-shadow: 0 0 18px rgba(167,225,238,0.6);
-    }
-
-    /* -------- NAV -------- */
-    .kinaya-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      background: rgba(10,30,40,0.95);
-      backdrop-filter: blur(8px);
-      border-top: 1px solid rgba(167,225,238,0.25);
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      padding: 0.6rem 0;
-      z-index: 10000;
-    }
-
-    .nav-btn {
-      color: #A7E1EE;
-      text-decoration: none;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.25rem;
-      font-size: 0.9rem;
-      padding: 8px 14px;
-      border-radius: 10px;
-      transition: all 0.25s ease;
-    }
-
-    .nav-btn i {
-      font-size: 1.4rem;
-    }
-
-    .nav-btn.active {
-      color: #fff;
-      background: rgba(167,225,238,0.1);
-      box-shadow: 0 0 15px rgba(167,225,238,0.4);
-      transform: scale(1.05);
-    }
-
-    @media (max-width: 768px) {
-      th, td { font-size: 0.75rem; padding: 6px; }
-      td img { width: 45px; height: 45px; }
-      .inv-input { width: 45px; }
-      .inventory-container { padding-bottom: 6rem; }
-    }
-    /* ---------- FIX TOTAL SUMMARY ON MOBILE ---------- */
-@media (max-width: 768px) {
-  .total-summary {
-    position: fixed;
-    bottom: 65px; /* sits above nav */
-    left: 50%;
-    transform: translateX(-50%);
-    width: 90%;
-    max-width: 700px;
-    background: rgba(11, 11, 11, 0.9);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(167,225,238,0.15);
-    box-shadow: 0 0 15px rgba(167,225,238,0.4);
-    border-radius: 12px;
-    z-index: 9999;
-    padding: 0.8rem;
-    font-size: 0.9rem;
-    text-align: center;
-  }
-
-  /* Add extra padding so bottom row isn’t covered */
-  .inventory-container {
-    padding-bottom: 9rem;
-  }
 }
 
   </style>
@@ -429,6 +316,26 @@ td img:hover {
 
   <!-- ====== JS ====== -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js" defer></script>
+  <script>
+document.addEventListener("DOMContentLoaded", () => {
+  const totalsBar = document.querySelector(".total-summary");
+  let lastScrollY = window.scrollY;
+
+  window.addEventListener("scroll", () => {
+    if (!totalsBar) return;
+    const currentY = window.scrollY;
+
+    if (currentY > lastScrollY + 10) {
+      totalsBar.classList.add("hide");
+    } else if (currentY < lastScrollY - 10) {
+      totalsBar.classList.remove("hide");
+    }
+
+    lastScrollY = currentY;
+  });
+});
+</script>
+
   <script src="inventory.js" defer></script>
 </body>
 </html>
