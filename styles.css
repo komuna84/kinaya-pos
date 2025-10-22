@@ -267,7 +267,20 @@ th, td {
   background: rgba(167,225,238,0.1);
 }
 
-#change-amount,
+#change-amount {
+  width: 80px;
+  background: transparent;
+  color: #A7E1EE;
+  border: none;
+  text-align: right;
+  font-weight: bold;
+}
+#change-amount:focus {
+  background: rgba(255,255,255,0.05);
+  outline: none;
+  border: 1px solid #A7E1EE;
+  border-radius: 4px;
+}
 #payment-type {
   text-align: right;
   display: inline-block;
