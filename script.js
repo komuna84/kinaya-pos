@@ -371,13 +371,13 @@ function toggleSubmitVisibility() {
   const submitRow = document.getElementById("submit-row");
   const emailInput = document.getElementById("email-input");
 
-  let buffer = "";
+  let buffer = ""; // holds digits only
 
   function formatCurrency(val) {
     return `$${(parseFloat(val) || 0).toFixed(2)}`;
   }
 
-  // --- Display value in dollars (e.g. typing 2008 → $20.08)
+  // --- Display value, moving decimal left by 2
   function renderDisplay() {
     const num = parseFloat(buffer || "0") / 100;
     displayEl.textContent = formatCurrency(num);
@@ -391,16 +391,16 @@ function toggleSubmitVisibility() {
     const paid = parseFloat(amountPaidInput.value) || 0;
     const change = paid - grandTotal;
 
-    // Change is *display-only*
+    // show change as read-only, color coded
     changeEl.textContent = formatCurrency(change);
-    changeEl.classList.toggle("positive-change", change >= 0);
-    changeEl.classList.toggle("negative-change", change < 0);
+    changeEl.style.color = change >= 0 ? "#A7E1EE" : "#e63946";
 
     const emailOk = emailInput && emailInput.value.trim().length > 0;
     submitRow.style.display =
       paid >= grandTotal && emailOk && order._order.length > 0 ? "block" : "none";
   }
 
+  // --- When user presses Enter on paypad
   function commitPayment() {
     const value = parseFloat(buffer || "0") / 100;
     amountPaidInput.value = value.toFixed(2);
@@ -408,6 +408,7 @@ function toggleSubmitVisibility() {
     overlay.classList.add("hidden");
   }
 
+  // --- Paypad buttons
   buttons.forEach(btn => {
     btn.addEventListener("click", () => {
       const val = btn.dataset.value;
@@ -419,9 +420,7 @@ function toggleSubmitVisibility() {
     });
   });
 
-  if (closeBtn) {
-    closeBtn.addEventListener("click", () => overlay.classList.add("hidden"));
-  }
+  if (closeBtn) closeBtn.addEventListener("click", () => overlay.classList.add("hidden"));
 
   amountPaidInput.addEventListener("input", recalcTotals);
   amountPaidInput.addEventListener("blur", () => {
@@ -429,7 +428,6 @@ function toggleSubmitVisibility() {
     amountPaidInput.value = val.toFixed(2);
     recalcTotals();
   });
-
   if (emailInput) emailInput.addEventListener("input", recalcTotals);
 
   renderDisplay();
