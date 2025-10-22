@@ -1272,6 +1272,7 @@ body.login-body {
   z-index: 10000;
 }
 
+/* Base button */
 .nav-btn {
   color: #A7E1EE;
   text-decoration: none;
@@ -1280,30 +1281,43 @@ body.login-body {
   align-items: center;
   gap: 0.25rem;
   font-size: 0.9rem;
-  transition: transform 0.2s ease, color 0.2s ease;
+  padding: 8px 14px;
+  border-radius: 10px;
+  transition: all 0.25s ease;
 }
 
 .nav-btn i {
   font-size: 1.4rem;
+  transition: color 0.25s ease;
 }
 
+/* Hover effect */
 .nav-btn:hover {
   transform: scale(1.1);
   color: #7fd7e6;
 }
 
-/* Active state — subtle Kinaya blue glow */
+/* 🌿 Active: glowing Kinaya aura + dark icon/text */
 .nav-btn.active {
-  color: #A7E1EE;
-  background: rgba(167, 225, 238, 0.1);
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(167, 225, 238, 0.25);
-  text-shadow: 0 0 6px rgba(167, 225, 238, 0.4);
+  background: rgba(167, 225, 238, 0.2);
+  box-shadow: 0 0 10px rgba(167, 225, 238, 0.3);
   transform: scale(1.05);
-   padding: 8px 14px;
-  border-radius: 10px;
 }
 
+.nav-btn.active i,
+.nav-btn.active span {
+  color: #0a1e28; /* dark slate/ink color for contrast */
+}
+
+/* Optional: gentle glow pulse */
+@keyframes kinaya-glow {
+  0%, 100% { box-shadow: 0 0 10px rgba(167,225,238,0.25); }
+  50% { box-shadow: 0 0 20px rgba(167,225,238,0.4); }
+}
+
+.nav-btn.active {
+  animation: kinaya-glow 3s ease-in-out infinite;
+}
 
 /* Mobile adjustments */
 @media (max-width: 768px) {
@@ -1314,4 +1328,5 @@ body.login-body {
     font-size: 1.2rem;
   }
 }
+
 
