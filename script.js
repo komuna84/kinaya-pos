@@ -367,23 +367,21 @@ function updatePaymentUI(reset = false) {
 function toggleSubmitVisibility() {
   const submitRow = document.getElementById("submit-row");
   const emailInput = document.getElementById("email-input");
+  const emailToggle = document.getElementById("email-toggle");
   if (!submitRow) return;
 
   const emailValue = (emailInput && emailInput.value.trim().toLowerCase()) || "";
   const hasEmail = emailValue.length > 0;
-
-  // ✅ Allow “no”, “no receipt”, “n/a” etc. as valid
   const validNoEmail = ["no", "n/a", "none", "no receipt", "no email"].includes(emailValue);
+  const toggleOn = emailToggle && emailToggle.checked;
 
   const canSubmit =
     order._order.length > 0 &&
     amountPaid >= grandTotal &&
-    (hasEmail || validNoEmail);
+    (hasEmail || validNoEmail || toggleOn);
 
   submitRow.style.display = canSubmit ? "block" : "none";
 }
-
-
 
 // ===========================================================
 // PAYPAD / PAYMENT LOGIC — FINAL FORMATTED VERSION
