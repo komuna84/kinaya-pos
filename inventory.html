@@ -6,7 +6,7 @@
         content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <title>Kinaya Rising POS — Inventory</title>
 
-  <!-- ============= BASE STYLES ============= -->
+  <!-- ====== BASE STYLES ====== -->
   <style>
     html, body {
       margin: 0;
@@ -16,6 +16,7 @@
       font-family: "Roboto", sans-serif;
       touch-action: manipulation;
       overscroll-behavior: contain;
+      height: 100%;
     }
 
     header {
@@ -29,6 +30,10 @@
       font-size: 1.6rem;
       color: #A7E1EE;
       text-shadow: 0 0 10px rgba(167,225,238,0.4);
+    }
+
+    main {
+      min-height: calc(100vh - 80px);
     }
 
     .inventory-container {
@@ -49,12 +54,36 @@
       margin-bottom: 1rem;
     }
 
-    .inventory-table {
+    /* ----- Table Wrapper ----- */
+    .inventory-table-wrapper {
+      border-radius: 12px;
+      background: rgba(255,255,255,0.02);
+      overflow: hidden;
+    }
+
+    .table-scroll {
+      overflow-x: auto;
+      overflow-y: auto;
+      max-height: 65vh;
+      border-radius: 12px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(167,225,238,0.3) transparent;
+    }
+
+    .table-scroll::-webkit-scrollbar {
+      height: 8px;
+      width: 8px;
+    }
+
+    .table-scroll::-webkit-scrollbar-thumb {
+      background-color: rgba(167,225,238,0.3);
+      border-radius: 8px;
+    }
+
+    table.inventory-table {
       width: 100%;
       border-collapse: collapse;
-      background: rgba(255,255,255,0.02);
-      border-radius: 12px;
-      overflow: hidden;
+      min-width: 800px;
     }
 
     th, td {
@@ -68,6 +97,9 @@
       font-weight: 700;
       color: #A7E1EE;
       font-size: 0.9rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
 
     td {
@@ -82,6 +114,14 @@
       color: #A7E1EE;
       border-radius: 6px;
       padding: 4px;
+      transition: all 0.25s ease;
+    }
+
+    .inv-input:focus {
+      outline: none;
+      border-color: #A7E1EE;
+      box-shadow: 0 0 6px rgba(167,225,238,0.6);
+      background: #141414;
     }
 
     .inventory-actions {
@@ -107,6 +147,7 @@
       box-shadow: 0 0 18px rgba(167,225,238,0.6);
     }
 
+    /* ----- Bottom Nav ----- */
     .kinaya-nav {
       position: fixed;
       bottom: 0;
@@ -172,29 +213,28 @@
       </div>
 
       <div class="inventory-table-wrapper">
-  <div class="table-scroll">
-    <table class="inventory-table">
-      <thead>
-        <tr>
-          <th>Image</th>
-          <th>SKU</th>
-          <th>Product</th>
-          <th>Price</th>
-          <th>Received</th>
-          <th>Damaged</th>
-          <th>Returned</th>
-          <th>Sold</th>
-          <th>In Stock</th>
-          <th>Net Assets</th>
-        </tr>
-      </thead>
-      <tbody id="inventory-body">
-        <tr><td colspan="10" style="text-align:center;color:#A7E1EE;opacity:0.7;">Loading inventory...</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
+        <div class="table-scroll">
+          <table class="inventory-table">
+            <thead>
+              <tr>
+                <th>Image</th>
+                <th>SKU</th>
+                <th>Product</th>
+                <th>Price</th>
+                <th>Received</th>
+                <th>Damaged</th>
+                <th>Returned</th>
+                <th>Sold</th>
+                <th>In Stock</th>
+                <th>Net Assets</th>
+              </tr>
+            </thead>
+            <tbody id="inventory-body">
+              <tr><td colspan="10" style="text-align:center;color:#A7E1EE;opacity:0.7;">Loading inventory...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
 
       <div class="inventory-actions">
         <button id="save-inventory" class="submit-sale-btn">💾 Save Changes</button>
