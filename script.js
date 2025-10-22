@@ -319,3 +319,68 @@ async function submitSale() {
 // ===========================================================
 updatePaymentUI();
 toggleSubmitVisibility();
+
+// ===========================================================
+// INTERACTION FIXES — RETURN MODE, CLEAR WARNING, PAYPAD
+// ===========================================================
+document.addEventListener("DOMContentLoaded", () => {
+  // --- Return mode indicator ---
+  const header = document.querySelector("header h1");
+  const returnBtn = document.getElementById("toggle-return");
+  let isReturnMode = false;
+
+  function updateReturnBanner() {
+    let banner = document.getElementById("return-banner");
+    if (!banner) {
+      banner = document.createElement("div");
+      banner.id = "return-banner";
+      banner.textContent = "RETURN MODE ACTIVE";
+      banner.style.cssText = `
+        text-align:center;
+        font-family:"Audiowide",sans-serif;
+        color:#e63946;
+        font-weight:bold;
+        margin-top:0.3rem;
+        letter-spacing:1px;
+        text-shadow:0 0 10px rgba(230,57,70,0.6);
+      `;
+      header.insertAdjacentElement("afterend", banner);
+    }
+    banner.style.display = isReturnMode ? "block" : "none";
+  }
+
+  returnBtn?.addEventListener("click", () => {
+    isReturnMode = !isReturnMode;
+    returnBtn.classList.toggle("active", isReturnMode);
+    updateReturnBanner();
+  });
+  updateReturnBanner(); // initialize once
+
+  // --- Clear order confirmation ---
+  const clearBtn = document.getElementById("clear-order-btn");
+  clearBtn?.addEventListener("click", e => {
+    if (!confirm("⚠️ This will clear the entire order. Continue?")) {
+      e.stopPropagation();
+      e.preventDefault();
+      return false;
+    }
+    order._order = [];
+    Ui.receiptDetails(order);
+    Ui.updateTotals(order);
+  });
+
+  // --- Cash / Card open paypad overlay ---
+  const cashBtn = document.getElementById("cash-btn");
+  const cardBtn = document.getElementById("card-btn");
+  const overlay = document.getElementById("payment-overlay");
+  const amountPaid = document.getElementById("amount-paid-input");
+
+  function openPaypad(type) {
+    document.getElementById("payment-type").textContent = type;
+    overlay?.classList.remove("hidden");
+  }
+
+  cashBtn?.addEventListener("click", () => openPaypad("Cash"));
+  cardBtn?.addEventListener("click", () => openPaypad("Card"));
+});
+
