@@ -1546,3 +1546,7 @@ body.login-body {
     padding-bottom: 6rem; /* prevent nav overlap */
   }
 }
+
+.hidden {
+  display: none !important;
+}
