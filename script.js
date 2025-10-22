@@ -368,17 +368,23 @@ function toggleSubmitVisibility() {
 
   const amountPaidInput = document.getElementById("amount-paid-input");
   const changeEl = document.getElementById("change-amount");
+  const grandTotalEl = document.getElementById("grandtotal-summary");
   const submitRow = document.getElementById("submit-row");
   const emailInput = document.getElementById("email-input");
 
   let buffer = "";
 
-  // --- Format as currency ---
+  // --- Format number as currency with .00 ---
   function formatCurrency(val) {
     return `$${(parseFloat(val) || 0).toFixed(2)}`;
   }
 
-  // --- Recalculate change + toggle submit visibility ---
+  // --- Render keypad display ---
+  function renderDisplay() {
+    displayEl.textContent = formatCurrency(buffer);
+  }
+
+  // --- Recalculate change + submit visibility ---
   function recalcTotals() {
     const subtotal = order._order.reduce((a, l) => a + l.subtotal, 0);
     const tax = order._order.reduce((a, l) => a + l.tax, 0);
@@ -388,20 +394,12 @@ function toggleSubmitVisibility() {
     const change = paid - grandTotal;
 
     changeEl.textContent = formatCurrency(change);
-    changeEl.classList.toggle("positive-change", change > 0);
+    changeEl.classList.toggle("positive-change", change >= 0);
     changeEl.classList.toggle("negative-change", change < 0);
-    if (Math.abs(change) < 0.009) {
-      changeEl.style.color = "#4CAF50";
-    }
 
     const emailOk = emailInput && emailInput.value.trim().length > 0;
     submitRow.style.display =
       paid >= grandTotal && emailOk && order._order.length > 0 ? "block" : "none";
-  }
-
-  // --- Update display ---
-  function renderDisplay() {
-    displayEl.textContent = formatCurrency(buffer);
   }
 
   // --- Commit payment when Enter pressed ---
@@ -411,40 +409,6 @@ function toggleSubmitVisibility() {
     recalcTotals();
     overlay.classList.add("hidden");
   }
-
-  // --- Handle paypad buttons ---
-  buttons.forEach(btn => {
-    btn.addEventListener("click", () => {
-      const val = btn.dataset.value;
-
-      if (val === "C") buffer = "";
-      else if (val === "←") buffer = buffer.slice(0, -1);
-      else if (val === "Enter") return commitPayment();
-      else if (val === ".") {
-        if (!buffer.includes(".")) buffer += ".";
-      } else buffer += val;
-
-      renderDisplay();
-    });
-  });
-
-  // --- Close button ---
-  if (closeBtn) {
-    closeBtn.addEventListener("click", () => overlay.classList.add("hidden"));
-  }
-
-  // --- Manual entry also supported ---
-  amountPaidInput.addEventListener("input", recalcTotals);
-  amountPaidInput.addEventListener("blur", () => {
-    const val = parseFloat(amountPaidInput.value) || 0;
-    amountPaidInput.value = val.toFixed(2);
-    recalcTotals();
-  });
-
-  if (emailInput) emailInput.addEventListener("input", recalcTotals);
-
-  renderDisplay();
-})();
 
   // --- Paypad buttons ---
   buttons.forEach(btn => {
@@ -477,7 +441,6 @@ function toggleSubmitVisibility() {
 
   renderDisplay();
 })();
-
 
 // ===========================================================
 // RETURN MODE + CLEAR ORDER + EVENT GUARDS
