@@ -1467,3 +1467,82 @@ body.login-body {
     font-size: 1.3rem;
   }
 }
+
+/* ================================
+   🌿 INVENTORY PAGE ENHANCEMENTS
+   Sticky SKU + Image + Scrollable Table
+=================================== */
+
+/* Scroll wrapper */
+.table-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  width: 100%;
+  border-radius: 10px;
+}
+
+/* Larger columns for better readability */
+.inventory-table th,
+.inventory-table td {
+  min-width: 110px;
+  padding: 10px 12px;
+  white-space: nowrap;
+}
+
+/* Image styling */
+.inventory-table img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 0 8px rgba(167,225,238,0.2);
+}
+
+/* Sticky image + SKU columns */
+.inventory-table th:first-child,
+.inventory-table td:first-child,
+.inventory-table th:nth-child(2),
+.inventory-table td:nth-child(2) {
+  position: sticky;
+  left: 0;
+  background: rgba(10, 25, 30, 0.98);
+  backdrop-filter: blur(6px);
+  z-index: 3;
+}
+
+/* Slightly darker for image column */
+.inventory-table th:first-child,
+.inventory-table td:first-child {
+  background: rgba(5, 15, 20, 0.98);
+  z-index: 4;
+}
+
+/* Hover highlight */
+.inventory-table tr:hover td {
+  background: rgba(167,225,238,0.08);
+  transition: background 0.25s ease;
+}
+
+/* Smooth scrolling on mobile */
+@media (max-width: 768px) {
+  .table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .inventory-table th,
+  .inventory-table td {
+    min-width: 120px;
+    font-size: 0.75rem;
+  }
+
+  .inventory-table img {
+    width: 45px;
+    height: 45px;
+  }
+
+  .inventory-container {
+    padding-bottom: 6rem; /* prevent nav overlap */
+  }
+}
