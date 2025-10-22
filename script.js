@@ -315,6 +315,21 @@ async function submitSale() {
 }
 
 // ===========================================================
+// STUBS (prevent missing function errors)
+// ===========================================================
+function updatePaymentUI(reset = false) {
+  const overlay = document.getElementById("payment-overlay");
+  if (reset && overlay) overlay.classList.add("hidden");
+}
+
+function toggleSubmitVisibility() {
+  const submitRow = document.getElementById("submit-row");
+  if (!submitRow) return;
+  const hasItems = order._order && order._order.length > 0;
+  submitRow.style.display = hasItems ? "block" : "none";
+}
+
+// ===========================================================
 // FINAL INIT
 // ===========================================================
 updatePaymentUI();
