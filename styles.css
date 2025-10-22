@@ -420,14 +420,12 @@ figcaption {
   transition: opacity 0.3s ease;
 }
 
-/* Hide anything with the .hidden class */
 .hidden {
   display: none !important;
 }
 
-
-/* --- Paypad Box --- */
 .paypad {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(3, 100px);
   grid-template-rows: auto repeat(4, 100px) auto;
@@ -439,7 +437,6 @@ figcaption {
   text-align: center;
 }
 
-/* --- Display --- */
 .paypad-display {
   grid-column: span 3;
   font-size: 2rem;
@@ -451,7 +448,6 @@ figcaption {
   margin-bottom: 6px;
 }
 
-/* --- Buttons --- */
 .paypad-btn {
   background: rgba(255,255,255,0.04);
   color: #A7E1EE;
@@ -480,22 +476,22 @@ figcaption {
   background: #8fdff0;
 }
 
-/* --- Close Button --- */
 #close-paypad-btn {
   position: absolute;
-  top: 12px;
+  top: 10px;
   right: 16px;
   background: transparent;
   border: none;
   color: #A7E1EE;
-  font-size: 2rem;
+  font-size: 1.8rem;
   cursor: pointer;
   transition: transform 0.25s ease, color 0.25s ease;
 }
 #close-paypad-btn:hover {
-  transform: scale(1.1);
+  transform: scale(1.15);
   color: #fff;
 }
+
 
 /* --- Mobile --- */
 @media (max-width: 768px) {
