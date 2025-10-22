@@ -37,34 +37,39 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function renderTable(data) {
-    if (!data || !data.length) {
-      tableBody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:#A7E1EE;">No data.</td></tr>`;
-      return;
-    }
-
-    tableBody.innerHTML = data.map(item => {
-      const price = parseFloat(item.Price || 0);
-      const sold = parseInt(item.Sold || 0);
-      const received = parseInt(item.Received || 0);
-      const damaged = parseInt(item.Damaged || 0);
-      const returned = parseInt(item.Returned || 0);
-      const inStock = Math.max(received - sold - damaged + returned, 0);
-      const netAssets = (inStock * price).toFixed(2);
-
-      return `
-        <tr data-sku="${item.Sku}">
-          <td>${item.Sku}</td>
-          <td>${item.Product}</td>
-          <td>$${price.toFixed(2)}</td>
-          <td><input type="number" class="inv-input" data-field="Received" value="${received}" min="0" /></td>
-          <td><input type="number" class="inv-input" data-field="Damaged" value="${damaged}" min="0" /></td>
-          <td><input type="number" class="inv-input" data-field="Returned" value="${returned}" min="0" /></td>
-          <td>${sold}</td>
-          <td class="stock">${inStock}</td>
-          <td class="assets">$${netAssets}</td>
-        </tr>`;
-    }).join("");
+  if (!data || !data.length) {
+    tableBody.innerHTML = `
+      <tr><td colspan="10" style="text-align:center;color:#A7E1EE;opacity:0.7;">
+        No products found.
+      </td></tr>`;
+    return;
   }
+
+  tableBody.innerHTML = data.map(item => {
+    const price = parseFloat(item.Price || 0);
+    const sold = parseInt(item.Sold || 0);
+    const received = parseInt(item.Received || 0);
+    const damaged = parseInt(item.Damaged || 0);
+    const returned = parseInt(item.Returned || 0);
+    const inStock = Math.max(received - sold - damaged + returned, 0);
+    const netAssets = (inStock * price).toFixed(2);
+
+    return `
+      <tr data-sku="${item.Sku}">
+        <td><img src="${item.Image || 'https://via.placeholder.com/60?text=No+Img'}" alt="${item.Product}" /></td>
+        <td>${item.Sku}</td>
+        <td>${item.Product}</td>
+        <td>$${price.toFixed(2)}</td>
+        <td><input type="number" class="inv-input" data-field="Received" value="${received}" min="0" /></td>
+        <td><input type="number" class="inv-input" data-field="Damaged" value="${damaged}" min="0" /></td>
+        <td><input type="number" class="inv-input" data-field="Returned" value="${returned}" min="0" /></td>
+        <td>${sold}</td>
+        <td class="stock">${inStock}</td>
+        <td class="assets">$${netAssets}</td>
+      </tr>`;
+  }).join("");
+}
+
 
   function updateStockAndAssets(row) {
     const price = parseFloat(row.children[2].textContent.replace("$", "")) || 0;
