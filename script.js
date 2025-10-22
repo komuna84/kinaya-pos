@@ -358,22 +358,28 @@ function toggleSubmitVisibility() {
 }
 
 // ===========================================================
-// PAYPAD / PAYMENT LOGIC — FIXED FINAL VERSION
+// PAYPAD / PAYMENT LOGIC — FINAL SYNCED VERSION (for input field)
 // ===========================================================
 (function setupPaypad() {
   const overlay = document.getElementById("payment-overlay");
   const displayEl = document.getElementById("paypad-display");
   const buttons = document.querySelectorAll(".paypad-btn");
   const closeBtn = document.getElementById("close-paypad-btn");
+
   const amountPaidInput = document.getElementById("amount-paid-input");
   const changeEl = document.getElementById("change-amount");
   const grandTotalEl = document.getElementById("grandtotal-summary");
   const submitRow = document.getElementById("submit-row");
-  const emailInput = document.getElementById("customer-email");
+  const emailInput = document.getElementById("email-input");
 
   let buffer = "";
 
-  // --- Recalculate change and visibility ---
+  // --- Render number on paypad display ---
+  function renderDisplay() {
+    displayEl.textContent = `$${buffer || "0"}`;
+  }
+
+  // --- Recalculate change + submit visibility ---
   function recalcTotals() {
     const subtotal = order._order.reduce((a, l) => a + l.subtotal, 0);
     const tax = order._order.reduce((a, l) => a + l.tax, 0);
@@ -388,21 +394,16 @@ function toggleSubmitVisibility() {
         : `($${Math.abs(change).toFixed(2)})`;
 
     const emailOk = emailInput && emailInput.value.trim().length > 0;
-    submitRow.style.display = paid >= grandTotal && emailOk ? "block" : "none";
+    submitRow.style.display =
+      paid >= grandTotal && emailOk && order._order.length > 0 ? "block" : "none";
   }
 
-  // --- Update onscreen paypad display ---
-  function renderDisplay() {
-    displayEl.textContent = `$${buffer || "0"}`;
-  }
-
-  // --- When Enter is pressed ---
+  // --- Commit payment when Enter pressed ---
   function commitPayment() {
     const value = parseFloat(buffer) || 0;
     amountPaidInput.value = value.toFixed(2);
-    renderDisplay();
     recalcTotals();
-    overlay.classList.add("hidden"); // close paypad
+    overlay.classList.add("hidden");
   }
 
   // --- Paypad buttons ---
@@ -417,16 +418,16 @@ function toggleSubmitVisibility() {
     });
   });
 
-  // --- Close with X ---
+  // --- Close button ---
   if (closeBtn) {
     closeBtn.addEventListener("click", () => {
       overlay.classList.add("hidden");
     });
   }
 
-  // --- Update change live if manually editing field ---
+  // --- Manual edits also recalc instantly ---
   amountPaidInput.addEventListener("input", recalcTotals);
-  emailInput.addEventListener("input", recalcTotals);
+  if (emailInput) emailInput.addEventListener("input", recalcTotals);
 
   renderDisplay();
 })();
