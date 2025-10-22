@@ -337,6 +337,7 @@ let grandTotal = 0;
 function updatePaymentUI(reset = false) {
   const overlay = document.getElementById("payment-overlay");
   const amountDisplay = document.getElementById("amount-paid");
+  const amountPaidInput = document.getElementById("amount-paid-input");
   const grandDisplay = document.getElementById("grandtotal-summary");
 
   if (reset) {
@@ -348,6 +349,12 @@ function updatePaymentUI(reset = false) {
   if (grandDisplay) {
     const text = grandDisplay.textContent.replace(/[^0-9.]/g, "");
     grandTotal = parseFloat(text) || 0;
+  }
+
+  // Sync the amountPaid variable with the input value
+  if (amountPaidInput) {
+    const val = parseFloat(amountPaidInput.value) || 0;
+    amountPaid = val;
   }
 
   if (amountDisplay) {
@@ -364,13 +371,18 @@ function toggleSubmitVisibility() {
 
   const emailValue = (emailInput && emailInput.value.trim().toLowerCase()) || "";
   const hasEmail = emailValue.length > 0;
+
+  // ✅ Allow “no”, “no receipt”, “n/a” etc. as valid
+  const validNoEmail = ["no", "n/a", "none", "no receipt", "no email"].includes(emailValue);
+
   const canSubmit =
-    amountPaid >= grandTotal &&
     order._order.length > 0 &&
-    hasEmail;
+    amountPaid >= grandTotal &&
+    (hasEmail || validNoEmail);
 
   submitRow.style.display = canSubmit ? "block" : "none";
 }
+
 
 
 // ===========================================================
