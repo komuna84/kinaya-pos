@@ -3,7 +3,7 @@
 // ===========================================================
 
 const INVENTORY_SHEET_URL =
-  "https://script.google.com/macros/s/AKfycbxrv2qEiZ5mOIa7gUz2V_4GtkwAYodfuufIroRCwUVolnw/exec";
+  "https://script.google.com/macros/s/AKfycbz1Z9NnfDCxWSxirvAE2tKK-mB9135X_uEuei2Wg-r-qptcpT2sNCPWObcGTbAibCZBFw/exec";
 const POS_SHEET_ID = "1tQZt8ZYIWdBYHxDuZxH3emBQ8PNUcxpDZVwm07x28sg";
 
 document.addEventListener("DOMContentLoaded", async () => {
