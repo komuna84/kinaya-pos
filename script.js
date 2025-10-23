@@ -1,5 +1,5 @@
 // ===========================================================
-// Kinaya Rising POS (Stable October 2025) — FINAL BUILD 
+// Kinaya Rising POS (Stable October 2025) — FINAL BUILD
 // ===========================================================
 
 // ---------- HEADER DATE ----------
@@ -137,13 +137,11 @@ async function loadMenuFromSheet(url) {
       for (let i = 0; i < line.length; i++) {
         const ch = line[i];
         if (ch === '"' && line[i + 1] === '"') {
-          current += '"';
-          i++;
+          current += '"'; i++;
         } else if (ch === '"') {
           insideQuotes = !insideQuotes;
         } else if (ch === "," && !insideQuotes) {
-          cells.push(current.trim());
-          current = "";
+          cells.push(current.trim()); current = "";
         } else {
           current += ch;
         }
@@ -260,7 +258,19 @@ loadMenuFromSheet(sheetCsvUrl).then(rows => {
 });
 
 // ===========================================================
-// SUBMIT SALE TO GOOGLE SHEETS
+// SPLIT PAYMENT TRACKING
+// ===========================================================
+const splitInfoEl = document.getElementById("split-info");
+const paymentTypeEl = document.getElementById("payment-type");
+function updateSplitInfo(type) {
+  if (splitInfoEl && paymentTypeEl) {
+    splitInfoEl.textContent = type === "Split" ? "Cash + Card" : type || "None";
+    paymentTypeEl.textContent = type || "—";
+  }
+}
+
+// ===========================================================
+// SUBMIT SALE
 // ===========================================================
 async function submitSale() {
   const { subtotal, tax, total } = (() => {
@@ -270,15 +280,11 @@ async function submitSale() {
   })();
 
   const date = new Date().toLocaleDateString("en-US");
+  const emailInput = document.getElementById("customer-email");
   const email = (emailInput && emailInput.value.trim()) || "";
-  const split = splitInfoEl ? splitInfoEl.textContent : "";
-
-  // ✅ Detect if user typed a variation of "no receipt"
-  const isNoReceipt = ["no", "n/a", "none", "no receipt", "no email"].includes(
-    email.toLowerCase()
-  );
+  const isNoReceipt = ["no", "n/a", "none", "no receipt", "no email"].includes(email.toLowerCase());
   const subscribe = isNoReceipt ? "No" : "Yes";
-
+  const split = splitInfoEl ? splitInfoEl.textContent.trim() : "";
   const invoice = Math.floor(Date.now() / 1000).toString().slice(-4);
 
   const rows = order._order.map(l => ({
@@ -315,9 +321,7 @@ async function submitSale() {
     Ui.updateTotals(order);
     updatePaymentUI(true);
     toggleSubmitVisibility();
-
-    if (paymentTypeEl) paymentTypeEl.textContent = "—";
-    if (splitInfoEl) splitInfoEl.textContent = "None";
+    updateSplitInfo("None");
     if (emailInput) emailInput.value = "";
   } catch (err) {
     alert("⚠️ Error submitting sale: " + err.message);
@@ -326,10 +330,8 @@ async function submitSale() {
 }
 
 // ===========================================================
-// PAYMENT + UI INTERACTIONS — FINAL BUILD
+// PAYMENT + UI INTERACTIONS
 // ===========================================================
-
-// ---------- GLOBAL UI HANDLERS ----------
 let amountPaid = 0;
 let paymentType = "";
 let grandTotal = 0;
@@ -363,7 +365,6 @@ function updatePaymentUI(reset = false) {
   toggleSubmitVisibility();
 }
 
-
 function toggleSubmitVisibility() {
   const submitRow = document.getElementById("submit-row");
   const emailInput = document.getElementById("customer-email");
@@ -383,9 +384,9 @@ function toggleSubmitVisibility() {
   submitRow.style.display = canSubmit ? "block" : "none";
 }
 
+// Email + toggle sync
 const emailToggle = document.getElementById("email-toggle");
 const emailInput = document.getElementById("customer-email");
-
 if (emailToggle && emailInput) {
   emailToggle.addEventListener("change", () => {
     if (!emailToggle.checked) {
@@ -399,63 +400,45 @@ if (emailToggle && emailInput) {
     }
     toggleSubmitVisibility();
   });
-
-  // Also react to typing in the email field
   emailInput.addEventListener("input", toggleSubmitVisibility);
 }
 
+// Amount Paid input live update
+const amountPaidInput = document.getElementById("amount-paid-input");
+if (amountPaidInput) {
+  amountPaidInput.addEventListener("input", () => {
+    const val = parseFloat(amountPaidInput.value) || 0;
+    amountPaid = val;
+    updatePaymentUI();
+  });
+}
+
 // ===========================================================
-// PAYPAD / PAYMENT LOGIC — FINAL FORMATTED VERSION
+// PAYPAD
 // ===========================================================
 (function setupPaypad() {
   const overlay = document.getElementById("payment-overlay");
   const displayEl = document.getElementById("paypad-display");
   const buttons = document.querySelectorAll(".paypad-btn");
   const closeBtn = document.getElementById("close-paypad-btn");
-
-  const amountPaidInput = document.getElementById("amount-paid-input");
   const changeEl = document.getElementById("change-amount");
-  const submitRow = document.getElementById("submit-row");
-  const emailInput = document.getElementById("email-input");
 
-  let buffer = ""; // holds digits only
+  let buffer = "";
 
   function formatCurrency(val) {
     return `$${(parseFloat(val) || 0).toFixed(2)}`;
   }
-
-  // --- Display value, moving decimal left by 2
   function renderDisplay() {
     const num = parseFloat(buffer || "0") / 100;
     displayEl.textContent = formatCurrency(num);
   }
-
-  function recalcTotals() {
-    const subtotal = order._order.reduce((a, l) => a + l.subtotal, 0);
-    const tax = order._order.reduce((a, l) => a + l.tax, 0);
-    const grandTotal = subtotal + tax;
-
-    const paid = parseFloat(amountPaidInput.value) || 0;
-    const change = paid - grandTotal;
-
-    // show change as read-only, color coded
-    changeEl.textContent = formatCurrency(change);
-    changeEl.style.color = change >= 0 ? "#A7E1EE" : "#e63946";
-
-    const emailOk = emailInput && emailInput.value.trim().length > 0;
-    submitRow.style.display =
-      paid >= grandTotal && emailOk && order._order.length > 0 ? "block" : "none";
-  }
-
-  // --- When user presses Enter on paypad
   function commitPayment() {
     const value = parseFloat(buffer || "0") / 100;
     amountPaidInput.value = value.toFixed(2);
-    recalcTotals();
+    updatePaymentUI();
     overlay.classList.add("hidden");
   }
 
-  // --- Paypad buttons
   buttons.forEach(btn => {
     btn.addEventListener("click", () => {
       const val = btn.dataset.value;
@@ -468,20 +451,11 @@ if (emailToggle && emailInput) {
   });
 
   if (closeBtn) closeBtn.addEventListener("click", () => overlay.classList.add("hidden"));
-
-  amountPaidInput.addEventListener("input", recalcTotals);
-  amountPaidInput.addEventListener("blur", () => {
-    const val = parseFloat(amountPaidInput.value) || 0;
-    amountPaidInput.value = val.toFixed(2);
-    recalcTotals();
-  });
-  if (emailInput) emailInput.addEventListener("input", recalcTotals);
-
   renderDisplay();
 })();
 
 // ===========================================================
-// RETURN MODE + CLEAR ORDER + EVENT GUARDS
+// RETURN MODE + CLEAR ORDER
 // ===========================================================
 (function setupInteractionFixes() {
   const header = document.querySelector("header h1");
@@ -490,10 +464,8 @@ if (emailToggle && emailInput) {
   const cashBtn = document.getElementById("cash-btn");
   const cardBtn = document.getElementById("card-btn");
   const overlay = document.getElementById("payment-overlay");
-  const paymentTypeEl = document.getElementById("payment-type");
-  const emailInput = document.getElementById("email-input");
 
-  // --- Return banner ---
+  // Return banner
   function updateReturnBanner() {
     let banner = document.getElementById("return-banner");
     if (!banner) {
@@ -501,20 +473,15 @@ if (emailToggle && emailInput) {
       banner.id = "return-banner";
       banner.textContent = "RETURN MODE ACTIVE";
       banner.style.cssText = `
-        text-align:center;
-        font-family:"Audiowide",sans-serif;
-        color:#e63946;
-        font-weight:bold;
-        margin-top:0.3rem;
-        letter-spacing:1px;
-        text-shadow:0 0 10px rgba(230,57,70,0.6);
+        text-align:center;font-family:"Audiowide",sans-serif;
+        color:#e63946;font-weight:bold;margin-top:0.3rem;
+        letter-spacing:1px;text-shadow:0 0 10px rgba(230,57,70,0.6);
       `;
       header?.insertAdjacentElement("afterend", banner);
     }
     banner.style.display = isReturnMode ? "block" : "none";
   }
 
-  // --- Toggle return mode ---
   if (returnBtn) {
     returnBtn.addEventListener("click", () => {
       isReturnMode = !isReturnMode;
@@ -524,12 +491,10 @@ if (emailToggle && emailInput) {
     updateReturnBanner();
   }
 
-  // --- Clear order confirmation ---
   if (clearBtn) {
     clearBtn.addEventListener("click", e => {
       if (!confirm("⚠️ This will clear the entire order. Continue?")) {
         e.preventDefault();
-        e.stopPropagation();
         return;
       }
       order._order = [];
@@ -541,39 +506,21 @@ if (emailToggle && emailInput) {
     });
   }
 
-  // --- Paypad openers ---
-  function openPaypad(type) {
-    paymentType = type;
-    if (paymentTypeEl) paymentTypeEl.textContent = type;
-    if (overlay) overlay.classList.remove("hidden");
-  }
+  if (cashBtn) cashBtn.addEventListener("click", () => { updateSplitInfo("Cash"); overlay.classList.remove("hidden"); });
+  if (cardBtn) cardBtn.addEventListener("click", () => { updateSplitInfo("Card"); overlay.classList.remove("hidden"); });
 
-  if (cashBtn) cashBtn.addEventListener("click", () => openPaypad("Cash"));
-  if (cardBtn) cardBtn.addEventListener("click", () => openPaypad("Card"));
-
-  // --- Email input triggers submit visibility ---
-  if (emailInput) {
-    emailInput.addEventListener("input", toggleSubmitVisibility);
-  }
-
-  // --- Prevent accidental form reloads ---
   document.addEventListener("submit", e => e.preventDefault());
-
-  // --- Initialize on load ---
   updatePaymentUI(true);
   toggleSubmitVisibility();
 })();
 
 // ===========================================================
-// MENU ITEM CLICK HANDLER (Add Products to Order)
+// MENU ITEM CLICK HANDLER
 // ===========================================================
 document.addEventListener("click", e => {
   const menuItem = e.target.closest(".menu-item");
   if (!menuItem) return;
-
   const data = menuItem.getAttribute("data-sku");
   if (!data) return;
-
-  // Add the product to the current order
   order.addOrderLine(1, data, isReturnMode);
 });
