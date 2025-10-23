@@ -304,3 +304,19 @@ function updateTotals(products) {
     📦 <strong>Received:</strong> ${totalReceived}
   `;
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+  const unitCostInput = document.getElementById("unit-cost");
+  const priceInput = document.getElementById("price");
+  const profitMarginInput = document.getElementById("profit-margin");
+
+  function calculateMargin() {
+    const cost = parseFloat(unitCostInput.value) || 0;
+    const price = parseFloat(priceInput.value) || 0;
+    const margin = price - cost;
+    profitMarginInput.value = margin.toFixed(2);
+  }
+
+  unitCostInput.addEventListener("input", calculateMargin);
+  priceInput.addEventListener("input", calculateMargin);
+});
