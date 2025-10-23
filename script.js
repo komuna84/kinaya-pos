@@ -500,8 +500,9 @@ function resetPayments() {
 }
 resetPayments();
 
+
 // ===========================================================
-// MENU + CONTROL BUTTON HANDLERS (safe attach after load)
+// MENU + CONTROL BUTTON HANDLERS (fixed, clean)
 // ===========================================================
 window.addEventListener("load", () => {
   document.addEventListener("click", e => {
@@ -517,41 +518,30 @@ window.addEventListener("load", () => {
     }
 
     // --- Handle clear order button ---
-    // --- Handle clear order button ---
-      if (e.target.closest("#clear-order-btn")) {
-  clearOrder();
-  return;
-}
-
-// --- Handle return mode toggle ---
-if (e.target.closest("#toggle-return")) {
-  isReturnMode = !isReturnMode;
-  const btn = document.getElementById("toggle-return");
-
-  if (btn) {
-    btn.classList.toggle("active", isReturnMode);
-    const icon = btn.querySelector("i");
-
-    // Optional: visually highlight the return icon
-    if (icon) {
-      icon.style.color = isReturnMode ? "#e63946" : "#fff";
+    if (e.target.closest("#clear-order-btn")) {
+      clearOrder();
+      return;
     }
 
-    btn.title = isReturnMode ? "Return Mode: ON" : "Return Mode: OFF";
-  }
+    // --- Handle return mode toggle ---
+    if (e.target.closest("#toggle-return")) {
+      isReturnMode = !isReturnMode;
 
-  console.log(`↩️ Return mode ${isReturnMode ? "enabled" : "disabled"}`);
-  return;
-}
-      // Optional banner for clarity
-      const banner = document.getElementById("return-banner");
-      if (banner) banner.style.display = isReturnMode ? "block" : "none";
+      const btn = document.getElementById("toggle-return");
+      const icon = btn ? btn.querySelector("i") : null;
 
-      console.log(`↩️ Return mode ${isReturnMode ? "enabled" : "disabled"}`);
+      if (btn) {
+        btn.classList.toggle("active", isReturnMode);
+        if (icon) icon.style.color = isReturnMode ? "#e63946" : "#fff";
+        btn.title = isReturnMode ? "Return Mode: ON" : "Return Mode: OFF";
+      }
+
+      console.log(`↩️ Return mode ${isReturnMode ? "ENABLED" : "DISABLED"}`);
       return;
     }
   });
 });
+
 
 // ===========================================================
 // CLEAR + RETURN FUNCTIONS
