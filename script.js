@@ -360,41 +360,65 @@ let currentType = ""; // 'Cash' or 'Card'
 // ---------- UPDATE TOTAL + CHANGE ----------
 function updatePaymentSummary() {
   const grandDisplay = document.getElementById("grandtotal-summary");
+  const amountPaidEl = document.getElementById("amount-paid"); // ✅ field showing total paid
+  const changeEl = document.getElementById("change-amount");   // ✅ field showing change
   const splitEl = document.getElementById("split-info");
   const paymentTypeEl = document.getElementById("payment-type");
 
-  // calculate totals
-  const subtotalPaid = order._payment.cash + order._payment.card;
+  // --- get grand total ---
   let grandTotal = 0;
   if (grandDisplay) {
     const text = grandDisplay.textContent.replace(/[^0-9.]/g, "");
     grandTotal = parseFloat(text) || 0;
   }
 
-  // build display text
-  const cashText =
-    order._payment.cash > 0 ? `$${order._payment.cash.toFixed(2)}` : "$0.00";
-  const cardText =
-    order._payment.card > 0 ? `$${order._payment.card.toFixed(2)}` : "$0.00";
+  // --- calculate paid amounts ---
+  const cash = order._payment.cash || 0;
+  const card = order._payment.card || 0;
+  const subtotalPaid = cash + card;
 
-  // update display
-  if (splitEl) splitEl.textContent = `Cash: ${cashText} | Card: ${cardText}`;
+  // --- update amount paid field ---
+  if (amountPaidEl) amountPaidEl.textContent = `$${subtotalPaid.toFixed(2)}`;
 
+  // --- update split info ---
+  if (splitEl) {
+    if (cash && card) {
+      splitEl.innerHTML = `<em>Cash:</em> $${cash.toFixed(2)} <em>/ Card:</em> $${card.toFixed(2)}`;
+    } else if (cash) {
+      splitEl.innerHTML = `<em>Cash:</em> $${cash.toFixed(2)}`;
+    } else if (card) {
+      splitEl.innerHTML = `<em>Card:</em> $${card.toFixed(2)}`;
+    } else {
+      splitEl.textContent = "$0.00";
+    }
+  }
+
+  // --- update payment type ---
   if (paymentTypeEl) {
     paymentTypeEl.textContent =
-      order._payment.cash && order._payment.card
+      cash && card
         ? "Split"
-        : order._payment.cash
+        : cash
         ? "Cash"
-        : order._payment.card
+        : card
         ? "Card"
         : "—";
   }
 
+  // --- calculate and show change ---
+  if (changeEl) {
+    const difference = subtotalPaid - grandTotal;
+    if (subtotalPaid === 0) {
+      changeEl.textContent = "$0.00";
+    } else if (difference >= 0) {
+      changeEl.textContent = `$${difference.toFixed(2)}`; // ✅ change
+    } else {
+      changeEl.textContent = `-$${Math.abs(difference).toFixed(2)}`; // ✅ remaining
+    }
+  }
+
   toggleSubmitVisibility();
 }
-
-
 
 // ---------- SHOW PAYPAD ----------
 function openPaypad(type) {
