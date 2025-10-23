@@ -525,29 +525,22 @@ window.addEventListener("load", () => {
 
     // --- Handle return mode toggle ---
     if (e.target.closest("#toggle-return")) {
-  isReturnMode = !isReturnMode;
+      isReturnMode = !isReturnMode;
 
-  const btn = document.getElementById("toggle-return");
-  const icon = btn ? btn.querySelector("i") : null;
-  const headerTitle = document.querySelector("header h1");
+      const btn = document.getElementById("toggle-return");
+      const icon = btn ? btn.querySelector("i") : null;
 
-  if (btn) {
-    btn.classList.toggle("active", isReturnMode);
-    if (icon) icon.style.color = isReturnMode ? "#e63946" : "#fff";
-    btn.title = isReturnMode ? "Return Mode: ON" : "Return Mode: OFF";
-  }
+      if (btn) {
+        btn.classList.toggle("active", isReturnMode);
+        if (icon) icon.style.color = isReturnMode ? "#e63946" : "#fff";
+        btn.title = isReturnMode ? "Return Mode: ON" : "Return Mode: OFF";
+      }
 
-  // 🔁 Update header text dynamically
-  if (headerTitle) {
-    headerTitle.textContent = isReturnMode
-      ? "Purchase Order — Return Mode Activated"
-      : "Purchase Order";
-    headerTitle.style.color = isReturnMode ? "#e63946" : ""; // optional visual cue
-  }
-
-  console.log(`↩️ Return mode ${isReturnMode ? "ENABLED" : "DISABLED"}`);
-  return;
-}
+      console.log(`↩️ Return mode ${isReturnMode ? "ENABLED" : "DISABLED"}`);
+      return;
+    }
+  });
+});
 
 
 // ===========================================================
