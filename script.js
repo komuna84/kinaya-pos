@@ -360,28 +360,47 @@ let currentType = ""; // 'Cash' or 'Card'
 // ---------- UPDATE TOTAL + CHANGE ----------
 function updatePaymentSummary() {
   const grandDisplay = document.getElementById("grandtotal-summary");
-  const changeEl = document.getElementById("change-amount");
+  const amountPaidEl = document.getElementById("amount-paid-input");
+  const splitEl = document.getElementById("split-info");
+  const paymentTypeEl = document.getElementById("payment-type");
+
+  // calculate totals
   const subtotalPaid = order._payment.cash + order._payment.card;
+  let grandTotal = 0;
   if (grandDisplay) {
     const text = grandDisplay.textContent.replace(/[^0-9.]/g, "");
     grandTotal = parseFloat(text) || 0;
   }
-  const change = subtotalPaid - grandTotal;
-  if (changeEl) {
-    changeEl.textContent =
-      change >= 0
-        ? `Change: $${change.toFixed(2)}`
-        : `Remaining: $${Math.abs(change).toFixed(2)}`;
+
+  // show total paid
+  if (amountPaidEl) {
+    amountPaidEl.value = subtotalPaid.toFixed(2);
   }
-  updateSplitInfo(
-    order._payment.cash && order._payment.card
-      ? "Split"
-      : order._payment.cash
-      ? "Cash"
-      : order._payment.card
-      ? "Card"
-      : "None"
-  );
+
+  // build display text for split line
+  const cashUsed = order._payment.cash > 0;
+  const cardUsed = order._payment.card > 0;
+  const cashText = cashUsed ? `$${order._payment.cash.toFixed(2)}` : "";
+  const cardText = cardUsed ? `$${order._payment.card.toFixed(2)}` : "";
+
+  if (splitEl) {
+    if (cashUsed && cardUsed) {
+      splitEl.textContent = `Cash: ${cashText}  |  Card: ${cardText}`;
+    } else if (cashUsed) {
+      splitEl.textContent = `Cash: ${cashText}`;
+    } else if (cardUsed) {
+      splitEl.textContent = `Card: ${cardText}`;
+    } else {
+      splitEl.textContent = "$0.00";
+    }
+  }
+
+  // update payment type label
+  if (paymentTypeEl) {
+    paymentTypeEl.textContent =
+      cashUsed && cardUsed ? "Split" : cashUsed ? "Cash" : cardUsed ? "Card" : "—";
+  }
+
   toggleSubmitVisibility();
 }
 
