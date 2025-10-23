@@ -362,9 +362,8 @@ function updatePaymentSummary() {
   const grandDisplay = document.getElementById("grandtotal-summary");
   const splitEl = document.getElementById("split-info");
   const paymentTypeEl = document.getElementById("payment-type");
-  const changeEl = document.getElementById("change-amount");
 
-  // get totals
+  // calculate totals
   const subtotalPaid = order._payment.cash + order._payment.card;
   let grandTotal = 0;
   if (grandDisplay) {
@@ -372,14 +371,16 @@ function updatePaymentSummary() {
     grandTotal = parseFloat(text) || 0;
   }
 
-  // update the payment breakdown
+  // build display text
   const cashText =
     order._payment.cash > 0 ? `$${order._payment.cash.toFixed(2)}` : "$0.00";
   const cardText =
     order._payment.card > 0 ? `$${order._payment.card.toFixed(2)}` : "$0.00";
 
-  if (splitEl) splitEl.textContent = `Cash: ${cashText}  |  Card: ${cardText}`;
-  if (paymentTypeEl)
+  // update display
+  if (splitEl) splitEl.textContent = `Cash: ${cashText} | Card: ${cardText}`;
+
+  if (paymentTypeEl) {
     paymentTypeEl.textContent =
       order._payment.cash && order._payment.card
         ? "Split"
@@ -388,12 +389,11 @@ function updatePaymentSummary() {
         : order._payment.card
         ? "Card"
         : "—";
-
-  // remove the old "Change / Remaining" display
-  if (changeEl) changeEl.textContent = "";
+  }
 
   toggleSubmitVisibility();
 }
+
 
 
 // ---------- SHOW PAYPAD ----------
