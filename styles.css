@@ -1638,56 +1638,105 @@ input:checked + .slider:before {
   box-sizing: border-box;
 }
 
-/* =========================================================
-   🌿 PRODUCT CARD LAYOUT — 2 COLUMN (image left, text right)
-   ========================================================= */
+/* ===========================================================
+   MOBILE PRODUCT GRID BEHAVIOR
+   =========================================================== */
 
-/* ---------- Overlay Grid: hidden & tile layout ---------- */
+/* Hide bottom product menu on small screens */
+@media (max-width: 768px) {
+  section.menu-payment {
+    display: none;
+  }
+}
+
+/* Compact overlay grid for products */
 .overlay-grid {
-  display: none; /* hidden until button pressed */
+  display: none;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 0.8rem;
-  padding: 1rem;
+  gap: 0.6rem;
+  padding: 0.8rem;
   overflow-y: auto;
   height: calc(100vh - 70px);
   box-sizing: border-box;
 }
 
-/* show when active */
+/* Shown when overlay active */
 .overlay-grid.active {
   display: flex;
 }
 
-/* ---------- Small tile cards ---------- */
+/* Smaller cards — image & price only */
 .menu-item {
-  flex: 0 0 calc(45% - 10px); /* two per row on mobile */
+  flex: 0 0 calc(25% - 10px); /* 4 per row on desktop */
   background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(167, 225, 238, 0.15);
+  border: 1px solid rgba(167, 225, 238, 0.1);
   border-radius: 10px;
   text-align: center;
-  padding: 0.6rem;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  padding: 0.5rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
 }
 
 .menu-item:hover {
-  transform: scale(1.03);
-  box-shadow: 0 0 12px rgba(167, 225, 238, 0.3);
+  transform: scale(1.05);
+  box-shadow: 0 0 10px rgba(167, 225, 238, 0.3);
 }
 
 .menu-item img {
   width: 100%;
-  height: 90px;
+  height: 80px;
   object-fit: cover;
   border-radius: 8px;
-  margin-bottom: 6px;
+  margin-bottom: 0.3rem;
 }
 
-.menu-item figcaption {
-  font-size: 0.8rem;
-  line-height: 1.2;
-  color: #A7E1EE;
+/* Show only last figcaption (price) */
+.menu-item figcaption:not(:last-child) {
+  display: none;
 }
+
+.menu-item figcaption:last-child {
+  font-size: 0.9rem;
+  color: #A7E1EE;
+  font-weight: bold;
+}
+
+/* 3 across tablet, 2 across phone */
+@media (max-width: 900px) {
+  .menu-item {
+    flex: 0 0 calc(30% - 10px);
+  }
+}
+
+@media (max-width: 600px) {
+  .menu-item {
+    flex: 0 0 calc(45% - 10px);
+  }
+}
+
+/* Overlay header enhancements */
+.overlay-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 1rem;
+  background: rgba(0, 0, 0, 0.4);
+  border-bottom: 1px solid rgba(167, 225, 238, 0.2);
+}
+
+.return-toggle-overlay {
+  background: rgba(230, 57, 70, 0.15);
+  border: 1px solid rgba(230, 57, 70, 0.4);
+  border-radius: 6px;
+  padding: 0.3rem 0.6rem;
+  color: #fff;
+  font-size: 0.85rem;
+}
+.return-toggle-overlay.active {
+  background: rgba(230, 57, 70, 0.3);
+  border-color: rgba(230, 57, 70, 0.7);
+}
+
 
 
