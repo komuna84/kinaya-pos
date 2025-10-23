@@ -376,29 +376,29 @@ function updatePaymentSummary() {
   const card = order._payment.card || 0;
   const subtotalPaid = cash + card;
 
-  // --- update "Amount Paid" input ---
+  // --- update Amount Paid field ---
   if (amountPaidEl) amountPaidEl.value = subtotalPaid.toFixed(2);
 
-  // --- set Payment Type + Split Info ---
-  if (paymentTypeEl) {
-    if (cash && card) {
-      paymentTypeEl.textContent = "Split";
-      if (splitEl) splitEl.textContent = "Cash + Card";
-    } else if (cash) {
-      paymentTypeEl.textContent = "Cash";
-      if (splitEl) splitEl.textContent = "Cash";
-    } else if (card) {
-      paymentTypeEl.textContent = "Card";
-      if (splitEl) splitEl.textContent = "Card";
-    } else {
-      paymentTypeEl.textContent = "—";
-      if (splitEl) splitEl.textContent = "None";
-    }
+  // --- determine payment type / split label ---
+  let typeText = "—";
+  let splitText = "None";
+  if (cash && card) {
+    typeText = "Split";
+    splitText = "Cash + Card";
+  } else if (cash) {
+    typeText = "Cash";
+    splitText = "Cash";
+  } else if (card) {
+    typeText = "Card";
+    splitText = "Card";
   }
 
-  // --- calculate and show change/remaining ---
+  if (paymentTypeEl) paymentTypeEl.textContent = typeText;
+  if (splitEl) splitEl.textContent = splitText;
+
+  // --- compute change or remaining ---
+  const difference = subtotalPaid - grandTotal;
   if (changeEl) {
-    const difference = subtotalPaid - grandTotal;
     if (subtotalPaid === 0) {
       changeEl.textContent = "$0.00";
     } else if (difference >= 0) {
@@ -433,16 +433,24 @@ let buffer = "";
 function formatCurrency(val) {
   return `$${(parseFloat(val) || 0).toFixed(2)}`;
 }
+
 function renderDisplay() {
   const num = parseFloat(buffer || "0") / 100;
   displayEl.textContent = formatCurrency(num);
 }
+
 function commitPayment() {
   const value = parseFloat(buffer || "0") / 100;
+
+  // --- apply to correct type ---
   if (currentType === "Cash") order._payment.cash = value;
   if (currentType === "Card") order._payment.card = value;
+
+  // --- close pad and update totals ---
   overlay.classList.add("hidden");
-  updatePaymentSummary(); // ✅ instantly updates amount paid + change
+
+  // --- instantly update "Amount Paid" + Change ---
+  updatePaymentSummary();
 }
 
 buttons.forEach(btn => {
