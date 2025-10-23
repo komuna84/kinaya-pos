@@ -501,12 +501,49 @@ function resetPayments() {
 resetPayments();
 
 // ===========================================================
-// MENU ITEM CLICK HANDLER
+// MENU + CONTROL BUTTON HANDLERS
 // ===========================================================
 document.addEventListener("click", e => {
+  // Handle product selection
   const menuItem = e.target.closest(".menu-item");
-  if (!menuItem) return;
-  const data = menuItem.getAttribute("data-sku");
-  if (!data) return;
-  order.addOrderLine(1, data, isReturnMode);
+  if (menuItem) {
+    const data = menuItem.getAttribute("data-sku");
+    if (data) {
+      order.addOrderLine(1, data, isReturnMode);
+      updatePaymentSummary();
+    }
+    return; // stop after processing menu click
+  }
+
+  // Handle clear order button
+  if (e.target.closest("#clear-order-btn")) {
+    clearOrder();
+    return;
+  }
+
+  // Handle return mode toggle
+  if (e.target.closest("#return-btn")) {
+    isReturnMode = !isReturnMode;
+    const btn = document.getElementById("return-btn");
+    if (btn) {
+      btn.classList.toggle("active", isReturnMode);
+      btn.textContent = isReturnMode ? "Return Mode: ON" : "Return Mode: OFF";
+      btn.style.backgroundColor = isReturnMode ? "#e63946" : "#333";
+    }
+    console.log(`↩️ Return mode ${isReturnMode ? "enabled" : "disabled"}`);
+    return;
+  }
 });
+
+// ===========================================================
+// CLEAR + RETURN FUNCTIONS
+// ===========================================================
+function clearOrder() {
+  order._order = [];
+  order._payment = { cash: 0, card: 0 };
+  Ui.receiptDetails(order);
+  Ui.updateTotals(order);
+  updatePaymentSummary();
+  toggleSubmitVisibility();
+  console.log("🧹 Order cleared");
+}
