@@ -48,92 +48,171 @@
       <span>Data</span>
     </a>
   </nav>
-
 <body>
-  <header><h1>Purchase Order</h1></header>
+  <header>
+  <h1>Purchase Order</h1>
+  <div id="return-mode-banner" style="
+  display:none;
+  background:#e63946;
+  color:#fff;
+  text-align:center;
+  font-weight:bold;
+  padding:6px 0;
+  font-size:1.1rem;
+  letter-spacing:1px;
+  text-shadow:0 0 6px rgba(0,0,0,0.3);
+  animation:pulseGlow 1.2s infinite;
+">
+  🔴 RETURN MODE ACTIVE
+</div>
+</header>
 
-  <main class="main-container flex-row">
-    <section class="order flex-column">
-      <article class="receipt flex-column">
-        <div class="company-info flex-column">
-          <p id="company-name">Kinaya Rising</p>
-          <p id="company-website">KinayaRising.com</p>
-          <p id="company-email">KinayaRising@gmail.com</p>
-          <p id="invoice-number">Invoice #1000</p>
-          <p id="current-date"></p>
-        </div>
+<main class="main-container flex-row">
+  <section class="order flex-column">
+    <article class="receipt flex-column">
 
-        <div class="receipt-details">
-          <table class="details-details">
-            <thead>
-              <tr><td class="dotted-border" colspan="5"></td></tr>
-              <tr><td class="empty-border" colspan="5"></td></tr>
+      <!-- ─── Company Info ─────────────────────────────── -->
+      <div class="company-info flex-column">
+        <p id="company-name">Kinaya Rising</p>
+        <p id="company-website">KinayaRising.com</p>
+        <p id="company-email">KinayaRising@gmail.com</p>
+        <p id="invoice-number">Invoice #1000</p>
+        <p id="current-date"></p>
+      </div>
+
+      <!-- ─── Receipt Table ─────────────────────────────── -->
+      <div class="receipt-details">
+        <table class="details-details">
+          <thead>
+            <tr><td class="dotted-border" colspan="5"></td></tr>
+            <tr><td class="empty-border" colspan="5"></td></tr>
+            <tr>
+              <th class="product-name">Product Name</th>
+              <th class="quantity">Qty</th>
+              <th class="price">Price</th>
+              <th class="subtotal">Sub</th>
+              <th class="delete">Del</th>
+            </tr>
+            <tr><td class="dotted-border" colspan="5"></td></tr>
+            <tr><td class="empty-border" colspan="5"></td></tr>
+          </thead>
+
+          <tbody id="receipt-details"></tbody>
+        </table>
+
+        <!-- ─── Summary Table ─────────────────────────────── -->
+        <div class="receipt-summary">
+          <table class="summary-table">
+            <tbody id="summary-section">
+
+              <!-- Section Divider -->
+              <tr><td class="dotted-border" colspan="3"></td></tr>
+              <tr><td class="empty-border" colspan="3"></td></tr>
+
+              <!-- Totals -->
+              <tr><td>Subtotal:</td><td id="subtotal-summary">$0.00</td></tr>
+              <tr><td>Tax:</td><td id="tax-summary">$0.00</td></tr>
+              <tr><td>Grand Total:</td><td id="grandtotal-summary">$0.00</td></tr>
+
+              <!-- Divider -->
+              <tr><td class="dotted-border" colspan="3"></td></tr>
+              <tr><td class="empty-border" colspan="3"></td></tr>
+
+              <!-- Payment Info -->
               <tr>
-                <th class="product-name">Product Name</th>
-                <th class="quantity">Qty</th>
-                <th class="price">Price</th>
-                <th class="subtotal">Sub</th>
-                <th class="delete">Del</th>
+                <td>Amount Paid:</td>
+                <td colspan="2">
+                  <input 
+                    type="number" 
+                    id="amount-paid-input" 
+                    step="0.01" 
+                    min="0" 
+                    placeholder="0.00"
+                    style="width:100%;padding:4px;border-radius:4px;"
+                  />
+                </td>
               </tr>
-              <tr><td class="dotted-border" colspan="5"></td></tr>
-              <tr><td class="empty-border" colspan="5"></td></tr>
-            </thead>
-            <tbody id="receipt-details"></tbody>
-          </table>
 
-          <div class="receipt-summary">
-            <table class="summary-table">
-              <tbody id="summary-section">
-                <tr><td class="dotted-border" colspan="3"></td></tr>
-                <tr><td class="empty-border" colspan="3"></td></tr>
-                <tr><td>Subtotal:</td><td id="subtotal-summary">$0.00</td></tr>
-                <tr><td>Tax:</td><td id="tax-summary">$0.00</td></tr>
-                <tr><td>Grand Total:</td><td id="grandtotal-summary">$0.00</td></tr>
-                <tr><td class="dotted-border" colspan="3"></td></tr>
-                <tr><td class="empty-border" colspan="3"></td></tr>
-                <tr>
-  <td>Amount Paid:</td>
-  <td>
-    <input 
-      type="number" 
-      id="amount-paid-input" 
-      step="0.01" 
-      min="0" 
-      placeholder="0.00" 
-    />
-  </td>
-</tr>
-                <tr>
-                <tr>
+              <tr>
                 <td id="change-title">Change:</td>
                 <td id="change-amount">$0.00</td>
-                </tr>
-                <tr><td>Payment Type:</td><td id="split-info">None</td></tr>
-                <tr><td class="dotted-border" colspan="3"></td></tr>
-                <tr><td class="empty-border" colspan="3"></td></tr>
-                <tr>
-                  <td>Email:</td>
-                  <td colspan="2">
-                    <input
-                      type="email"
-                      id="customer-email"
-                      placeholder="customer@example.com"
-                      style="width:100%;padding:4px;border:1px solid #333;border-radius:4px;background:#111;color:#A7E1EE;"
-                    />
-                  </td>
-                </tr>
-                <tr>
-  <td>Share Email?</td>
-  <td>
-    <label class="switch">
-      <input type="checkbox" id="email-toggle" checked />
-      <span class="slider"></span>
-    </label>
-  </td>
-</tr>
+              </tr>
 
-              </tbody>
-            </table>
+              <tr>
+                <td>Payment Type:</td>
+                <td id="split-info">None</td>
+              </tr>
+
+              <!-- Divider -->
+              <tr><td class="dotted-border" colspan="3"></td></tr>
+              <tr><td class="empty-border" colspan="3"></td></tr>
+
+              <!-- Email Info -->
+              <tr>
+                <td>Email:</td>
+                <td colspan="2">
+                  <input
+                    type="email"
+                    id="customer-email"
+                    placeholder="customer@example.com"
+                    style="
+                      width:100%;
+                      padding:4px;
+                      border:1px solid #333;
+                      border-radius:4px;
+                      background:#111;
+                      color:#A7E1EE;
+                    "
+                  />
+                </td>
+              </tr>
+
+              <tr>
+                <td>Share Email?</td>
+                <td>
+                  <label class="switch">
+                    <input type="checkbox" id="email-toggle" checked />
+                    <span class="slider"></span>
+                  </label>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Submit Row -->
+          <div id="submit-row" style="display:none; text-align:center; padding:1rem 0;">
+            <button id="submit-sale" class="submit-sale-btn">Submit Sale</button>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="receipt-footer">Thank You For Your Support!</div>
+
+        <!-- Toolbar -->
+        <div class="toolbar flex-row">
+          <button id="cash-btn" class="toolbar-btn" title="Cash Payment">
+            <i class="fa-solid fa-money-bill-wave"></i>
+          </button>
+          <button id="card-btn" class="toolbar-btn" title="Card Payment">
+            <i class="fa-solid fa-credit-card"></i>
+          </button>
+          <button id="clear-order-btn" class="toolbar-btn" title="Clear Order">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+          <button id="toggle-return" class="toolbar-btn" title="Toggle Return Mode">
+            <i class="fa-solid fa-rotate-left"></i>
+          </button>
+        </div>
+
+      </div>
+    </article>
+  </section>
+
+  <!-- Product Menu -->
+  <section class="menu-payment grid">
+    <div class="menu flex-row" id="menu"></div>
+  </section>
+</main>
 
             <div id="submit-row" style="display:none; text-align:center; padding:1rem 0;">
               <button id="submit-sale" class="submit-sale-btn">Submit Sale</button>
@@ -156,6 +235,10 @@
       <div class="menu flex-row" id="menu"></div>
     </section>
   </main>
+  <button id="open-product-overlay" class="add-products-btn">
+  <i class="fa-solid fa-plus"></i> Add Products
+</button>
+
 
   <div id="submit-modal" class="modal hidden">
     <div class="modal-content">
@@ -190,5 +273,97 @@
     <button class="paypad-btn span3-col" data-value="Enter">Enter</button>
   </div>
   </div>
+  <!-- Mobile-only Add Products button -->
+<button id="open-product-overlay" class="mobile-add-btn">
+  <i class="fa-solid fa-plus"></i> Add Products
+</button>
+
+<!-- Fullscreen Product Overlay -->
+<div id="product-overlay" class="product-overlay hidden" aria-hidden="true">
+  <div class="overlay-header">
+    <span id="overlay-return-pill" class="return-pill hidden">🔴 RETURN MODE ACTIVE</span>
+    <span id="overlay-subtotal-summary" class="overlay-subtotal">$0.00</span>
+    <button id="close-product-overlay" class="overlay-close" aria-label="Close">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
+  <div id="overlay-grid" class="overlay-grid"></div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const openBtn   = document.getElementById("open-product-overlay");
+  const closeBtn  = document.getElementById("close-product-overlay");
+  const overlay   = document.getElementById("product-overlay");
+  const overlayGrid = document.getElementById("overlay-grid");
+  const returnPill = document.getElementById("overlay-return-pill");
+
+  // We’ll move the existing #menu node in and out (preserves listeners)
+  const menu = document.getElementById("menu");
+  const originalMenuParent = menu?.parentElement;
+
+  function syncReturnPill() {
+    // If your page banner exists, mirror its visibility
+    const banner = document.getElementById("return-mode-banner");
+    const isActive = banner && banner.style.display !== "none";
+    returnPill.classList.toggle("hidden", !isActive);
+  }
+
+  function lockScroll(lock) {
+    document.body.style.overflow = lock ? "hidden" : "";
+  }
+
+  function openOverlay() {
+    if (!menu) return;
+    overlayGrid.appendChild(menu);         // move menu into overlay
+    overlay.classList.remove("hidden");
+    // allow reflow before activating transition
+    requestAnimationFrame(() => overlay.classList.add("active"));
+    lockScroll(true);
+    syncReturnPill();
+  }
+
+  function closeOverlay() {
+    if (originalMenuParent && menu) originalMenuParent.appendChild(menu); // move back
+    overlay.classList.remove("active");
+    lockScroll(false);
+    // hide after animation
+    setTimeout(() => overlay.classList.add("hidden"), 300);
+  }
+
+  // Open button (mobile)
+  if (openBtn) openBtn.addEventListener("click", openOverlay);
+  if (closeBtn) closeBtn.addEventListener("click", closeOverlay);
+
+  // If your existing "Toggle Return Mode" button is used, mirror state changes
+  document.body.addEventListener("click", (e) => {
+    const toggleBtn = e.target.closest("#toggle-return");
+    if (!toggleBtn) return;
+    // Delay to let your existing logic change the banner
+    setTimeout(syncReturnPill, 0);
+  });
+
+  // If someone taps outside content, close (optional)
+  overlay.addEventListener("click", (e) => {
+    const inside = e.target.closest(".overlay-header, #overlay-grid");
+    if (!inside) closeOverlay();
+  });
+
+  // Escape key to close
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !overlay.classList.contains("hidden")) closeOverlay();
+  });
+});
+figure.innerHTML = `
+  <img src="${item.image}" alt="${item.description}">
+  <div class="info">
+    <figcaption>${item.description}</figcaption>
+    <figcaption>${item.sku}</figcaption>
+    <figcaption>${Utilities.convertFloatToString(item.price)}</figcaption>
+  </div>
+`;
+
+</script>
+
 </body>
 </html>
