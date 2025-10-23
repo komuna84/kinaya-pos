@@ -329,12 +329,10 @@ async function submitSale() {
   }
 }
 // ===========================================================
-// BACKWARD COMPATIBILITY FIX — updatePaymentUI + toggleSubmitVisibility
+// BACKWARD COMPATIBILITY FIX — Needed by Order.addOrderLine()
 // ===========================================================
 function updatePaymentUI(reset = false) {
-  // optional reset
   if (reset) order._payment = { cash: 0, card: 0 };
-  // update change and totals
   updatePaymentSummary();
 }
 
