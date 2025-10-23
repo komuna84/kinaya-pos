@@ -521,11 +521,41 @@ resetPayments();
 
 
 // ===========================================================
-// MENU + CONTROL BUTTON HANDLERS (fixed, clean)
+// MENU + CONTROL BUTTON HANDLERS (Overlay + Return Mode)
 // ===========================================================
 window.addEventListener("load", () => {
+  const openBtn = document.getElementById("open-product-overlay");
+  const closeBtn = document.getElementById("close-product-overlay");
+  const overlay = document.getElementById("product-overlay");
+  const overlayGrid = document.getElementById("overlay-grid");
+  const menu = document.getElementById("menu");
+  const originalParent = menu?.parentElement;
+
+  // --- Open Overlay ---
+  function openOverlay() {
+    if (!menu) return;
+    overlayGrid.appendChild(menu);
+    overlay.classList.remove("hidden");
+    overlayGrid.classList.add("active");
+    document.body.style.overflow = "hidden";
+  }
+
+  // --- Close Overlay ---
+  function closeOverlay() {
+    if (originalParent && menu) originalParent.appendChild(menu);
+    overlayGrid.classList.remove("active");
+    overlay.classList.remove("active");
+    document.body.style.overflow = "";
+    setTimeout(() => overlay.classList.add("hidden"), 300);
+  }
+
+  // --- Handle Buttons ---
+  openBtn?.addEventListener("click", openOverlay);
+  closeBtn?.addEventListener("click", closeOverlay);
+
+  // --- Handle Click Events ---
   document.addEventListener("click", e => {
-    // --- Handle product selection ---
+    // Product tile clicked
     const menuItem = e.target.closest(".menu-item");
     if (menuItem) {
       const data = menuItem.getAttribute("data-sku");
@@ -533,36 +563,33 @@ window.addEventListener("load", () => {
         order.addOrderLine(1, data, isReturnMode);
         updatePaymentSummary();
       }
-      return; // stop after processing menu click
+      // close overlay automatically after adding
+      closeOverlay();
+      return;
     }
 
-    // --- Handle clear order button ---
+    // Clear Order
     if (e.target.closest("#clear-order-btn")) {
       clearOrder();
       return;
     }
 
-    // --- Handle return mode toggle ---
+    // Return Mode Toggle
     if (e.target.closest("#toggle-return")) {
-  isReturnMode = !isReturnMode;
+      isReturnMode = !isReturnMode;
+      const btn = document.getElementById("toggle-return");
+      const icon = btn?.querySelector("i");
+      const banner = document.getElementById("return-mode-banner");
 
-  const btn = document.getElementById("toggle-return");
-  const icon = btn ? btn.querySelector("i") : null;
-  const banner = document.getElementById("return-mode-banner");
+      btn?.classList.toggle("active", isReturnMode);
+      if (icon) icon.style.color = isReturnMode ? "#e63946" : "#fff";
+      if (banner) banner.style.display = isReturnMode ? "block" : "none";
 
-  if (btn) {
-    btn.classList.toggle("active", isReturnMode);
-    if (icon) icon.style.color = isReturnMode ? "#e63946" : "#fff";
-    btn.title = isReturnMode ? "Return Mode: ON" : "Return Mode: OFF";
-  }
-
-  if (banner) banner.style.display = isReturnMode ? "block" : "none";
-
-     console.log(`↩️ Return mode ${isReturnMode ? "ENABLED" : "DISABLED"}`);
+      console.log(`↩️ Return mode ${isReturnMode ? "ENABLED" : "DISABLED"}`);
       return;
     }
-  }); // ✅ closes document.addEventListener
-});   // ✅ closes window.addEventListener
+  });
+});
 
 
 // ===========================================================
