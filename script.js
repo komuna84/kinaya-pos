@@ -330,12 +330,13 @@ async function submitSale() {
 }
 
 // ===========================================================
-// PAYMENT + UI INTERACTIONS
+// PAYMENT + UI INTERACTIONS — FIXED FOR SUBMIT + SPLIT + NEWSLETTER
 // ===========================================================
 let amountPaid = 0;
 let paymentType = "";
 let grandTotal = 0;
 
+// ---------- UPDATE PAYMENT UI ----------
 function updatePaymentUI(reset = false) {
   const overlay = document.getElementById("payment-overlay");
   const amountDisplay = document.getElementById("amount-paid");
@@ -354,8 +355,7 @@ function updatePaymentUI(reset = false) {
   }
 
   if (amountPaidInput) {
-    const val = parseFloat(amountPaidInput.value) || 0;
-    amountPaid = val;
+    amountPaid = parseFloat(amountPaidInput.value) || 0;
   }
 
   if (amountDisplay) {
@@ -365,15 +365,13 @@ function updatePaymentUI(reset = false) {
   toggleSubmitVisibility();
 }
 
-// ✅ Simplified visibility logic — only cares about actual text in email field
+// ---------- CONTROL SUBMIT VISIBILITY ----------
 function toggleSubmitVisibility() {
   const submitRow = document.getElementById("submit-row");
   const emailInput = document.getElementById("customer-email");
   if (!submitRow) return;
 
-  const emailValue = (emailInput && emailInput.value.trim()) || "";
-  const hasEmail = emailValue.length > 0;
-
+  const hasEmail = emailInput && emailInput.value.trim().length > 0;
   const canSubmit =
     order._order.length > 0 &&
     amountPaid >= grandTotal &&
@@ -382,36 +380,85 @@ function toggleSubmitVisibility() {
   submitRow.style.display = canSubmit ? "block" : "none";
 }
 
-// ✅ Newsletter toggle (does NOT interfere with submit button)
-const emailToggle = document.getElementById("email-toggle");
-if (emailToggle) {
-  emailToggle.addEventListener("change", () => {
-    const label = document.getElementById("newsletter-label");
-    if (emailToggle.checked) {
-      label.textContent = "✅ Subscribed to newsletter";
-      label.style.color = "#A7E1EE";
-    } else {
-      label.textContent = "Newsletter opt-out";
-      label.style.color = "#aaa";
-    }
-  });
+// ---------- SPLIT PAYMENT TRACKING ----------
+const splitInfoEl = document.getElementById("split-info");
+const paymentTypeEl = document.getElementById("payment-type");
+
+function updateSplitInfo(type) {
+  if (!splitInfoEl || !paymentTypeEl) return;
+
+  // update labels
+  paymentTypeEl.textContent = type || "—";
+  if (type === "Split") {
+    splitInfoEl.textContent = "Cash + Card";
+  } else if (type === "Cash" || type === "Card") {
+    splitInfoEl.textContent = type;
+  } else {
+    splitInfoEl.textContent = "None";
+  }
 }
 
-// ✅ Email field controls visibility
+// ---------- EMAIL FIELD (TRIGGERS SUBMIT BUTTON) ----------
 const emailInput = document.getElementById("customer-email");
 if (emailInput) {
   emailInput.addEventListener("input", toggleSubmitVisibility);
 }
 
-// ✅ Amount paid field live updates
+// ---------- AMOUNT PAID FIELD ----------
 const amountPaidInput = document.getElementById("amount-paid-input");
 if (amountPaidInput) {
   amountPaidInput.addEventListener("input", () => {
-    const val = parseFloat(amountPaidInput.value) || 0;
-    amountPaid = val;
+    amountPaid = parseFloat(amountPaidInput.value) || 0;
     updatePaymentUI();
   });
 }
+
+// ---------- PAYMENT TYPE BUTTONS ----------
+const cashBtn = document.getElementById("cash-btn");
+const cardBtn = document.getElementById("card-btn");
+const overlay = document.getElementById("payment-overlay");
+
+if (cashBtn) {
+  cashBtn.addEventListener("click", () => {
+    if (paymentType === "Card") {
+      paymentType = "Split";
+    } else {
+      paymentType = "Cash";
+    }
+    updateSplitInfo(paymentType);
+    if (overlay) overlay.classList.remove("hidden");
+  });
+}
+
+if (cardBtn) {
+  cardBtn.addEventListener("click", () => {
+    if (paymentType === "Cash") {
+      paymentType = "Split";
+    } else {
+      paymentType = "Card";
+    }
+    updateSplitInfo(paymentType);
+    if (overlay) overlay.classList.remove("hidden");
+  });
+}
+
+// ---------- NEWSLETTER TOGGLE ----------
+const emailToggle = document.getElementById("email-toggle");
+if (emailToggle) {
+  emailToggle.addEventListener("change", () => {
+    const label = document.getElementById("newsletter-label");
+    if (label) {
+      if (emailToggle.checked) {
+        label.textContent = "✅ Subscribed to newsletter";
+        label.style.color = "#A7E1EE";
+      } else {
+        label.textContent = "Newsletter opt-out";
+        label.style.color = "#aaa";
+      }
+    }
+  });
+}
+
 
 
 // ===========================================================
