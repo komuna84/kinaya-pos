@@ -517,20 +517,21 @@ window.addEventListener("load", () => {
     }
 
     // --- Handle clear order button ---
-    if (e.target.closest("#clear-order-btn")) {
-      clearOrder();
-      return;
-    }
+    // --- Handle clear order button ---
+if (e.target.closest("#clear-order-btn")) {
+  clearOrder();
+  return;
+}
 
-    // --- Handle return mode toggle ---
-    if (e.target.closest("#return-btn")) {
-      isReturnMode = !isReturnMode;
-      const btn = document.getElementById("return-btn");
-      if (btn) {
-        btn.classList.toggle("active", isReturnMode);
-        btn.textContent = isReturnMode ? "Return Mode: ON" : "Return Mode: OFF";
-        btn.style.backgroundColor = isReturnMode ? "#e63946" : "#333";
-      }
+// --- Handle return mode toggle ---
+if (e.target.closest("#toggle-return")) {
+  isReturnMode = !isReturnMode;
+  const btn = document.getElementById("toggle-return");
+
+  if (btn) {
+    btn.classList.toggle("active", isReturnMode);
+    const icon = btn.querySelector("i");
+
 
       // Optional banner for clarity
       const banner = document.getElementById("return-banner");
