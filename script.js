@@ -332,11 +332,13 @@ async function submitSale() {
 // ===========================================================
 // PAYMENT + UI INTERACTIONS
 // ===========================================================
+// ===========================================================
+// PAYMENT + UI INTERACTIONS
+// ===========================================================
 let amountPaid = 0;
 let paymentType = "";
 let grandTotal = 0;
 
-// ---------- UPDATE PAYMENT UI ----------
 function updatePaymentUI(reset = false) {
   const overlay = document.getElementById("payment-overlay");
   const amountDisplay = document.getElementById("amount-paid");
@@ -366,7 +368,7 @@ function updatePaymentUI(reset = false) {
   toggleSubmitVisibility();
 }
 
-// ---------- CONTROL SUBMIT VISIBILITY ----------
+// ✅ Simplified visibility logic — only cares about actual text in email field
 function toggleSubmitVisibility() {
   const submitRow = document.getElementById("submit-row");
   const emailInput = document.getElementById("customer-email");
@@ -383,77 +385,34 @@ function toggleSubmitVisibility() {
   submitRow.style.display = canSubmit ? "block" : "none";
 }
 
-// ---------- SPLIT PAYMENT TRACKING ----------
-const splitInfoEl = document.getElementById("split-info");
-const paymentTypeEl = document.getElementById("payment-type");
-function updateSplitInfo(type) {
-  if (!splitInfoEl || !paymentTypeEl) return;
-  paymentTypeEl.textContent = type;
-  splitInfoEl.textContent =
-    type === "Split"
-      ? "Cash + Card"
-      : type === "Cash" || type === "Card"
-      ? "None"
-      : "None";
-}
-
-// ---------- NEWSLETTER TOGGLE ----------
+// ✅ Newsletter toggle (does NOT interfere with submit button)
 const emailToggle = document.getElementById("email-toggle");
 if (emailToggle) {
   emailToggle.addEventListener("change", () => {
     const label = document.getElementById("newsletter-label");
-    if (label) {
-      if (emailToggle.checked) {
-        label.textContent = "✅ Subscribed to newsletter";
-        label.style.color = "#A7E1EE";
-      } else {
-        label.textContent = "Newsletter opt-out";
-        label.style.color = "#aaa";
-      }
+    if (emailToggle.checked) {
+      label.textContent = "✅ Subscribed to newsletter";
+      label.style.color = "#A7E1EE";
+    } else {
+      label.textContent = "Newsletter opt-out";
+      label.style.color = "#aaa";
     }
   });
 }
 
-// ---------- EMAIL FIELD (TRIGGERS SUBMIT BUTTON) ----------
+// ✅ Email field controls visibility
 const emailInput = document.getElementById("customer-email");
 if (emailInput) {
   emailInput.addEventListener("input", toggleSubmitVisibility);
 }
 
-// ---------- AMOUNT PAID FIELD ----------
+// ✅ Amount paid field live updates
 const amountPaidInput = document.getElementById("amount-paid-input");
 if (amountPaidInput) {
   amountPaidInput.addEventListener("input", () => {
     const val = parseFloat(amountPaidInput.value) || 0;
     amountPaid = val;
     updatePaymentUI();
-  });
-}
-
-// ---------- PAYMENT TYPE BUTTONS ----------
-const cashBtn = document.getElementById("cash-btn");
-const cardBtn = document.getElementById("card-btn");
-const overlay = document.getElementById("payment-overlay");
-
-if (cashBtn) {
-  cashBtn.addEventListener("click", () => {
-    paymentType = "Cash";
-    updateSplitInfo("Cash");
-    if (overlay) overlay.classList.remove("hidden");
-  });
-}
-
-if (cardBtn) {
-  cardBtn.addEventListener("click", () => {
-    if (paymentType === "Cash") {
-      // If cash was already selected, switch to split mode
-      updateSplitInfo("Split");
-      paymentType = "Split";
-    } else {
-      paymentType = "Card";
-      updateSplitInfo("Card");
-    }
-    if (overlay) overlay.classList.remove("hidden");
   });
 }
 
