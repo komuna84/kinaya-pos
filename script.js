@@ -346,21 +346,27 @@ function toggleSubmitVisibility() {
   const hasOrder = order._order.length > 0;
   const emailValue = (emailInput && emailInput.value.trim().toLowerCase()) || "";
 
-  // ✅ Treat "no", "none", "n/a", etc. as valid, as well as real emails
+  // ✅ Allow actual emails OR "no receipt" keywords
   const validEmail =
     emailValue.length > 0 &&
     (emailValue.includes("@") ||
-      ["no", "none", "n/a", "no receipt", "no email"].some(k => emailValue === k));
+      ["no", "none", "n/a", "no receipt", "no email"].includes(emailValue));
 
   const subtotalPaid = (order._payment.cash || 0) + (order._payment.card || 0);
   const grandText = grandDisplay ? grandDisplay.textContent.replace(/[^0-9.]/g, "") : "0";
   const grandTotal = parseFloat(grandText) || 0;
 
-  // ✅ Button shows if there’s an order, enough payment, and a valid email (or "no" etc.)
+  // ✅ Only show button if all conditions are met
   const canSubmit = hasOrder && validEmail && subtotalPaid >= grandTotal;
-
   submitRow.style.display = canSubmit ? "block" : "none";
 }
+
+// 🔁 Auto-trigger when email changes
+document.addEventListener("input", e => {
+  if (e.target && e.target.id === "customer-email") {
+    toggleSubmitVisibility();
+  }
+});
 
 
 // ===========================================================
