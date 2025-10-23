@@ -518,7 +518,7 @@ window.addEventListener("load", () => {
 
     // --- Handle clear order button ---
     // --- Handle clear order button ---
-if (e.target.closest("#clear-order-btn")) {
+      if (e.target.closest("#clear-order-btn")) {
   clearOrder();
   return;
 }
@@ -532,7 +532,17 @@ if (e.target.closest("#toggle-return")) {
     btn.classList.toggle("active", isReturnMode);
     const icon = btn.querySelector("i");
 
+    // Optional: visually highlight the return icon
+    if (icon) {
+      icon.style.color = isReturnMode ? "#e63946" : "#fff";
+    }
 
+    btn.title = isReturnMode ? "Return Mode: ON" : "Return Mode: OFF";
+  }
+
+  console.log(`↩️ Return mode ${isReturnMode ? "enabled" : "disabled"}`);
+  return;
+}
       // Optional banner for clarity
       const banner = document.getElementById("return-banner");
       if (banner) banner.style.display = isReturnMode ? "block" : "none";
