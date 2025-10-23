@@ -113,14 +113,12 @@ class Order {
 // ===========================================================
 class Utilities {
   static convertFloatToString(float) {
-    const priceParams = { style: "currency", currency: "USD" };
-    if (float < 0) return (${Math.abs(float).toLocaleString("en-US", priceParams)});
-    return float.toLocaleString("en-US", priceParams);
-  }
-  static roundToTwo(num) {
-    return +(Math.round(num * 100) / 100);
-  }
+  const priceParams = { style: "currency", currency: "USD" };
+  if (float < 0)
+    return `(${Math.abs(float).toLocaleString("en-US", priceParams)})`;
+  return float.toLocaleString("en-US", priceParams);
 }
+
 
 // ===========================================================
 // CSV LOADER
