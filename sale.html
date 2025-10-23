@@ -221,13 +221,7 @@
 
           <div class="receipt-footer">Thank You For Your Support!</div>
 
-          <div class="toolbar flex-row">
-            <button id="cash-btn" class="toolbar-btn" title="Cash Payment"><i class="fa-solid fa-money-bill-wave"></i></button>
-            <button id="card-btn" class="toolbar-btn" title="Card Payment"><i class="fa-solid fa-credit-card"></i></button>
-            <button id="clear-order-btn" class="toolbar-btn" title="Clear Order"><i class="fa-solid fa-trash"></i></button>
-            <button id="toggle-return" class="toolbar-btn" title="Toggle Return Mode"><i class="fa-solid fa-rotate-left"></i></button>
-          </div>
-        </div>
+
       </article>
     </section>
 
@@ -279,12 +273,11 @@
 </button>
 
 <!-- Fullscreen Product Overlay -->
-<!-- Fullscreen Product Overlay -->
 <div id="product-overlay" class="product-overlay hidden" aria-hidden="true">
   <div class="overlay-header">
-    <button id="toggle-return-overlay" class="return-toggle-overlay">
-      <i class="fa-solid fa-rotate-left"></i> Return
-    </button>
+    <button id="toggle-return" class="toolbar-btn" title="Toggle Return Mode">
+            <i class="fa-solid fa-rotate-left"></i>
+          </button>
     <span id="overlay-subtotal-summary" class="overlay-subtotal">$0.00</span>
     <button id="close-product-overlay" class="overlay-close" aria-label="Close">
       <i class="fa-solid fa-xmark"></i>
@@ -301,9 +294,18 @@ document.addEventListener("DOMContentLoaded", () => {
   const closeBtn  = document.getElementById("close-product-overlay");
   const overlay   = document.getElementById("product-overlay");
   const overlayGrid = document.getElementById("overlay-grid");
-  const overlayReturnBtn = document.getElementById("toggle-return-overlay");
+  const returnPill = document.getElementById("overlay-return-pill");
+
+  // We’ll move the existing #menu node in and out (preserves listeners)
   const menu = document.getElementById("menu");
   const originalMenuParent = menu?.parentElement;
+
+  function syncReturnPill() {
+    // If your page banner exists, mirror its visibility
+    const banner = document.getElementById("return-mode-banner");
+    const isActive = banner && banner.style.display !== "none";
+    returnPill.classList.toggle("hidden", !isActive);
+  }
 
   function lockScroll(lock) {
     document.body.style.overflow = lock ? "hidden" : "";
@@ -311,48 +313,53 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function openOverlay() {
     if (!menu) return;
-    overlayGrid.appendChild(menu);
+    overlayGrid.appendChild(menu);         // move menu into overlay
     overlay.classList.remove("hidden");
+    // allow reflow before activating transition
     requestAnimationFrame(() => overlay.classList.add("active"));
     lockScroll(true);
+    syncReturnPill();
   }
 
   function closeOverlay() {
-    if (originalMenuParent && menu) originalMenuParent.appendChild(menu);
+    if (originalMenuParent && menu) originalMenuParent.appendChild(menu); // move back
     overlay.classList.remove("active");
     lockScroll(false);
+    // hide after animation
     setTimeout(() => overlay.classList.add("hidden"), 300);
   }
 
-  openBtn?.addEventListener("click", openOverlay);
-  closeBtn?.addEventListener("click", closeOverlay);
+  // Open button (mobile)
+  if (openBtn) openBtn.addEventListener("click", openOverlay);
+  if (closeBtn) closeBtn.addEventListener("click", closeOverlay);
 
-  // Hide the bottom product section on small screens
-  const productSection = document.querySelector("section.menu-payment");
-  if (window.innerWidth <= 768 && productSection) {
-    productSection.style.display = "none";
-  }
-
-  // Return toggle inside overlay
-  overlayReturnBtn?.addEventListener("click", () => {
-    isReturnMode = !isReturnMode;
-    overlayReturnBtn.classList.toggle("active", isReturnMode);
-    overlayReturnBtn.innerHTML = isReturnMode
-      ? '<i class="fa-solid fa-rotate-left"></i> Return: ON'
-      : '<i class="fa-solid fa-rotate-left"></i> Return';
-    console.log(`↩️ Return mode ${isReturnMode ? "ENABLED" : "DISABLED"}`);
+  // If your existing "Toggle Return Mode" button is used, mirror state changes
+  document.body.addEventListener("click", (e) => {
+    const toggleBtn = e.target.closest("#toggle-return");
+    if (!toggleBtn) return;
+    // Delay to let your existing logic change the banner
+    setTimeout(syncReturnPill, 0);
   });
 
-  // Close overlay by tapping outside
+  // If someone taps outside content, close (optional)
   overlay.addEventListener("click", (e) => {
-    if (!e.target.closest(".overlay-header, #overlay-grid")) closeOverlay();
+    const inside = e.target.closest(".overlay-header, #overlay-grid");
+    if (!inside) closeOverlay();
   });
 
+  // Escape key to close
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && !overlay.classList.contains("hidden")) closeOverlay();
   });
 });
-
+figure.innerHTML = `
+  <img src="${item.image}" alt="${item.description}">
+  <div class="info">
+    <figcaption>${item.description}</figcaption>
+    <figcaption>${item.sku}</figcaption>
+    <figcaption>${Utilities.convertFloatToString(item.price)}</figcaption>
+  </div>
+`;
 
 </script>
 
