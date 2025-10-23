@@ -77,35 +77,38 @@ class Order {
   }
 
   addOrderLine(quantity, data, isReturn = false) {
-    const lineData = JSON.parse(data);
-    const sku = lineData.sku;
-    const change = isReturn ? -quantity : quantity;
-    const existingLine = this._order.find(line => line.sku === sku);
+  const lineData = JSON.parse(data);
+  const sku = lineData.sku;
+  const change = isReturn ? -Math.abs(quantity) : Math.abs(quantity);
+  const existingLine = this._order.find(line => line.sku === sku);
 
-    if (existingLine) {
-      existingLine.quantity += change;
+  if (existingLine) {
+    existingLine.quantity += change;
+    // Remove if quantity hits 0
+    if (existingLine.quantity === 0) {
+      this._order = this._order.filter(line => line.sku !== sku);
+    } else {
       existingLine.subtotal = Utilities.roundToTwo(existingLine.quantity * existingLine.price);
       existingLine.tax = Utilities.roundToTwo(existingLine.subtotal * 0.07);
-      if (existingLine.quantity === 0) {
-        this._order = this._order.filter(line => line.sku !== sku);
-      }
-    } else {
-      const currentLine = {
-        sku,
-        description: lineData.description,
-        quantity: change,
-        price: Utilities.roundToTwo(parseFloat(lineData.price)),
-        subtotal: Utilities.roundToTwo(change * parseFloat(lineData.price)),
-        tax: Utilities.roundToTwo(change * parseFloat(lineData.price) * 0.07),
-      };
-      this._order.push(currentLine);
     }
+  } else {
+    // Create new line
+    const currentLine = {
+      sku,
+      description: lineData.description,
+      quantity: change,
+      price: Utilities.roundToTwo(parseFloat(lineData.price)),
+      subtotal: Utilities.roundToTwo(change * parseFloat(lineData.price)),
+      tax: Utilities.roundToTwo(change * parseFloat(lineData.price) * 0.07),
+    };
+    this._order.push(currentLine);
+  }
 
-    Ui.receiptDetails(this);
-    Ui.updateTotals(this);
-    updatePaymentUI();
-     }
+  Ui.receiptDetails(this);
+  Ui.updateTotals(this);
+  updatePaymentUI();
 }
+} 
   
 
 // ===========================================================
@@ -213,34 +216,50 @@ class Ui {
   }
 
   static attachDeleteHandlers(orderInstance) {
-    document.querySelectorAll(".delete").forEach(btn => {
-      btn.addEventListener("click", e => {
-        e.stopPropagation();
-        const index = parseInt(btn.getAttribute("data-delete"));
-        if (isNaN(index)) return;
-        const line = orderInstance._order[index];
-        if (!line) return;
-        line.quantity--;
+  document.querySelectorAll(".delete").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      const index = parseInt(btn.getAttribute("data-delete"));
+      if (isNaN(index)) return;
+      const line = orderInstance._order[index];
+      if (!line) return;
+
+      // 🔁 Always reduce by 1 (not remove full line)
+      const change = isReturnMode ? -1 : 1;
+      line.quantity -= change;
+
+      // If quantity hits 0, remove it
+      if (line.quantity === 0) {
+        orderInstance._order.splice(index, 1);
+      } else {
         line.subtotal = Utilities.roundToTwo(line.quantity * line.price);
         line.tax = Utilities.roundToTwo(line.subtotal * 0.07);
-        if (line.quantity <= 0) orderInstance._order.splice(index, 1);
-        Ui.receiptDetails(orderInstance);
-        Ui.updateTotals(orderInstance);
-        updatePaymentUI();
-        toggleSubmitVisibility();
-      });
+      }
+
+      Ui.receiptDetails(orderInstance);
+      Ui.updateTotals(orderInstance);
+      updatePaymentUI();
+      toggleSubmitVisibility();
     });
-  }
+  });
+}
 
   static updateTotals(orderInstance) {
-    const subtotal = orderInstance._order.reduce((a, l) => a + l.subtotal, 0);
-    const tax = orderInstance._order.reduce((a, l) => a + l.tax, 0);
-    const grandTotal = subtotal + tax;
-    const fmt = v => Utilities.convertFloatToString(v);
-    document.getElementById("subtotal-summary").textContent = fmt(subtotal);
-    document.getElementById("tax-summary").textContent = fmt(tax);
-    document.getElementById("grandtotal-summary").textContent = fmt(grandTotal);
-  }
+  const subtotal = orderInstance._order.reduce((a, l) => a + l.subtotal, 0);
+  const tax = orderInstance._order.reduce((a, l) => a + l.tax, 0);
+  const grandTotal = subtotal + tax;
+  const fmt = v => Utilities.convertFloatToString(v);
+
+  const subtotalEl = document.getElementById("subtotal-summary");
+  const overlaySubtotalEl = document.getElementById("overlay-subtotal-summary");
+  const taxEl = document.getElementById("tax-summary");
+  const grandEl = document.getElementById("grandtotal-summary");
+
+  if (subtotalEl) subtotalEl.textContent = fmt(subtotal);
+  if (overlaySubtotalEl) overlaySubtotalEl.textContent = fmt(subtotal);
+  if (taxEl) taxEl.textContent = fmt(tax);
+  if (grandEl) grandEl.textContent = fmt(grandTotal);
+}
 }
 
 // ===========================================================
@@ -525,22 +544,25 @@ window.addEventListener("load", () => {
 
     // --- Handle return mode toggle ---
     if (e.target.closest("#toggle-return")) {
-      isReturnMode = !isReturnMode;
+  isReturnMode = !isReturnMode;
 
-      const btn = document.getElementById("toggle-return");
-      const icon = btn ? btn.querySelector("i") : null;
+  const btn = document.getElementById("toggle-return");
+  const icon = btn ? btn.querySelector("i") : null;
+  const banner = document.getElementById("return-mode-banner");
 
-      if (btn) {
-        btn.classList.toggle("active", isReturnMode);
-        if (icon) icon.style.color = isReturnMode ? "#e63946" : "#fff";
-        btn.title = isReturnMode ? "Return Mode: ON" : "Return Mode: OFF";
-      }
+  if (btn) {
+    btn.classList.toggle("active", isReturnMode);
+    if (icon) icon.style.color = isReturnMode ? "#e63946" : "#fff";
+    btn.title = isReturnMode ? "Return Mode: ON" : "Return Mode: OFF";
+  }
 
-      console.log(`↩️ Return mode ${isReturnMode ? "ENABLED" : "DISABLED"}`);
+  if (banner) banner.style.display = isReturnMode ? "block" : "none";
+
+     console.log(`↩️ Return mode ${isReturnMode ? "ENABLED" : "DISABLED"}`);
       return;
     }
-  });
-});
+  }); // ✅ closes document.addEventListener
+});   // ✅ closes window.addEventListener
 
 
 // ===========================================================
