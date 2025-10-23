@@ -501,38 +501,45 @@ function resetPayments() {
 resetPayments();
 
 // ===========================================================
-// MENU + CONTROL BUTTON HANDLERS
+// MENU + CONTROL BUTTON HANDLERS (safe attach after load)
 // ===========================================================
-document.addEventListener("click", e => {
-  // Handle product selection
-  const menuItem = e.target.closest(".menu-item");
-  if (menuItem) {
-    const data = menuItem.getAttribute("data-sku");
-    if (data) {
-      order.addOrderLine(1, data, isReturnMode);
-      updatePaymentSummary();
+window.addEventListener("load", () => {
+  document.addEventListener("click", e => {
+    // --- Handle product selection ---
+    const menuItem = e.target.closest(".menu-item");
+    if (menuItem) {
+      const data = menuItem.getAttribute("data-sku");
+      if (data) {
+        order.addOrderLine(1, data, isReturnMode);
+        updatePaymentSummary();
+      }
+      return; // stop after processing menu click
     }
-    return; // stop after processing menu click
-  }
 
-  // Handle clear order button
-  if (e.target.closest("#clear-order-btn")) {
-    clearOrder();
-    return;
-  }
-
-  // Handle return mode toggle
-  if (e.target.closest("#return-btn")) {
-    isReturnMode = !isReturnMode;
-    const btn = document.getElementById("return-btn");
-    if (btn) {
-      btn.classList.toggle("active", isReturnMode);
-      btn.textContent = isReturnMode ? "Return Mode: ON" : "Return Mode: OFF";
-      btn.style.backgroundColor = isReturnMode ? "#e63946" : "#333";
+    // --- Handle clear order button ---
+    if (e.target.closest("#clear-order-btn")) {
+      clearOrder();
+      return;
     }
-    console.log(`↩️ Return mode ${isReturnMode ? "enabled" : "disabled"}`);
-    return;
-  }
+
+    // --- Handle return mode toggle ---
+    if (e.target.closest("#return-btn")) {
+      isReturnMode = !isReturnMode;
+      const btn = document.getElementById("return-btn");
+      if (btn) {
+        btn.classList.toggle("active", isReturnMode);
+        btn.textContent = isReturnMode ? "Return Mode: ON" : "Return Mode: OFF";
+        btn.style.backgroundColor = isReturnMode ? "#e63946" : "#333";
+      }
+
+      // Optional banner for clarity
+      const banner = document.getElementById("return-banner");
+      if (banner) banner.style.display = isReturnMode ? "block" : "none";
+
+      console.log(`↩️ Return mode ${isReturnMode ? "enabled" : "disabled"}`);
+      return;
+    }
+  });
 });
 
 // ===========================================================
@@ -547,3 +554,4 @@ function clearOrder() {
   toggleSubmitVisibility();
   console.log("🧹 Order cleared");
 }
+
