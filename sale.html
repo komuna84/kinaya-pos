@@ -268,34 +268,60 @@ let grandTotal = 0;
 let currentType = "";
 let buffer = "";
 
+// ---------- UPDATE TOTAL + CHANGE ----------
 function updatePaymentSummary() {
   const grandDisplay = document.getElementById("grandtotal-summary");
+  const amountPaidEl = document.getElementById("amount-paid-input");
+  const changeEl = document.getElementById("change-amount");
   const splitEl = document.getElementById("split-info");
   const paymentTypeEl = document.getElementById("payment-type");
-  const changeEl = document.getElementById("change-amount");
 
-  const subtotalPaid = (order._payment.cash || 0) + (order._payment.card || 0);
+  // --- get grand total ---
   let grandTotal = 0;
   if (grandDisplay) {
     const text = grandDisplay.textContent.replace(/[^0-9.]/g, "");
     grandTotal = parseFloat(text) || 0;
   }
 
+  // --- calculate paid amounts ---
   const cash = order._payment.cash || 0;
   const card = order._payment.card || 0;
+  const subtotalPaid = cash + card;
 
-  if (splitEl) splitEl.textContent = `Cash: $${cash.toFixed(2)} | Card: $${card.toFixed(2)}`;
+  // --- update amount paid field ---
+  if (amountPaidEl) amountPaidEl.value = subtotalPaid.toFixed(2);
 
+  // --- show split info ---
+  if (splitEl) {
+    if (cash && card)
+      splitEl.innerHTML = `<span style="color:#00c47a;">Cash: $${cash.toFixed(
+        2
+      )}</span> | <span style="color:#4ea1ff;">Card: $${card.toFixed(2)}</span>`;
+    else if (cash)
+      splitEl.innerHTML = `<span style="color:#00c47a;">Cash: $${cash.toFixed(
+        2
+      )}</span>`;
+    else if (card)
+      splitEl.innerHTML = `<span style="color:#4ea1ff;">Card: $${card.toFixed(
+        2
+      )}</span>`;
+    else splitEl.textContent = "$0.00";
+  }
+
+  // --- update payment type ---
   if (paymentTypeEl) {
     paymentTypeEl.textContent =
       cash && card ? "Split" : cash ? "Cash" : card ? "Card" : "—";
   }
 
-  const change = subtotalPaid - grandTotal;
+  // --- calculate and show change ---
+  const difference = subtotalPaid - grandTotal;
   if (changeEl) {
-    if (subtotalPaid === 0) changeEl.textContent = "";
-    else if (change >= 0) changeEl.textContent = `Change: $${change.toFixed(2)}`;
-    else changeEl.textContent = `Remaining: $${Math.abs(change).toFixed(2)}`;
+    if (subtotalPaid === 0) changeEl.textContent = "$0.00";
+    else if (difference >= 0)
+      changeEl.textContent = `Change: $${difference.toFixed(2)}`;
+    else
+      changeEl.textContent = `Remaining: $${Math.abs(difference).toFixed(2)}`;
   }
 
   toggleSubmitVisibility();
