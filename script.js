@@ -360,41 +360,30 @@ let currentType = ""; // 'Cash' or 'Card'
 // ---------- UPDATE TOTAL + CHANGE ----------
 function updatePaymentSummary() {
   const grandDisplay = document.getElementById("grandtotal-summary");
-  const splitEl = document.getElementById("split-info");
-  const paymentTypeEl = document.getElementById("payment-type");
-
-  // calculate totals
+  const changeEl = document.getElementById("change-amount");
   const subtotalPaid = order._payment.cash + order._payment.card;
-  let grandTotal = 0;
   if (grandDisplay) {
     const text = grandDisplay.textContent.replace(/[^0-9.]/g, "");
     grandTotal = parseFloat(text) || 0;
   }
-
-  // build display text
-  const cashText =
-    order._payment.cash > 0 ? `$${order._payment.cash.toFixed(2)}` : "$0.00";
-  const cardText =
-    order._payment.card > 0 ? `$${order._payment.card.toFixed(2)}` : "$0.00";
-
-  // update display
-  if (splitEl) splitEl.textContent = `Cash: ${cashText} | Card: ${cardText}`;
-
-  if (paymentTypeEl) {
-    paymentTypeEl.textContent =
-      order._payment.cash && order._payment.card
-        ? "Split"
-        : order._payment.cash
-        ? "Cash"
-        : order._payment.card
-        ? "Card"
-        : "—";
+  const change = subtotalPaid - grandTotal;
+  if (changeEl) {
+    changeEl.textContent =
+      change >= 0
+        ? `Change: $${change.toFixed(2)}`
+        : `Remaining: $${Math.abs(change).toFixed(2)}`;
   }
-
+  updateSplitInfo(
+    order._payment.cash && order._payment.card
+      ? "Split"
+      : order._payment.cash
+      ? "Cash"
+      : order._payment.card
+      ? "Card"
+      : "None"
+  );
   toggleSubmitVisibility();
 }
-
-
 
 // ---------- SHOW PAYPAD ----------
 function openPaypad(type) {
