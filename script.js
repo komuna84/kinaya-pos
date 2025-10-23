@@ -2806,10 +2806,13 @@ function updatePaymentSummary() {
     grandTotal = parseFloat(text) || 0;
   }
 
-  // show total paid
-  if (amountPaidEl) {
-    amountPaidEl.value = subtotalPaid.toFixed(2);
+  // show total paid in the field cleanly
+if (amountPaidEl) {
+  if (document.activeElement !== amountPaidEl) {
+    amountPaidEl.value = subtotalPaid > 0 ? subtotalPaid.toFixed(2) : "";
   }
+}
+
 
   // build display text for split line
   const cashUsed = order._payment.cash > 0;
