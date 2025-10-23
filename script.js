@@ -1,7 +1,3 @@
-Skip to content
-Chat history
-
-You said:
 // ===========================================================
 // Kinaya Rising POS (Stable October 2025) — FINAL BUILD
 // ===========================================================
