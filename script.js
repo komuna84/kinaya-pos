@@ -357,11 +357,10 @@ function toggleSubmitVisibility() {
 let grandTotal = 0;
 let currentType = ""; // 'Cash' or 'Card'
 
-// ---------- UPDATE TOTAL + CHANGE ----------
 function updatePaymentSummary() {
   const grandDisplay = document.getElementById("grandtotal-summary");
-  const amountPaidEl = document.getElementById("amount-paid"); // ✅ field showing total paid
-  const changeEl = document.getElementById("change-amount");   // ✅ field showing change
+  const amountPaidEl = document.getElementById("amount-paid-input");
+  const changeEl = document.getElementById("change-amount");
   const splitEl = document.getElementById("split-info");
   const paymentTypeEl = document.getElementById("payment-type");
 
@@ -372,48 +371,40 @@ function updatePaymentSummary() {
     grandTotal = parseFloat(text) || 0;
   }
 
-  // --- calculate paid amounts ---
+  // --- calculate totals ---
   const cash = order._payment.cash || 0;
   const card = order._payment.card || 0;
   const subtotalPaid = cash + card;
 
-  // --- update amount paid field ---
-  if (amountPaidEl) amountPaidEl.textContent = `$${subtotalPaid.toFixed(2)}`;
+  // --- update "Amount Paid" input ---
+  if (amountPaidEl) amountPaidEl.value = subtotalPaid.toFixed(2);
 
-  // --- update split info ---
-  if (splitEl) {
+  // --- set Payment Type + Split Info ---
+  if (paymentTypeEl) {
     if (cash && card) {
-      splitEl.innerHTML = `<em>Cash:</em> $${cash.toFixed(2)} <em>/ Card:</em> $${card.toFixed(2)}`;
+      paymentTypeEl.textContent = "Split";
+      if (splitEl) splitEl.textContent = "Cash + Card";
     } else if (cash) {
-      splitEl.innerHTML = `<em>Cash:</em> $${cash.toFixed(2)}`;
+      paymentTypeEl.textContent = "Cash";
+      if (splitEl) splitEl.textContent = "Cash";
     } else if (card) {
-      splitEl.innerHTML = `<em>Card:</em> $${card.toFixed(2)}`;
+      paymentTypeEl.textContent = "Card";
+      if (splitEl) splitEl.textContent = "Card";
     } else {
-      splitEl.textContent = "$0.00";
+      paymentTypeEl.textContent = "—";
+      if (splitEl) splitEl.textContent = "None";
     }
   }
 
-  // --- update payment type ---
-  if (paymentTypeEl) {
-    paymentTypeEl.textContent =
-      cash && card
-        ? "Split"
-        : cash
-        ? "Cash"
-        : card
-        ? "Card"
-        : "—";
-  }
-
-  // --- calculate and show change ---
+  // --- calculate and show change/remaining ---
   if (changeEl) {
     const difference = subtotalPaid - grandTotal;
     if (subtotalPaid === 0) {
       changeEl.textContent = "$0.00";
     } else if (difference >= 0) {
-      changeEl.textContent = `$${difference.toFixed(2)}`; // ✅ change
+      changeEl.textContent = `Change: $${difference.toFixed(2)}`;
     } else {
-      changeEl.textContent = `-$${Math.abs(difference).toFixed(2)}`; // ✅ remaining
+      changeEl.textContent = `Remaining: $${Math.abs(difference).toFixed(2)}`;
     }
   }
 
@@ -451,7 +442,7 @@ function commitPayment() {
   if (currentType === "Cash") order._payment.cash = value;
   if (currentType === "Card") order._payment.card = value;
   overlay.classList.add("hidden");
-  updatePaymentSummary();
+  updatePaymentSummary(); // ✅ instantly updates amount paid + change
 }
 
 buttons.forEach(btn => {
