@@ -328,6 +328,30 @@ async function submitSale() {
     console.error(err);
   }
 }
+// ===========================================================
+// BACKWARD COMPATIBILITY FIX — updatePaymentUI + toggleSubmitVisibility
+// ===========================================================
+function updatePaymentUI(reset = false) {
+  // optional reset
+  if (reset) order._payment = { cash: 0, card: 0 };
+  // update change and totals
+  updatePaymentSummary();
+}
+
+function toggleSubmitVisibility() {
+  const submitRow = document.getElementById("submit-row");
+  const emailInput = document.getElementById("customer-email");
+  if (!submitRow) return;
+
+  const subtotalPaid = order._payment.cash + order._payment.card;
+  const hasEmail = emailInput && emailInput.value.trim().length > 0;
+  const grandDisplay = document.getElementById("grandtotal-summary");
+  const text = grandDisplay ? grandDisplay.textContent.replace(/[^0-9.]/g, "") : "0";
+  const grandTotal = parseFloat(text) || 0;
+
+  const canSubmit = order._order.length > 0 && subtotalPaid >= grandTotal && hasEmail;
+  submitRow.style.display = canSubmit ? "block" : "none";
+}
 
 // ===========================================================
 // SPLIT PAYMENT + PAYPAD (UPGRADED)
