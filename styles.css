@@ -1587,37 +1587,61 @@ input:checked + .slider:before {
 }
 
 /* ---------- Overlay Header ---------- */
-.overlay-header {
-  position: sticky;
-  top: 0;
+#product-overlay {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  background: rgba(10, 20, 25, 0.97);
+  backdrop-filter: blur(12px);
+}
+
+.overlay-header {
+  flex-shrink: 0;
+  padding: 0.8rem 1rem;
+  display: flex;
   justify-content: space-between;
-  gap: 12px;
-  padding: 12px 14px;
-  border-bottom: 1px solid rgba(167,225,238,0.25);
-  background: linear-gradient(to bottom, rgba(15,25,25,0.9), rgba(15,25,25,0.6));
-  backdrop-filter: blur(8px);
+  align-items: center;
+  background: linear-gradient(180deg, rgba(0, 10, 20, 0.9), rgba(0, 0, 0, 0.3));
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
   z-index: 10;
 }
 
-.return-pill {
-  font-weight: 800;
-  color: #fff;
-  background: #e63946;
-  padding: 6px 10px;
-  border-radius: 999px;
-  letter-spacing: 0.5px;
-  box-shadow: 0 0 10px rgba(230,57,70,0.5);
+#overlay-grid {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 1rem;
 }
-.return-pill.hidden { display: none; }
 
-.overlay-close {
-  background: transparent;
-  border: 1px solid rgba(167,225,238,0.35);
-  color: #a7e1ee;
-  padding: 6px 10px;
-  border-radius: 10px;
+.menu-item {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 0.6rem;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.menu-item img {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.menu-item:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 12px rgba(167, 225, 238, 0.4);
+}
+
+@media (max-width: 768px) {
+  #overlay-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    padding: 0.6rem;
+    gap: 0.8rem;
+  }
 }
 
 /* ---------- Sticky Subtotal ---------- */
@@ -1700,7 +1724,3 @@ input:checked + .slider:before {
     padding: 1rem 0;
   }
 }
-
-
-
-
