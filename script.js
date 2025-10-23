@@ -365,45 +365,45 @@ function updatePaymentUI(reset = false) {
   toggleSubmitVisibility();
 }
 
+// ✅ Simplified visibility logic — only cares about actual text in email field
 function toggleSubmitVisibility() {
   const submitRow = document.getElementById("submit-row");
   const emailInput = document.getElementById("customer-email");
-  const emailToggle = document.getElementById("email-toggle");
   if (!submitRow) return;
 
-  const emailValue = (emailInput && emailInput.value.trim().toLowerCase()) || "";
+  const emailValue = (emailInput && emailInput.value.trim()) || "";
   const hasEmail = emailValue.length > 0;
-  const validNoEmail = ["no", "n/a", "none", "no receipt", "no email"].includes(emailValue);
-  const toggleOn = emailToggle && emailToggle.checked;
 
   const canSubmit =
     order._order.length > 0 &&
     amountPaid >= grandTotal &&
-    (hasEmail || validNoEmail || toggleOn);
+    hasEmail;
 
   submitRow.style.display = canSubmit ? "block" : "none";
 }
 
-// Email + toggle sync
+// ✅ Newsletter toggle (does NOT interfere with submit button)
 const emailToggle = document.getElementById("email-toggle");
-const emailInput = document.getElementById("customer-email");
-if (emailToggle && emailInput) {
+if (emailToggle) {
   emailToggle.addEventListener("change", () => {
-    if (!emailToggle.checked) {
-      emailInput.value = "no receipt";
-      emailInput.style.background = "rgba(255,255,255,0.05)";
-      emailInput.style.color = "#aaa";
+    const label = document.getElementById("newsletter-label");
+    if (emailToggle.checked) {
+      label.textContent = "✅ Subscribed to newsletter";
+      label.style.color = "#A7E1EE";
     } else {
-      emailInput.value = "";
-      emailInput.style.background = "transparent";
-      emailInput.style.color = "#A7E1EE";
+      label.textContent = "Newsletter opt-out";
+      label.style.color = "#aaa";
     }
-    toggleSubmitVisibility();
   });
+}
+
+// ✅ Email field controls visibility
+const emailInput = document.getElementById("customer-email");
+if (emailInput) {
   emailInput.addEventListener("input", toggleSubmitVisibility);
 }
 
-// Amount Paid input live update
+// ✅ Amount paid field live updates
 const amountPaidInput = document.getElementById("amount-paid-input");
 if (amountPaidInput) {
   amountPaidInput.addEventListener("input", () => {
@@ -412,6 +412,7 @@ if (amountPaidInput) {
     updatePaymentUI();
   });
 }
+
 
 // ===========================================================
 // PAYPAD
