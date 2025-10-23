@@ -57,12 +57,15 @@ header h1 {
 
 /* ---------- TABLE ---------- */
 .inventory-table-wrapper {
+  max-height: 65vh;             /* 👈 sets the visible height of your table */
+  overflow-y: auto;             /* 👈 allows vertical scroll inside this box */
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   border-radius: 12px;
   box-shadow: 0 0 12px rgba(167,225,238,0.1);
   background: rgba(255,255,255,0.02);
-}
+}  
+
 table.inventory-table {
   width: 100%;
   border-collapse: collapse;
@@ -354,13 +357,18 @@ td img:hover {
     </div>
 
     <div class="field-group">
+      <label>Unit Cost ($)</label>
+      <input type="number" id="unit-cost" step="0.01" placeholder="0.00">
+    </div>
+    
+    <div class="field-group">
       <label>Price ($)</label>
       <input type="number" id="price" step="0.01" placeholder="0.00">
     </div>
 
     <div class="field-group">
-      <label>Unit Cost ($)</label>
-      <input type="number" id="unit-cost" step="0.01" placeholder="0.00">
+    <label>Profit Margin ($)</label>
+    <input type="number" id="profit-margin" step="0.01" placeholder="0.00" readonly>
     </div>
 
     <div class="field-group">
