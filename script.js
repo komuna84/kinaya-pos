@@ -330,237 +330,101 @@ async function submitSale() {
 }
 
 // ===========================================================
-// PAYMENT + UI INTERACTIONS — FIXED FOR SUBMIT + SPLIT + NEWSLETTER
+// SPLIT PAYMENT + PAYPAD (UPGRADED)
 // ===========================================================
-let amountPaid = 0;
-let paymentType = "";
 let grandTotal = 0;
+let currentType = ""; // 'Cash' or 'Card'
 
-// ---------- UPDATE PAYMENT UI ----------
-function updatePaymentUI(reset = false) {
-  const overlay = document.getElementById("payment-overlay");
-  const amountDisplay = document.getElementById("amount-paid");
-  const amountPaidInput = document.getElementById("amount-paid-input");
+// ---------- UPDATE TOTAL + CHANGE ----------
+function updatePaymentSummary() {
   const grandDisplay = document.getElementById("grandtotal-summary");
-
-  if (reset) {
-    amountPaid = 0;
-    paymentType = "";
-    if (overlay) overlay.classList.add("hidden");
-  }
-
+  const changeEl = document.getElementById("change-amount");
+  const subtotalPaid = order._payment.cash + order._payment.card;
   if (grandDisplay) {
     const text = grandDisplay.textContent.replace(/[^0-9.]/g, "");
     grandTotal = parseFloat(text) || 0;
   }
-
-  if (amountPaidInput) {
-    amountPaid = parseFloat(amountPaidInput.value) || 0;
+  const change = subtotalPaid - grandTotal;
+  if (changeEl) {
+    changeEl.textContent =
+      change >= 0
+        ? `Change: $${change.toFixed(2)}`
+        : `Remaining: $${Math.abs(change).toFixed(2)}`;
   }
-
-  if (amountDisplay) {
-    amountDisplay.textContent = `$${amountPaid.toFixed(2)}`;
-  }
-
+  updateSplitInfo(
+    order._payment.cash && order._payment.card
+      ? "Split"
+      : order._payment.cash
+      ? "Cash"
+      : order._payment.card
+      ? "Card"
+      : "None"
+  );
   toggleSubmitVisibility();
 }
 
-// ---------- CONTROL SUBMIT VISIBILITY ----------
-function toggleSubmitVisibility() {
-  const submitRow = document.getElementById("submit-row");
-  const emailInput = document.getElementById("customer-email");
-  if (!submitRow) return;
-
-  const hasEmail = emailInput && emailInput.value.trim().length > 0;
-  const canSubmit =
-    order._order.length > 0 &&
-    amountPaid >= grandTotal &&
-    hasEmail;
-
-  submitRow.style.display = canSubmit ? "block" : "none";
-}
-
-// ---------- SPLIT PAYMENT TRACKING ----------
-const splitInfoEl = document.getElementById("split-info");
-const paymentTypeEl = document.getElementById("payment-type");
-
-function updateSplitInfo(type) {
-  if (!splitInfoEl || !paymentTypeEl) return;
-
-  // update labels
-  paymentTypeEl.textContent = type || "—";
-  if (type === "Split") {
-    splitInfoEl.textContent = "Cash + Card";
-  } else if (type === "Cash" || type === "Card") {
-    splitInfoEl.textContent = type;
-  } else {
-    splitInfoEl.textContent = "None";
-  }
-}
-
-// ---------- EMAIL FIELD (TRIGGERS SUBMIT BUTTON) ----------
-const emailInput = document.getElementById("customer-email");
-if (emailInput) {
-  emailInput.addEventListener("input", toggleSubmitVisibility);
-}
-
-// ---------- AMOUNT PAID FIELD ----------
-const amountPaidInput = document.getElementById("amount-paid-input");
-if (amountPaidInput) {
-  amountPaidInput.addEventListener("input", () => {
-    amountPaid = parseFloat(amountPaidInput.value) || 0;
-    updatePaymentUI();
-  });
-}
-
-// ---------- PAYMENT TYPE BUTTONS ----------
-const cashBtn = document.getElementById("cash-btn");
-const cardBtn = document.getElementById("card-btn");
-const overlay = document.getElementById("payment-overlay");
-
-if (cashBtn) {
-  cashBtn.addEventListener("click", () => {
-    if (paymentType === "Card") {
-      paymentType = "Split";
-    } else {
-      paymentType = "Cash";
-    }
-    updateSplitInfo(paymentType);
-    if (overlay) overlay.classList.remove("hidden");
-  });
-}
-
-if (cardBtn) {
-  cardBtn.addEventListener("click", () => {
-    if (paymentType === "Cash") {
-      paymentType = "Split";
-    } else {
-      paymentType = "Card";
-    }
-    updateSplitInfo(paymentType);
-    if (overlay) overlay.classList.remove("hidden");
-  });
-}
-
-// ---------- NEWSLETTER TOGGLE ----------
-const emailToggle = document.getElementById("email-toggle");
-if (emailToggle) {
-  emailToggle.addEventListener("change", () => {
-    const label = document.getElementById("newsletter-label");
-    if (label) {
-      if (emailToggle.checked) {
-        label.textContent = "✅ Subscribed to newsletter";
-        label.style.color = "#A7E1EE";
-      } else {
-        label.textContent = "Newsletter opt-out";
-        label.style.color = "#aaa";
-      }
-    }
-  });
-}
-
-
-
-// ===========================================================
-// PAYPAD
-// ===========================================================
-(function setupPaypad() {
+// ---------- SHOW PAYPAD ----------
+function openPaypad(type) {
+  currentType = type;
   const overlay = document.getElementById("payment-overlay");
   const displayEl = document.getElementById("paypad-display");
-  const buttons = document.querySelectorAll(".paypad-btn");
-  const closeBtn = document.getElementById("close-paypad-btn");
-  const changeEl = document.getElementById("change-amount");
-
-  let buffer = "";
-
-  function formatCurrency(val) {
-    return `$${(parseFloat(val) || 0).toFixed(2)}`;
-  }
-  function renderDisplay() {
-    const num = parseFloat(buffer || "0") / 100;
-    displayEl.textContent = formatCurrency(num);
-  }
-  function commitPayment() {
-    const value = parseFloat(buffer || "0") / 100;
-    amountPaidInput.value = value.toFixed(2);
-    updatePaymentUI();
-    overlay.classList.add("hidden");
-  }
-
-  buttons.forEach(btn => {
-    btn.addEventListener("click", () => {
-      const val = btn.dataset.value;
-      if (val === "C") buffer = "";
-      else if (val === "←") buffer = buffer.slice(0, -1);
-      else if (val === "Enter") return commitPayment();
-      else buffer += val;
-      renderDisplay();
-    });
-  });
-
-  if (closeBtn) closeBtn.addEventListener("click", () => overlay.classList.add("hidden"));
+  overlay.classList.remove("hidden");
+  let existing = order._payment[type.toLowerCase()] || 0;
+  buffer = (existing * 100).toString(); // preload cents
   renderDisplay();
-})();
+  displayEl.dataset.mode = type;
+}
 
-// ===========================================================
-// RETURN MODE + CLEAR ORDER
-// ===========================================================
-(function setupInteractionFixes() {
-  const header = document.querySelector("header h1");
-  const returnBtn = document.getElementById("toggle-return");
-  const clearBtn = document.getElementById("clear-order-btn");
-  const cashBtn = document.getElementById("cash-btn");
-  const cardBtn = document.getElementById("card-btn");
-  const overlay = document.getElementById("payment-overlay");
+// ---------- PAYPAD CORE ----------
+const overlay = document.getElementById("payment-overlay");
+const displayEl = document.getElementById("paypad-display");
+const buttons = document.querySelectorAll(".paypad-btn");
+const closeBtn = document.getElementById("close-paypad-btn");
+let buffer = "";
 
-  // Return banner
-  function updateReturnBanner() {
-    let banner = document.getElementById("return-banner");
-    if (!banner) {
-      banner = document.createElement("div");
-      banner.id = "return-banner";
-      banner.textContent = "RETURN MODE ACTIVE";
-      banner.style.cssText = `
-        text-align:center;font-family:"Audiowide",sans-serif;
-        color:#e63946;font-weight:bold;margin-top:0.3rem;
-        letter-spacing:1px;text-shadow:0 0 10px rgba(230,57,70,0.6);
-      `;
-      header?.insertAdjacentElement("afterend", banner);
-    }
-    banner.style.display = isReturnMode ? "block" : "none";
-  }
+function formatCurrency(val) {
+  return `$${(parseFloat(val) || 0).toFixed(2)}`;
+}
+function renderDisplay() {
+  const num = parseFloat(buffer || "0") / 100;
+  displayEl.textContent = formatCurrency(num);
+}
+function commitPayment() {
+  const value = parseFloat(buffer || "0") / 100;
+  if (currentType === "Cash") order._payment.cash = value;
+  if (currentType === "Card") order._payment.card = value;
+  overlay.classList.add("hidden");
+  updatePaymentSummary();
+}
 
-  if (returnBtn) {
-    returnBtn.addEventListener("click", () => {
-      isReturnMode = !isReturnMode;
-      returnBtn.classList.toggle("active", isReturnMode);
-      updateReturnBanner();
-    });
-    updateReturnBanner();
-  }
+buttons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    const val = btn.dataset.value;
+    if (val === "C") buffer = "";
+    else if (val === "←") buffer = buffer.slice(0, -1);
+    else if (val === "Enter") return commitPayment();
+    else buffer += val;
+    renderDisplay();
+  });
+});
 
-  if (clearBtn) {
-    clearBtn.addEventListener("click", e => {
-      if (!confirm("⚠️ This will clear the entire order. Continue?")) {
-        e.preventDefault();
-        return;
-      }
-      order._order = [];
-      Ui.receiptDetails(order);
-      Ui.updateTotals(order);
-      amountPaid = 0;
-      updatePaymentUI(true);
-      toggleSubmitVisibility();
-    });
-  }
+if (closeBtn) closeBtn.addEventListener("click", () => overlay.classList.add("hidden"));
 
-  if (cashBtn) cashBtn.addEventListener("click", () => { updateSplitInfo("Cash"); overlay.classList.remove("hidden"); });
-  if (cardBtn) cardBtn.addEventListener("click", () => { updateSplitInfo("Card"); overlay.classList.remove("hidden"); });
+// ---------- PAYMENT BUTTONS ----------
+const cashBtn = document.getElementById("cash-btn");
+const cardBtn = document.getElementById("card-btn");
 
-  document.addEventListener("submit", e => e.preventDefault());
-  updatePaymentUI(true);
-  toggleSubmitVisibility();
-})();
+if (cashBtn)
+  cashBtn.addEventListener("click", () => openPaypad("Cash"));
+if (cardBtn)
+  cardBtn.addEventListener("click", () => openPaypad("Card"));
+
+// ---------- RESET + INITIALIZE ----------
+function resetPayments() {
+  order._payment = { cash: 0, card: 0 };
+  updatePaymentSummary();
+}
+resetPayments();
 
 // ===========================================================
 // MENU ITEM CLICK HANDLER
