@@ -351,7 +351,6 @@ function updatePaymentUI(reset = false) {
     grandTotal = parseFloat(text) || 0;
   }
 
-  // Sync the amountPaid variable with the input value
   if (amountPaidInput) {
     const val = parseFloat(amountPaidInput.value) || 0;
     amountPaid = val;
@@ -364,9 +363,10 @@ function updatePaymentUI(reset = false) {
   toggleSubmitVisibility();
 }
 
+
 function toggleSubmitVisibility() {
   const submitRow = document.getElementById("submit-row");
-  const emailInput = document.getElementById("email-input");
+  const emailInput = document.getElementById("customer-email");
   const emailToggle = document.getElementById("email-toggle");
   if (!submitRow) return;
 
@@ -381,6 +381,27 @@ function toggleSubmitVisibility() {
     (hasEmail || validNoEmail || toggleOn);
 
   submitRow.style.display = canSubmit ? "block" : "none";
+}
+
+const emailToggle = document.getElementById("email-toggle");
+const emailInput = document.getElementById("customer-email");
+
+if (emailToggle && emailInput) {
+  emailToggle.addEventListener("change", () => {
+    if (!emailToggle.checked) {
+      emailInput.value = "no receipt";
+      emailInput.style.background = "rgba(255,255,255,0.05)";
+      emailInput.style.color = "#aaa";
+    } else {
+      emailInput.value = "";
+      emailInput.style.background = "transparent";
+      emailInput.style.color = "#A7E1EE";
+    }
+    toggleSubmitVisibility();
+  });
+
+  // Also react to typing in the email field
+  emailInput.addEventListener("input", toggleSubmitVisibility);
 }
 
 // ===========================================================
