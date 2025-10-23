@@ -516,26 +516,23 @@ window.addEventListener("load", () => {
       return; // stop after processing menu click
     }
 
-    if (e.target.closest("#clear-order-btn")) {
+    // --- Handle clear order button ---
+    // --- Handle clear order button ---
+if (e.target.closest("#clear-order-btn")) {
   clearOrder();
   return;
 }
 
 // --- Handle return mode toggle ---
 if (e.target.closest("#toggle-return")) {
-  // Flip global flag
   isReturnMode = !isReturnMode;
-
-  // Get the button
   const btn = document.getElementById("toggle-return");
-  const icon = btn ? btn.querySelector("i") : null;
 
-  // Visual + logical feedback
   if (btn) {
     btn.classList.toggle("active", isReturnMode);
-    if (icon) {
-      icon.style.color = isReturnMode ? "#e63946" : "#fff";
-    }
+    const icon = btn.querySelector("i");
+
+
       // Optional banner for clarity
       const banner = document.getElementById("return-banner");
       if (banner) banner.style.display = isReturnMode ? "block" : "none";
@@ -558,4 +555,3 @@ function clearOrder() {
   toggleSubmitVisibility();
   console.log("🧹 Order cleared");
 }
-
