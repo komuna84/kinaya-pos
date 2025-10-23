@@ -519,36 +519,28 @@ window.addEventListener("load", () => {
 
     // --- Handle clear order button ---
     if (e.target.closest("#clear-order-btn")) {
-  clearOrder();
-  return;
-}
+      clearOrder();
+      return;
+    }
 
-// --- Handle return mode toggle ---
-if (e.target.closest("#toggle-return")) {
-  isReturnMode = !isReturnMode;
+    // --- Handle return mode toggle ---
+    if (e.target.closest("#toggle-return")) {
+      isReturnMode = !isReturnMode;
 
-  const btn = document.getElementById("toggle-return");
-  const icon = btn ? btn.querySelector("i") : null;
+      const btn = document.getElementById("toggle-return");
+      const icon = btn ? btn.querySelector("i") : null;
 
-  if (btn) {
-    btn.classList.toggle("active", isReturnMode);
-    if (icon) icon.style.color = isReturnMode ? "#e63946" : "#fff";
-    btn.title = isReturnMode ? "Return Mode: ON" : "Return Mode: OFF";
-  }
+      if (btn) {
+        btn.classList.toggle("active", isReturnMode);
+        if (icon) icon.style.color = isReturnMode ? "#e63946" : "#fff";
+        btn.title = isReturnMode ? "Return Mode: ON" : "Return Mode: OFF";
+      }
 
-  // 🌟 Show or hide "Return Mode Active" in header
-  const headerTitle = document.querySelector("header h1");
-  if (headerTitle) {
-    headerTitle.textContent = isReturnMode ? "Return Mode Active" : "Purchase Order";
-    headerTitle.style.color = isReturnMode ? "#ff4f4f" : "#A7E1EE";
-    headerTitle.style.textShadow = isReturnMode
-      ? "0 0 10px rgba(255, 79, 79, 0.8), 0 0 20px rgba(255, 79, 79, 0.6)"
-      : "0 0 10px rgba(167, 225, 238, 0.8), 0 0 20px rgba(167, 225, 238, 0.6)";
-  }
-
-  console.log(`↩️ Return mode ${isReturnMode ? "ENABLED" : "DISABLED"}`);
-  return;
-}
+      console.log(`↩️ Return mode ${isReturnMode ? "ENABLED" : "DISABLED"}`);
+      return;
+    }
+  });
+});
 
 
 // ===========================================================
