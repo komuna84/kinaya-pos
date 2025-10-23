@@ -571,36 +571,6 @@ document.addEventListener("click", e => {
   order.addOrderLine(1, data, isReturnMode);
 });
 
-my paypad isn't functioning properly. I need the paypad to update amount paid. but I want to ssupport split payment so cash and credit work indepentaly. I also want to be able to open the cal and adjust previously entered text. 
-
-once the amouunt paid is entered it needs to cal culate change.. 
-
-the split payment will record 20 cash 10 card or just the one. doess that make sense. Can we do thiss without breaking any of my other functionalitiees. RN it's almost perfect
-ChatGPT said:
-Got it — yes, that makes perfect sense, and we can absolutely do this cleanly without breaking any of your other existing functionality.
-
-Here’s the plan to fix and extend the Paypad system while preserving your current POS structure:
-
-✅ What We’ll Add / Fix
-Split Payments:
-Track both cashPaid and cardPaid separately inside your existing order._payment object.
-
-If the user taps Cash, the paypad records into cashPaid.
-
-If the user taps Card, the paypad records into cardPaid.
-
-If both are used, we’ll show “Split (Cash + Card)” and calculate the combined total.
-
-Edit Existing Amounts:
-The paypad overlay will preload with the current value for whichever payment type you’re editing, so you can backspace, re-enter, and commit again.
-
-Auto-Change Calculation:
-Once total paid ≥ grand total, the app shows change due automatically.
-
-No Breakage:
-We’ll leave your totals, submit-visibility logic, and CSV submission untouched — only swapping out the paypad logic and payment update behavior.
-
-💡 Here’s the fixed / upgraded section to replace your current PAYPAD and payment tracking block:
 // ===========================================================
 // SPLIT PAYMENT + PAYPAD (UPGRADED)
 // ===========================================================
