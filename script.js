@@ -344,14 +344,19 @@ function toggleSubmitVisibility() {
   const grandDisplay = document.getElementById("grandtotal-summary");
 
   const hasOrder = order._order.length > 0;
-  const hasEmail = emailInput && emailInput.value.trim().length > 0;
+  const emailValue = (emailInput && emailInput.value.trim().toLowerCase()) || "";
+
+  // ✅ Allow email or any of these "no receipt" keywords
+  const validEmail =
+    emailValue.length > 0 &&
+    (emailValue.includes("@") ||
+      ["no", "none", "n/a", "no receipt", "no email"].includes(emailValue));
 
   const subtotalPaid = (order._payment.cash || 0) + (order._payment.card || 0);
   const grandText = grandDisplay ? grandDisplay.textContent.replace(/[^0-9.]/g, "") : "0";
   const grandTotal = parseFloat(grandText) || 0;
 
-  // ✅ Show submit if we have order + email + enough payment
-  const canSubmit = hasOrder && hasEmail && subtotalPaid >= grandTotal;
+  const canSubmit = hasOrder && validEmail && subtotalPaid >= grandTotal;
 
   submitRow.style.display = canSubmit ? "block" : "none";
 }
