@@ -104,9 +104,7 @@ class Order {
     Ui.receiptDetails(this);
     Ui.updateTotals(this);
     updatePaymentUI();
-    ();
-  }
-}
+  
 
 // ===========================================================
 // UTILITIES
