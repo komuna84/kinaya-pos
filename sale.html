@@ -279,16 +279,21 @@
 </button>
 
 <!-- Fullscreen Product Overlay -->
+<!-- Fullscreen Product Overlay -->
 <div id="product-overlay" class="product-overlay hidden" aria-hidden="true">
   <div class="overlay-header">
-    <span id="overlay-return-pill" class="return-pill hidden">🔴 RETURN MODE ACTIVE</span>
+    <button id="toggle-return-overlay" class="return-toggle-overlay">
+      <i class="fa-solid fa-rotate-left"></i> Return
+    </button>
     <span id="overlay-subtotal-summary" class="overlay-subtotal">$0.00</span>
     <button id="close-product-overlay" class="overlay-close" aria-label="Close">
       <i class="fa-solid fa-xmark"></i>
     </button>
   </div>
+
   <div id="overlay-grid" class="overlay-grid"></div>
 </div>
+
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
@@ -296,18 +301,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const closeBtn  = document.getElementById("close-product-overlay");
   const overlay   = document.getElementById("product-overlay");
   const overlayGrid = document.getElementById("overlay-grid");
-  const returnPill = document.getElementById("overlay-return-pill");
-
-  // We’ll move the existing #menu node in and out (preserves listeners)
+  const overlayReturnBtn = document.getElementById("toggle-return-overlay");
   const menu = document.getElementById("menu");
   const originalMenuParent = menu?.parentElement;
-
-  function syncReturnPill() {
-    // If your page banner exists, mirror its visibility
-    const banner = document.getElementById("return-mode-banner");
-    const isActive = banner && banner.style.display !== "none";
-    returnPill.classList.toggle("hidden", !isActive);
-  }
 
   function lockScroll(lock) {
     document.body.style.overflow = lock ? "hidden" : "";
@@ -315,53 +311,48 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function openOverlay() {
     if (!menu) return;
-    overlayGrid.appendChild(menu);         // move menu into overlay
+    overlayGrid.appendChild(menu);
     overlay.classList.remove("hidden");
-    // allow reflow before activating transition
     requestAnimationFrame(() => overlay.classList.add("active"));
     lockScroll(true);
-    syncReturnPill();
   }
 
   function closeOverlay() {
-    if (originalMenuParent && menu) originalMenuParent.appendChild(menu); // move back
+    if (originalMenuParent && menu) originalMenuParent.appendChild(menu);
     overlay.classList.remove("active");
     lockScroll(false);
-    // hide after animation
     setTimeout(() => overlay.classList.add("hidden"), 300);
   }
 
-  // Open button (mobile)
-  if (openBtn) openBtn.addEventListener("click", openOverlay);
-  if (closeBtn) closeBtn.addEventListener("click", closeOverlay);
+  openBtn?.addEventListener("click", openOverlay);
+  closeBtn?.addEventListener("click", closeOverlay);
 
-  // If your existing "Toggle Return Mode" button is used, mirror state changes
-  document.body.addEventListener("click", (e) => {
-    const toggleBtn = e.target.closest("#toggle-return");
-    if (!toggleBtn) return;
-    // Delay to let your existing logic change the banner
-    setTimeout(syncReturnPill, 0);
+  // Hide the bottom product section on small screens
+  const productSection = document.querySelector("section.menu-payment");
+  if (window.innerWidth <= 768 && productSection) {
+    productSection.style.display = "none";
+  }
+
+  // Return toggle inside overlay
+  overlayReturnBtn?.addEventListener("click", () => {
+    isReturnMode = !isReturnMode;
+    overlayReturnBtn.classList.toggle("active", isReturnMode);
+    overlayReturnBtn.innerHTML = isReturnMode
+      ? '<i class="fa-solid fa-rotate-left"></i> Return: ON'
+      : '<i class="fa-solid fa-rotate-left"></i> Return';
+    console.log(`↩️ Return mode ${isReturnMode ? "ENABLED" : "DISABLED"}`);
   });
 
-  // If someone taps outside content, close (optional)
+  // Close overlay by tapping outside
   overlay.addEventListener("click", (e) => {
-    const inside = e.target.closest(".overlay-header, #overlay-grid");
-    if (!inside) closeOverlay();
+    if (!e.target.closest(".overlay-header, #overlay-grid")) closeOverlay();
   });
 
-  // Escape key to close
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && !overlay.classList.contains("hidden")) closeOverlay();
   });
 });
-figure.innerHTML = `
-  <img src="${item.image}" alt="${item.description}">
-  <div class="info">
-    <figcaption>${item.description}</figcaption>
-    <figcaption>${item.sku}</figcaption>
-    <figcaption>${Utilities.convertFloatToString(item.price)}</figcaption>
-  </div>
-`;
+
 
 </script>
 
