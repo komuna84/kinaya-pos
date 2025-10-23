@@ -338,16 +338,21 @@ function updatePaymentUI(reset = false) {
 
 function toggleSubmitVisibility() {
   const submitRow = document.getElementById("submit-row");
-  const emailInput = document.getElementById("customer-email");
   if (!submitRow) return;
 
-  const subtotalPaid = order._payment.cash + order._payment.card;
-  const hasEmail = emailInput && emailInput.value.trim().length > 0;
+  const emailInput = document.getElementById("customer-email");
   const grandDisplay = document.getElementById("grandtotal-summary");
-  const text = grandDisplay ? grandDisplay.textContent.replace(/[^0-9.]/g, "") : "0";
-  const grandTotal = parseFloat(text) || 0;
 
-  const canSubmit = order._order.length > 0 && subtotalPaid >= grandTotal && hasEmail;
+  const hasOrder = order._order.length > 0;
+  const hasEmail = emailInput && emailInput.value.trim().length > 0;
+
+  const subtotalPaid = (order._payment.cash || 0) + (order._payment.card || 0);
+  const grandText = grandDisplay ? grandDisplay.textContent.replace(/[^0-9.]/g, "") : "0";
+  const grandTotal = parseFloat(grandText) || 0;
+
+  // ✅ Show submit if we have order + email + enough payment
+  const canSubmit = hasOrder && hasEmail && subtotalPaid >= grandTotal;
+
   submitRow.style.display = canSubmit ? "block" : "none";
 }
 
