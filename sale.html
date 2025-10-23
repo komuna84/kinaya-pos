@@ -288,15 +288,16 @@
 </div>
 
 
+<script>
 // ===========================================================
 // Overlay + Return Mode Sync + Manual Close
 // ===========================================================
 document.addEventListener("DOMContentLoaded", () => {
-  const openBtn   = document.getElementById("open-product-overlay");
-  const closeBtn  = document.getElementById("close-product-overlay");
-  const overlay   = document.getElementById("product-overlay");
+  const openBtn = document.getElementById("open-product-overlay");
+  const closeBtn = document.getElementById("close-product-overlay");
+  const overlay = document.getElementById("product-overlay");
   const overlayGrid = document.getElementById("overlay-grid");
-  const overlayReturnBtn = document.getElementById("toggle-return-overlay");
+  const overlayReturnBtn = document.querySelector(".overlay-header #toggle-return");
   const headerBanner = document.getElementById("return-mode-banner");
   const menu = document.getElementById("menu");
   const originalMenuParent = menu?.parentElement;
@@ -379,12 +380,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // === Debug Helper ===
   function addProductToReceipt(product) {
     console.log("Product added:", product.querySelector("figcaption")?.textContent);
   }
 });
 </script>
-
 </body>
 </html>
