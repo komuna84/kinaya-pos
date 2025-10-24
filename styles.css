@@ -130,6 +130,33 @@ body.login-body {
   font-weight: 700;
 }
 
+/* ============================================================
+   🌿 GLOBAL HEADER — Shared across all POS pages
+   ============================================================ */
+header {
+  position: relative;
+  text-align: center;
+  padding: 1.2rem 0 1rem;
+  background: linear-gradient(180deg, rgba(10,25,30,0.6), transparent);
+  border-bottom: 1px solid rgba(167,225,238,0.15);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+}
+
+header h1 {
+  font-family: "Audiowide", sans-serif;
+  font-size: 1.8rem;
+  color: #A7E1EE;
+  text-shadow: 0 0 12px rgba(167,225,238,0.4);
+  letter-spacing: 1px;
+  margin: 0;
+}
+
+/* Optional: small subtitle under h1 */
+header p.subtitle {
+  font-size: 0.95rem;
+  color: rgba(167,225,238,0.7);
+  margin-top: 0.3rem;
+}
 
 /* =================== SALE =================== */
 /* =================== BASE =================== */
@@ -1662,49 +1689,35 @@ input:checked + .slider:before {
   box-sizing: border-box;
 }
 
-/* ---------- Mobile Full-Page Receipt ---------- */
-@media (max-width: 768px) {
-  .receipt {
-    position: fixed;
-    inset: 0;
-    background: rgba(10, 20, 20, 0.98);
-    backdrop-filter: blur(8px);
-    overflow-y: auto;
-    z-index: 9999;
-    padding: 1.2rem;
-  }
+/* =========================================================
+   🌿 RESPONSIVE RECEIPT + PRODUCT OVERLAY FIX
+   ========================================================= */
 
-  .receipt table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  .receipt td,
-  .receipt th {
-    padding: 0.6rem;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    color: #A7E1EE;
-    font-size: 0.9rem;
-  }
-
-  .receipt-footer {
-    text-align: center;
-    color: #bfffcf;
-    padding: 1rem 0;
-  }
+/* ---------- Desktop Default ---------- */
+.receipt {
+  background: #fff;
+  color: #000;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 0 15px rgba(0,0,0,0.15);
+  overflow: hidden;
 }
-/* ---------- Mobile Full-Page Receipt ---------- */
+
+/* ---------- Mobile: Full Receipt (no scroll, no overlay) ---------- */
 @media (max-width: 768px) {
   .receipt {
-    position: fixed;
-    inset: 0;
-    background: white;
-    backdrop-filter: blur(8px);
-    overflow-y: auto;
-    z-index: 9999;
-    padding: 1.2rem;
+    position: static !important;
+    background: #fff;
+    color: #000;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 1rem;
+    overflow: visible !important; /* ✅ no scroll */
+    height: auto !important;
   }
 
+  /* Simplify table and text */
   .receipt table {
     width: 100%;
     border-collapse: collapse;
@@ -1712,24 +1725,37 @@ input:checked + .slider:before {
 
   .receipt td,
   .receipt th {
-    padding: 0.6rem;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    color: black;
+    padding: 0.65rem;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
     font-size: 0.9rem;
+    color: #000;
   }
 
   .receipt-footer {
     text-align: center;
-    color: #bfffcf;
+    color: #111;
     padding: 1rem 0;
+    font-weight: 600;
+  }
+
+  /* ✅ Hide product line items, keep summary visible */
+  #receipt-details tr {
+    display: none;
+  }
+
+  #summary-section tr {
+    display: table-row !important;
+  }
+
+  #summary-section td {
+    font-size: 1.1rem;
+    padding: 0.75rem;
   }
 }
 
 /* =========================================================
-   🌿 FIX: PRODUCT OVERLAY + RETURN TOGGLE + MOBILE RECEIPT
+   🌿 PRODUCT OVERLAY + RETURN TOGGLE FIX
    ========================================================= */
-
-/* --- Make Product Overlay Fullscreen and Consistent --- */
 .product-overlay {
   position: fixed;
   inset: 0;
@@ -1744,17 +1770,15 @@ input:checked + .slider:before {
   opacity: 0;
   transition: transform 0.35s ease, opacity 0.25s ease;
 }
-
 .product-overlay.active {
   transform: translateY(0);
   opacity: 1;
 }
-
 .product-overlay.hidden {
   display: none !important;
 }
 
-/* --- Overlay Header: Return Toggle + Close Button --- */
+/* Overlay Header */
 .overlay-header {
   flex-shrink: 0;
   padding: 0.8rem 1rem;
@@ -1766,21 +1790,7 @@ input:checked + .slider:before {
   z-index: 10;
 }
 
-.overlay-header .return-pill {
-  font-weight: 800;
-  color: #fff;
-  background: #e63946;
-  padding: 6px 12px;
-  border-radius: 999px;
-  letter-spacing: 0.5px;
-  box-shadow: 0 0 10px rgba(230,57,70,0.5);
-}
-
-.overlay-header .return-pill.hidden {
-  display: none !important;
-}
-
-/* --- Fix Toggle Behavior in Overlay --- */
+/* Return Toggle */
 .overlay-header #toggle-return {
   color: #a7e1ee;
   background: transparent;
@@ -1788,30 +1798,26 @@ input:checked + .slider:before {
   border: none;
   transition: all 0.3s ease;
 }
-
 .overlay-header #toggle-return.active {
   color: #e63946;
-  transform: none !important; /* ✅ removes flipping */
   background: rgba(255,255,255,0.05);
 }
-
 .overlay-header #toggle-return i {
   transition: transform 0.3s, color 0.3s;
 }
-
 .overlay-header #toggle-return.active i {
   color: #ff5c5c;
   transform: scale(1.2);
 }
 
-/* --- Hide Toggle Button in Toolbar on Mobile --- */
+/* Hide Toggle in Toolbar on Mobile */
 @media (max-width: 768px) {
   .toolbar #toggle-return {
     display: none !important;
   }
 }
 
-/* --- Full-Page Product Grid --- */
+/* Overlay Grid */
 #overlay-grid {
   flex: 1;
   overflow-y: auto;
@@ -1820,7 +1826,6 @@ input:checked + .slider:before {
   gap: 1rem;
   padding: 1rem;
 }
-
 @media (max-width: 768px) {
   #overlay-grid {
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
@@ -1828,46 +1833,9 @@ input:checked + .slider:before {
   }
 }
 
-/* --- Mobile: Show Only Summary Section (No Scroll Box) --- */
-@media (max-width: 768px) {
-  .receipt {
-    position: static !important;
-    background: #fff;
-    color: #000;
-    border: none;
-    border-radius: 0;
-    box-shadow: none;
-    overflow: visible !important; /* ✅ removes scroll */
-    height: auto !important;
-    padding: 1rem;
-  }
-
-  .receipt table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  /* Hide line items, show only summary */
-  .receipt tbody tr:not(#summary-section tr) {
-    display: none !important;
-  }
-
-  /* Keep summary visible */
-  #summary-section tr {
-    display: table-row !important;
-  }
-
-  #summary-section td {
-    font-size: 1.1rem;
-    padding: 0.75rem;
-  }
-}
-
 /* =========================================================
-   🧾 RECEIPT TABLE FIX: PRODUCT NAMES + MOBILE WRAP
+   🌿 RECEIPT TABLE OPTIMIZATION
    ========================================================= */
-
-/* Prevent names from being cut off */
 #receipt-details td,
 #receipt-details th {
   white-space: nowrap;
@@ -1875,15 +1843,12 @@ input:checked + .slider:before {
   overflow: hidden;
   max-width: 140px;
 }
-
 #receipt-details .product-name {
   white-space: normal;
   word-wrap: break-word;
   max-width: 160px;
   text-align: left;
 }
-
-/* Keep delete button small but accessible */
 #receipt-details .delete-btn {
   background: none;
   border: none;
@@ -1891,7 +1856,6 @@ input:checked + .slider:before {
   font-size: 1rem;
   cursor: pointer;
 }
-
 #receipt-details .delete-btn:hover {
   color: #ff7b7b;
 }
@@ -1903,9 +1867,70 @@ input:checked + .slider:before {
     font-size: 0.9rem;
     max-width: 100px;
   }
-
   #receipt-details .product-name {
     font-size: 0.9rem;
     max-width: 120px;
   }
 }
+/* =========================================================
+   🌿 MOBILE PRODUCT GRID — PRICE BELOW IMAGE ONLY
+   ========================================================= */
+@media (max-width: 768px) {
+  /* Hide product title + SKU, keep only price */
+  .menu-item figcaption:not(:last-of-type) {
+    display: none !important;
+  }
+
+  /* Show price clearly below image */
+  .menu-item figcaption:last-of-type {
+    display: block !important;
+    text-align: center;
+    margin-top: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #A7E1EE;
+    text-shadow: 0 0 8px rgba(167, 225, 238, 0.7);
+  }
+
+  /* Ensure image fills container nicely */
+  .menu-item img {
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    display: block;
+    margin: 0 auto;
+  }
+
+  /* Compact grid layout for smaller screens */
+  #menu,
+  #overlay-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 0.8rem;
+  }
+
+  /* Make sure the add button floats above everything */
+  .mobile-add-btn {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    background: linear-gradient(135deg, #A7E1EE, #72c2d1);
+    color: #0b0b0b;
+    font-weight: 700;
+    border: none;
+    border-radius: 50px;
+    padding: 0.9rem 1.4rem;
+    box-shadow: 0 0 15px rgba(167,225,238,0.6);
+    font-size: 1rem;
+    z-index: 10001;
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+
+  .mobile-add-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(167,225,238,0.8);
+  }
+}
+
+
+
