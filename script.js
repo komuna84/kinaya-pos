@@ -159,35 +159,44 @@ async function loadMenuFromSheet(url) {
 // UI CLASS
 // ===========================================================
 class Ui {
+  // 🌿 Render products into both desktop and mobile grids
   static renderMenu(orderInstance) {
-    const menuContainer = document.getElementById("menu");
-    if (!menuContainer) return;
-    menuContainer.innerHTML = "";
+    const grids = [
+      document.getElementById("menu"),
+      document.getElementById("overlay-grid")
+    ].filter(Boolean);
 
-    if (!orderInstance.menu.length) {
-      menuContainer.innerHTML = "<p style='color:white'>No active products found.</p>";
-      return;
-    }
+    if (!grids.length) return;
 
-    const frag = document.createDocumentFragment();
-    orderInstance.menu.forEach(item => {
-      const figure = document.createElement("figure");
-      figure.classList.add("menu-item");
-      figure.setAttribute("data-sku", JSON.stringify(item));
-      figure.innerHTML = `
-        <img src="${item.image}" alt="${item.description}" class="menu-image"
-             style="width:150px;height:150px;object-fit:cover;border-radius:12px;">
-        <figcaption style="font-weight:bold;margin-top:8px;">${item.description}</figcaption>
-        <figcaption style="font-size:0.9em;opacity:0.8;">${item.sku}</figcaption>
-        <figcaption style="color:#A7E1EE;margin-top:4px;">
-          ${Utilities.convertFloatToString(item.price)}
-        </figcaption>
-      `;
-      frag.appendChild(figure);
+    grids.forEach(grid => {
+      grid.innerHTML = "";
+
+      if (!orderInstance.menu.length) {
+        grid.innerHTML = "<p style='color:white;text-align:center;'>No active products found.</p>";
+        return;
+      }
+
+      const frag = document.createDocumentFragment();
+      orderInstance.menu.forEach(item => {
+        const figure = document.createElement("figure");
+        figure.classList.add("menu-item");
+        figure.setAttribute("data-sku", JSON.stringify(item));
+        figure.innerHTML = `
+          <img src="${item.image}" alt="${item.description}" class="menu-image"
+               style="width:150px;height:150px;object-fit:cover;border-radius:12px;">
+          <figcaption style="font-weight:bold;margin-top:8px;">${item.description}</figcaption>
+          <figcaption style="font-size:0.9em;opacity:0.8;">${item.sku}</figcaption>
+          <figcaption style="color:#A7E1EE;margin-top:4px;">
+            ${Utilities.convertFloatToString(item.price)}
+          </figcaption>
+        `;
+        frag.appendChild(figure);
+      });
+      grid.appendChild(frag);
     });
-    menuContainer.appendChild(frag);
   }
 
+  // 🌿 Receipt details rendering
   static receiptDetails(orderInstance) {
     const receiptDetails = document.getElementById("receipt-details");
     if (!receiptDetails) return;
@@ -215,51 +224,51 @@ class Ui {
     Ui.updateTotals(orderInstance);
   }
 
+  // 🌿 Deletion handlers
   static attachDeleteHandlers(orderInstance) {
-  document.querySelectorAll(".delete").forEach(btn => {
-    btn.addEventListener("click", e => {
-      e.stopPropagation();
-      const index = parseInt(btn.getAttribute("data-delete"));
-      if (isNaN(index)) return;
-      const line = orderInstance._order[index];
-      if (!line) return;
+    document.querySelectorAll(".delete").forEach(btn => {
+      btn.addEventListener("click", e => {
+        e.stopPropagation();
+        const index = parseInt(btn.getAttribute("data-delete"));
+        if (isNaN(index)) return;
+        const line = orderInstance._order[index];
+        if (!line) return;
 
-      // 🔁 Always reduce by 1 (not remove full line)
-      const change = isReturnMode ? -1 : 1;
-      line.quantity -= change;
+        const change = isReturnMode ? -1 : 1;
+        line.quantity -= change;
 
-      // If quantity hits 0, remove it
-      if (line.quantity === 0) {
-        orderInstance._order.splice(index, 1);
-      } else {
-        line.subtotal = Utilities.roundToTwo(line.quantity * line.price);
-        line.tax = Utilities.roundToTwo(line.subtotal * 0.07);
-      }
+        if (line.quantity === 0) {
+          orderInstance._order.splice(index, 1);
+        } else {
+          line.subtotal = Utilities.roundToTwo(line.quantity * line.price);
+          line.tax = Utilities.roundToTwo(line.subtotal * 0.07);
+        }
 
-      Ui.receiptDetails(orderInstance);
-      Ui.updateTotals(orderInstance);
-      updatePaymentUI();
-      toggleSubmitVisibility();
+        Ui.receiptDetails(orderInstance);
+        Ui.updateTotals(orderInstance);
+        updatePaymentUI();
+        toggleSubmitVisibility();
+      });
     });
-  });
-}
+  }
 
+  // 🌿 Totals update
   static updateTotals(orderInstance) {
-  const subtotal = orderInstance._order.reduce((a, l) => a + l.subtotal, 0);
-  const tax = orderInstance._order.reduce((a, l) => a + l.tax, 0);
-  const grandTotal = subtotal + tax;
-  const fmt = v => Utilities.convertFloatToString(v);
+    const subtotal = orderInstance._order.reduce((a, l) => a + l.subtotal, 0);
+    const tax = orderInstance._order.reduce((a, l) => a + l.tax, 0);
+    const grandTotal = subtotal + tax;
+    const fmt = v => Utilities.convertFloatToString(v);
 
-  const subtotalEl = document.getElementById("subtotal-summary");
-  const overlaySubtotalEl = document.getElementById("overlay-subtotal-summary");
-  const taxEl = document.getElementById("tax-summary");
-  const grandEl = document.getElementById("grandtotal-summary");
+    const subtotalEl = document.getElementById("subtotal-summary");
+    const overlaySubtotalEl = document.getElementById("overlay-subtotal-summary");
+    const taxEl = document.getElementById("tax-summary");
+    const grandEl = document.getElementById("grandtotal-summary");
 
-  if (subtotalEl) subtotalEl.textContent = fmt(subtotal);
-  if (overlaySubtotalEl) overlaySubtotalEl.textContent = fmt(subtotal);
-  if (taxEl) taxEl.textContent = fmt(tax);
-  if (grandEl) grandEl.textContent = fmt(grandTotal);
-}
+    if (subtotalEl) subtotalEl.textContent = fmt(subtotal);
+    if (overlaySubtotalEl) overlaySubtotalEl.textContent = fmt(subtotal);
+    if (taxEl) taxEl.textContent = fmt(tax);
+    if (grandEl) grandEl.textContent = fmt(grandTotal);
+  }
 }
 
 // ===========================================================
@@ -533,27 +542,25 @@ window.addEventListener("load", () => {
 
   // --- Open Overlay ---
   function openOverlay() {
-    if (!menu) return;
-    overlayGrid.appendChild(menu);
-    overlay.classList.remove("hidden");
-    overlayGrid.classList.add("active");
-    document.body.style.overflow = "hidden";
-  }
+  overlay.classList.add("active");
+  overlay.classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+}
 
-  // --- Close Overlay ---
-  function closeOverlay() {
-    if (originalParent && menu) originalParent.appendChild(menu);
-    overlayGrid.classList.remove("active");
-    overlay.classList.remove("active");
-    document.body.style.overflow = "";
-    setTimeout(() => overlay.classList.add("hidden"), 300);
-  }
+
+// --- Close Overlay ---
+function closeOverlay() {
+  overlay.classList.remove("active");
+  setTimeout(() => overlay.classList.add("hidden"), 300);
+  document.body.style.overflow = "";
+}
 
   // --- Handle Buttons ---
   openBtn?.addEventListener("click", openOverlay);
   closeBtn?.addEventListener("click", closeOverlay);
 
   // --- Handle Click Events ---
+    // --- Handle Click Events ---
   document.addEventListener("click", e => {
     // Product tile clicked
     const menuItem = e.target.closest(".menu-item");
@@ -582,7 +589,13 @@ window.addEventListener("load", () => {
       const banner = document.getElementById("return-mode-banner");
 
       btn?.classList.toggle("active", isReturnMode);
-      if (icon) icon.style.color = isReturnMode ? "#e63946" : "#fff";
+
+      // 🌟 Add glow + color change when active
+      if (icon) {
+        icon.style.color = isReturnMode ? "#e63946" : "#A7E1EE";
+        icon.style.textShadow = isReturnMode ? "0 0 12px #e63946" : "none";
+      }
+
       if (banner) banner.style.display = isReturnMode ? "block" : "none";
 
       console.log(`↩️ Return mode ${isReturnMode ? "ENABLED" : "DISABLED"}`);
@@ -590,7 +603,6 @@ window.addEventListener("load", () => {
     }
   });
 });
-
 
 // ===========================================================
 // CLEAR + RETURN FUNCTIONS
