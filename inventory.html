@@ -6,85 +6,200 @@
         content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <title>Kinaya Rising POS — Inventory</title>
 
-  <!-- ====== BASE STYLES ====== -->
   <style>
+    
+/* ============================================================
+   🌿 KINAYA RISING POS — INVENTORY PAGE (Unified Design 2025)
+   ============================================================ */
+
 /* ---------- BASE ---------- */
 html, body {
   margin: 0;
   padding: 0;
-  background-color: #0b0b0b;
+  min-height: 100vh;
+  background: radial-gradient(circle at top, #070c0f 0%, #000 90%);
   color: #A7E1EE;
   font-family: "Roboto", sans-serif;
   touch-action: manipulation;
   overscroll-behavior: contain;
-  min-height: 100%;
 }
 
-/* ---------- HEADER ---------- */
+/* ---------- HEADER (Unified) ---------- */
 header {
+      position: relative;
   text-align: center;
-  padding: 1rem 0;
-  background: radial-gradient(circle at top, rgba(167,225,238,0.12), transparent 60%);
-}
+  padding: 1.2rem 0 1rem;
+  background: linear-gradient(180deg, rgba(10,25,30,0.6), transparent);
+  border-bottom: 1px solid rgba(167,225,238,0.15);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.4);text-align: center;
+      font-family: "Audiowide", sans-serif;
+      color: #bffcff;
+      text-shadow: 0 0 18px rgba(0,198,255,0.9);
+      font-size: 1.8rem;
+      letter-spacing: 1px;
+    }
+
 header h1 {
-  font-family: "Audiowide", sans-serif;
-  font-size: 1.6rem;
+  font-size: 1.8rem;
   color: #A7E1EE;
-  text-shadow: 0 0 10px rgba(167,225,238,0.4);
+  margin: 0;
 }
 
-/* ---------- INVENTORY CONTAINER ---------- */
-.inventory-container {
-  max-width: 1100px;
+header p.subtitle {
+  font-size: 0.95rem;
+  color: rgba(167,225,238,0.7);
+  margin-top: 0.3rem;
+}
+
+/* ---------- MAIN LAYOUT ---------- */
+main {
+  max-width: 1150px;
   margin: 0 auto;
-  padding: 1rem;
+  padding: 1rem 1.2rem 8rem;
   display: flex;
   flex-direction: column;
-  padding-bottom: 8rem;
+  gap: 2rem;
 }
 
-/* ---------- SECTION HEADER ---------- */
-.inventory-header h2 {
+
+/* ============================================================
+   🌸 ADD INVENTORY FORM
+   ============================================================ */
+.add-inventory-container {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 0 25px rgba(167,225,238,0.12);
+  backdrop-filter: blur(8px);
+  transition: box-shadow 0.3s ease, transform 0.2s ease;
+}
+.add-inventory-container:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 35px rgba(167,225,238,0.35);
+}
+
+.add-inventory-container h2 {
   font-family: "Audiowide", sans-serif;
-  font-size: 1.2rem;
-  margin-bottom: 0.3rem;
-}
-.inventory-header p {
-  font-size: 0.9rem;
-  color: rgba(167,225,238,0.7);
-  margin-bottom: 1rem;
+  color: #bfffcf;
+  text-shadow: 0 0 10px rgba(191,216,193,0.3);
+  margin-bottom: 1.5rem;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
 }
 
-/* ---------- TABLE ---------- */
+/* ---------- FORM GRID ---------- */
+.inventory-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.2rem 2rem;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.field-group label {
+  font-size: 0.9rem;
+  color: #A7E1EE;
+  font-weight: 600;
+  margin-left: 2px;
+}
+.field-group input,
+.field-group textarea,
+.field-group select {
+  background: rgba(15, 25, 30, 0.8);
+  border: 1px solid rgba(167,225,238,0.25);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #fff;
+  font-size: 0.9rem;
+  transition: 0.25s ease;
+}
+.field-group input:focus,
+.field-group textarea:focus,
+.field-group select:focus {
+  border-color: #4fd1c5;
+  box-shadow: 0 0 10px rgba(79,209,197,0.5);
+  outline: none;
+}
+textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+.full-width { grid-column: 1 / -1; }
+
+/* ---------- FORM BUTTONS ---------- */
+.card-actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+#save-item-btn, .secondary-btn {
+  border: none;
+  border-radius: 8px;
+  padding: 0.8rem 1.8rem;
+  font-size: 1rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.25s ease-in-out;
+}
+
+#save-item-btn {
+  background: linear-gradient(90deg, #A7E1EE, #5FC7D9);
+  color: #000;
+  box-shadow: 0 0 15px rgba(167,225,238,0.3);
+}
+#save-item-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 25px rgba(167,225,238,0.5);
+}
+.secondary-btn {
+  background: rgba(255,255,255,0.1);
+  color: #A7E1EE;
+}
+.secondary-btn:hover {
+  background: rgba(167,225,238,0.25);
+}
+
+/* ============================================================
+   🌸 INVENTORY TABLE
+   ============================================================ */
 .inventory-table-wrapper {
-  max-height: 65vh;             /* 👈 sets the visible height of your table */
-  overflow-y: auto;             /* 👈 allows vertical scroll inside this box */
+  max-height: 65vh;
+  overflow-y: auto;
   overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
   border-radius: 12px;
-  box-shadow: 0 0 12px rgba(167,225,238,0.1);
+  box-shadow: 0 0 15px rgba(167,225,238,0.08);
   background: rgba(255,255,255,0.02);
-}  
+  -webkit-overflow-scrolling: touch;
+}
 
 table.inventory-table {
   width: 100%;
   border-collapse: collapse;
   min-width: 800px;
-  position: relative;
 }
 th, td {
   padding: 10px 12px;
-  text-align: left;
   border-bottom: 1px solid rgba(255,255,255,0.05);
+  text-align: left;
   white-space: nowrap;
 }
 th {
   background: rgba(167,225,238,0.08);
   font-weight: 700;
   color: #A7E1EE;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
   position: sticky;
   top: 0;
   z-index: 3;
@@ -94,8 +209,8 @@ th:first-child,
 td:first-child {
   position: sticky;
   left: 0;
-  background: rgba(11,11,11,0.95);
-  backdrop-filter: blur(3px);
+  background: rgba(10,15,20,0.95);
+  backdrop-filter: blur(4px);
   z-index: 5;
 }
 td {
@@ -119,7 +234,7 @@ td img:hover {
   box-shadow: 0 0 10px rgba(167,225,238,0.5);
 }
 
-/* ---------- INPUTS ---------- */
+/* ---------- INPUT FIELDS ---------- */
 .inv-input {
   width: 60px;
   text-align: center;
@@ -135,156 +250,51 @@ td img:hover {
   -webkit-appearance: none;
   margin: 0;
 }
-.inv-input {
-  -moz-appearance: textfield;
-}
+.inv-input { -moz-appearance: textfield; }
 
 /* ---------- TOTAL SUMMARY ---------- */
 .total-summary {
   text-align: center;
   font-size: 1rem;
   color: #A7E1EE;
-  margin: 0.8rem auto 1rem auto;
+  margin: 0.8rem auto 1rem;
   padding: 0.8rem 1rem;
-  background: rgba(167,225,238,0.05);
+  background: rgba(167,225,238,0.06);
   border-radius: 10px;
-  box-shadow: 0 0 10px rgba(167,225,238,0.2);
+  box-shadow: 0 0 15px rgba(167,225,238,0.2);
   font-weight: 500;
   width: 95%;
   max-width: 800px;
-  transition: transform 0.3s ease, opacity 0.3s ease;
-}
-
-/* ---------- SAVE BUTTON ---------- */
-.submit-sale-btn {
-  background: #A7E1EE;
-  color: #0b0b0b;
-  font-weight: 600;
-  border: none;
-  border-radius: 8px;
-  padding: 12px 28px;
-  cursor: pointer;
-  font-size: 1rem;
-  box-shadow: 0 0 10px rgba(167,225,238,0.4);
   transition: all 0.3s ease;
-  display: block;
-  margin: 1rem auto 2rem auto;
 }
-.submit-sale-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 18px rgba(167,225,238,0.6);
+.total-summary.hide {
+  opacity: 0;
+  transform: translateY(10px);
 }
 
-/* ---------- ADD INVENTORY CARD ---------- */
-.add-inventory-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  width: 100%;
-  margin: 2rem auto;
-}
-.add-inventory-container {
-  width: 90%;
-  max-width: 950px;
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 16px;
-  padding: 1.5rem 2rem;
-  box-shadow: 0 0 25px rgba(100, 200, 255, 0.15);
-  backdrop-filter: blur(8px);
-}
-.add-inventory-container:hover {
-  box-shadow: 0 0 35px rgba(167,225,238,0.35);
-}
-.add-inventory-container h2 {
-  font-family: "Audiowide", sans-serif;
-  color: #bfffcf;
-  text-shadow: 0 0 8px rgba(191,216,193,0.3);
-  margin-bottom: 1.2rem;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-/* ---------- FORM GRID ---------- */
-.inventory-fields {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1rem 2rem;
-  align-items: start;
-  justify-items: stretch;
-  width: 100%;
-}
-.field-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.field-group label {
-  font-size: 0.9rem;
-  color: #A7E1EE;
-  font-weight: 600;
-  margin-left: 2px;
-}
-.field-group input,
-.field-group textarea {
-  width: 100%;
-  background: #111;
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 6px;
-  padding: 8px 10px;
-  color: #fff;
-  font-size: 0.9rem;
-  transition: 0.25s ease;
-}
-.field-group textarea {
-  resize: vertical;
-  min-height: 50px;
-}
-.field-group input:focus,
-.field-group textarea:focus {
-  border-color: #4fd1c5;
-  box-shadow: 0 0 8px rgba(79,209,197,0.5);
-  outline: none;
-}
-.full-width { grid-column: 1 / -1; }
-
-/* ---------- FORM BUTTONS ---------- */
-.card-actions {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-top: 1.2rem;
-}
-#save-item-btn, .secondary-btn {
+/* ---------- SAVE CHANGES BUTTON ---------- */
+#save-inventory {
+  background: linear-gradient(90deg, #A7E1EE, #5FC7D9);
+  color: #000;
   border: none;
-  border-radius: 8px;
-  padding: 0.7rem 1.5rem;
+  border-radius: 10px;
+  padding: 12px 36px;
+  font-weight: 600;
   font-size: 1rem;
   cursor: pointer;
-  font-weight: 600;
-  transition: all 0.25s ease-in-out;
+  display: block;
+  margin: 1rem auto 2rem;
+  box-shadow: 0 0 15px rgba(167,225,238,0.3);
+  transition: all 0.25s ease;
 }
-#save-item-btn {
-  background: #a7e1ee;
-  color: #000;
+#save-inventory:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 25px rgba(167,225,238,0.5);
 }
-#save-item-btn:hover {
-  background: #fff;
-  box-shadow: 0 0 20px rgba(167,225,238,0.4);
-}
-.secondary-btn {
-  background: rgba(255,255,255,0.1);
-  color: #a7e1ee;
-}
-.secondary-btn:hover {
-  background: rgba(167,225,238,0.25);
-}
-.hidden { display: none; }
 
-/* ---------- NAV ---------- */
+/* ============================================================
+   🌸 NAV BAR
+   ============================================================ */
 .kinaya-nav {
   position: fixed;
   bottom: 0;
@@ -306,24 +316,36 @@ td img:hover {
   flex-direction: column;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   padding: 8px 14px;
   border-radius: 10px;
   transition: all 0.25s ease;
 }
-.nav-btn i { font-size: 1.4rem; }
+.nav-btn i {
+  font-size: 1.4rem;
+  transition: color 0.25s ease;
+}
+.nav-btn:hover {
+  transform: scale(1.1);
+  color: #bff4ff;
+}
 .nav-btn.active {
   color: #fff;
-  background: rgba(167,225,238,0.1);
+  background: radial-gradient(circle at center, rgba(167,225,238,0.2), rgba(10,30,40,0.9));
   box-shadow: 0 0 15px rgba(167,225,238,0.4);
-  transform: scale(1.05);
+  transform: scale(1.08);
 }
 
 /* ---------- RESPONSIVE ---------- */
 @media (max-width: 768px) {
+  header h1 { font-size: 1.4rem; }
   .inventory-fields { grid-template-columns: 1fr; }
-  .submit-sale-btn { margin-bottom: 5.5rem; }
+  main { padding-bottom: 6.5rem; }
+  #save-inventory { margin-bottom: 5.5rem; }
+  th, td { font-size: 0.8rem; padding: 8px; }
+  td img { width: 45px; height: 45px; }
 }
+
   </style>
 
   <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet"/>
