@@ -1724,3 +1724,141 @@ input:checked + .slider:before {
     padding: 1rem 0;
   }
 }
+
+/* =========================================================
+   🌿 FIX: PRODUCT OVERLAY + RETURN TOGGLE + MOBILE RECEIPT
+   ========================================================= */
+
+/* --- Make Product Overlay Fullscreen and Consistent --- */
+.product-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100vh;
+  background: rgba(10, 20, 25, 0.97);
+  backdrop-filter: blur(12px);
+  z-index: 12000;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  opacity: 0;
+  transition: transform 0.35s ease, opacity 0.25s ease;
+}
+
+.product-overlay.active {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.product-overlay.hidden {
+  display: none !important;
+}
+
+/* --- Overlay Header: Return Toggle + Close Button --- */
+.overlay-header {
+  flex-shrink: 0;
+  padding: 0.8rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(180deg, rgba(0, 10, 20, 0.9), rgba(0, 0, 0, 0.3));
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  z-index: 10;
+}
+
+.overlay-header .return-pill {
+  font-weight: 800;
+  color: #fff;
+  background: #e63946;
+  padding: 6px 12px;
+  border-radius: 999px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 0 10px rgba(230,57,70,0.5);
+}
+
+.overlay-header .return-pill.hidden {
+  display: none !important;
+}
+
+/* --- Fix Toggle Behavior in Overlay --- */
+.overlay-header #toggle-return {
+  color: #a7e1ee;
+  background: transparent;
+  font-size: 1.5rem;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.overlay-header #toggle-return.active {
+  color: #e63946;
+  transform: none !important; /* ✅ removes flipping */
+  background: rgba(255,255,255,0.05);
+}
+
+.overlay-header #toggle-return i {
+  transition: transform 0.3s, color 0.3s;
+}
+
+.overlay-header #toggle-return.active i {
+  color: #ff5c5c;
+  transform: scale(1.2);
+}
+
+/* --- Hide Toggle Button in Toolbar on Mobile --- */
+@media (max-width: 768px) {
+  .toolbar #toggle-return {
+    display: none !important;
+  }
+}
+
+/* --- Full-Page Product Grid --- */
+#overlay-grid {
+  flex: 1;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+}
+
+@media (max-width: 768px) {
+  #overlay-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    padding: 0.8rem;
+  }
+}
+
+/* --- Mobile: Show Only Summary Section (No Scroll Box) --- */
+@media (max-width: 768px) {
+  .receipt {
+    position: static !important;
+    background: #fff;
+    color: #000;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    overflow: visible !important; /* ✅ removes scroll */
+    height: auto !important;
+    padding: 1rem;
+  }
+
+  .receipt table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  /* Hide line items, show only summary */
+  .receipt tbody tr:not(#summary-section tr) {
+    display: none !important;
+  }
+
+  /* Keep summary visible */
+  #summary-section tr {
+    display: table-row !important;
+  }
+
+  #summary-section td {
+    font-size: 1.1rem;
+    padding: 0.75rem;
+  }
+}
