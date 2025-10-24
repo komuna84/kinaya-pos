@@ -290,7 +290,7 @@
 
 <script>
 // ===========================================================
-// Overlay + Return Mode Sync + Manual Close
+// 🌿 Kinaya Rising POS — Receipt + Overlay Integration
 // ===========================================================
 document.addEventListener("DOMContentLoaded", () => {
   const openBtn = document.getElementById("open-product-overlay");
@@ -300,90 +300,128 @@ document.addEventListener("DOMContentLoaded", () => {
   const overlayReturnBtn = document.querySelector(".overlay-header #toggle-return");
   const headerBanner = document.getElementById("return-mode-banner");
   const menu = document.getElementById("menu");
-  const originalMenuParent = menu?.parentElement;
+  const receiptBody = document.getElementById("receipt-details");
+  const subtotalEl = document.getElementById("subtotal-summary");
+  const taxEl = document.getElementById("tax-summary");
+  const grandEl = document.getElementById("grandtotal-summary");
 
-  // Global return mode flag
-  window.isReturnMode = false;
+  const TAX_RATE = 0.07;
+  let isReturnMode = false;
+  let receiptItems = [];
 
-  // === SYNC RETURN MODE ===
-  function setReturnMode(active) {
-    isReturnMode = active;
+  // === PRODUCT DATA ===
+  const allProducts = [
+    { title: "Book - AoL Part 1", sku: "B0F8NFSWXW", price: 14.98, img: "https://raw.githubusercontent.com/komuna84/kinaya-pos-assets/main/B0F8NFSWXW.png" },
+    { title: "Bookmarks", sku: "BKM-001", price: 2.00, img: "https://raw.githubusercontent.com/komuna84/kinaya-pos-assets/main/bookmark.png" }
+  ];
 
-    // Show/hide red banner
-    if (headerBanner) {
-      headerBanner.style.display = active ? "block" : "none";
-    }
-
-    // Update overlay button label
-    if (overlayReturnBtn) {
-      overlayReturnBtn.innerHTML = active
-        ? '<i class="fa-solid fa-rotate-left"></i> Return: ON'
-        : '<i class="fa-solid fa-rotate-left"></i> Return';
-      overlayReturnBtn.classList.toggle("active", active);
-    }
-
-    console.log(`↩️ Return mode ${active ? "ENABLED" : "DISABLED"}`);
-  }
-
-  // === Toggle Return Mode Buttons (both) ===
-  document.body.addEventListener("click", (e) => {
-    const mainToggle = e.target.closest("#toggle-return");
-    if (mainToggle) {
-      setTimeout(() => setReturnMode(!isReturnMode), 0);
-    }
-  });
-
-  overlayReturnBtn?.addEventListener("click", () => {
-    setReturnMode(!isReturnMode);
-  });
-
-  // === Overlay Open/Close ===
-  function lockScroll(lock) {
-    document.body.style.overflow = lock ? "hidden" : "";
-  }
-
-  function openOverlay() {
-    if (!menu) return;
-    overlayGrid.appendChild(menu);
-    overlay.classList.remove("hidden");
-    requestAnimationFrame(() => overlay.classList.add("active"));
-    lockScroll(true);
-  }
-
-  function closeOverlay() {
-    if (originalMenuParent && menu) originalMenuParent.appendChild(menu);
-    overlay.classList.remove("active");
-    lockScroll(false);
-    setTimeout(() => overlay.classList.add("hidden"), 300);
-  }
-
-  openBtn?.addEventListener("click", openOverlay);
-  closeBtn?.addEventListener("click", closeOverlay);
-
-  // Optional: Tap outside to close
-  overlay.addEventListener("click", (e) => {
-    if (!e.target.closest(".overlay-header, #overlay-grid")) closeOverlay();
-  });
-
-  // Escape key close
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !overlay.classList.contains("hidden")) closeOverlay();
-  });
-
-  // === Keep Overlay Open After Product Click ===
-  if (menu) {
-    menu.addEventListener("click", (e) => {
-      const product = e.target.closest(".menu-item");
-      if (!product) return;
-      addProductToReceipt(product); // your real logic here
-      // 🚫 No automatic overlay close
+  // === RENDER PRODUCTS IN MENU ===
+  function renderMenu() {
+    menu.innerHTML = "";
+    allProducts.forEach(p => {
+      const item = document.createElement("figure");
+      item.className = "menu-item";
+      item.innerHTML = `
+        <img src="${p.img}" alt="${p.title}">
+        <figcaption>${p.title}</figcaption>
+        <figcaption>${p.sku}</figcaption>
+        <figcaption>$${p.price.toFixed(2)}</figcaption>
+      `;
+      menu.appendChild(item);
     });
   }
 
-  function addProductToReceipt(product) {
-    console.log("Product added:", product.querySelector("figcaption")?.textContent);
+  // === RENDER RECEIPT ===
+  function renderReceipt() {
+    receiptBody.innerHTML = "";
+    receiptItems.forEach((p, i) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${p.title}</td>
+        <td>${p.qty}</td>
+        <td>$${p.price.toFixed(2)}</td>
+        <td>$${(p.price * p.qty).toFixed(2)}</td>
+        <td><button class="delete-btn" data-index="${i}" title="Remove"><i class="fa-solid fa-xmark"></i></button></td>
+      `;
+      receiptBody.appendChild(row);
+    });
+    updateTotals();
   }
+
+  // === UPDATE TOTALS ===
+  function updateTotals() {
+    let subtotal = 0;
+    receiptItems.forEach(p => subtotal += p.price * p.qty);
+    const tax = subtotal * TAX_RATE;
+    const grand = subtotal + tax;
+
+    subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
+    taxEl.textContent = `$${tax.toFixed(2)}`;
+    grandEl.textContent = `$${grand.toFixed(2)}`;
+  }
+
+  // === ADD PRODUCT TO RECEIPT ===
+  function addProduct(productData) {
+    const existing = receiptItems.find(p => p.sku === productData.sku);
+    if (existing) {
+      existing.qty += 1;
+    } else {
+      receiptItems.push({ ...productData, qty: 1 });
+    }
+    renderReceipt();
+  }
+
+  // === DELETE PRODUCT ROW ===
+  receiptBody.addEventListener("click", (e) => {
+    const delBtn = e.target.closest(".delete-btn");
+    if (!delBtn) return;
+    const index = parseInt(delBtn.dataset.index);
+    receiptItems.splice(index, 1);
+    renderReceipt();
+  });
+
+  // === OVERLAY OPEN/CLOSE ===
+  const lockScroll = (lock) => document.body.style.overflow = lock ? "hidden" : "";
+  openBtn?.addEventListener("click", () => {
+    overlay.classList.remove("hidden");
+    requestAnimationFrame(() => overlay.classList.add("active"));
+    lockScroll(true);
+  });
+  closeBtn?.addEventListener("click", () => {
+    overlay.classList.remove("active");
+    lockScroll(false);
+    setTimeout(() => overlay.classList.add("hidden"), 300);
+  });
+
+  // === ADD PRODUCT FROM MENU ===
+  menu.addEventListener("click", (e) => {
+    const card = e.target.closest(".menu-item");
+    if (!card) return;
+
+    const [titleEl, skuEl, priceEl] = card.querySelectorAll("figcaption");
+    const product = {
+      title: titleEl.textContent,
+      sku: skuEl.textContent,
+      price: parseFloat(priceEl.textContent.replace("$", "")),
+      img: card.querySelector("img").src
+    };
+
+    addProduct(product);
+  });
+
+  // === RETURN MODE TOGGLE ===
+  function toggleReturnMode() {
+    isReturnMode = !isReturnMode;
+    headerBanner.style.display = isReturnMode ? "block" : "none";
+    overlayReturnBtn.classList.toggle("active", isReturnMode);
+    console.log(`↩️ Return mode ${isReturnMode ? "ENABLED" : "DISABLED"}`);
+  }
+  overlayReturnBtn?.addEventListener("click", toggleReturnMode);
+
+  // === INITIALIZE ===
+  renderMenu();
 });
 </script>
+
 </body>
 </html>
