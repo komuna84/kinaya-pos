@@ -1,0 +1,129 @@
+/* ============================================================
+   🌿 KINAYA RISING POS — LOGIN PAGE (Cyan Pulse Edition)
+   Matching your dashboard’s glow + unified buttons
+   ============================================================ */
+
+body.login-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: radial-gradient(circle at center, #020202 0%, #000 100%);
+  color: #A7E1EE;
+  font-family: "Roboto", sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* ---------- Container ---------- */
+.login-container {
+  background: rgba(5, 25, 35, 0.4);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0,198,255,0.25);
+  border-radius: 16px;
+  box-shadow:
+    0 0 25px rgba(0,198,255,0.08),
+    inset 0 0 12px rgba(0,198,255,0.05);
+  padding: 2.5rem 2rem;
+  text-align: center;
+  width: 90%;
+  max-width: 340px;
+  transition: all 0.4s ease;
+  animation: pulseGlow 4s infinite ease-in-out;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow:
+      0 0 25px rgba(0,198,255,0.08),
+      inset 0 0 12px rgba(0,198,255,0.05);
+  }
+  50% {
+    box-shadow:
+      0 0 35px rgba(0,198,255,0.18),
+      inset 0 0 14px rgba(0,198,255,0.08);
+  }
+}
+
+/* ---------- Title ---------- */
+.login-container h1 {
+  font-family: "Audiowide", sans-serif;
+  font-size: 1.3rem;
+  color: #bffcff;
+  text-shadow: 0 0 18px rgba(0,198,255,0.9);
+  margin-bottom: 0.4rem;
+  letter-spacing: 0.5px;
+}
+
+.login-container p {
+  font-size: 0.9rem;
+  color: rgba(167,225,238,0.7);
+  margin-bottom: 1.5rem;
+}
+
+/* ---------- Unified Input & Button ---------- */
+#passcode-input,
+#passcode-btn {
+  width: 100%;
+  height: 46px;
+  border-radius: 8px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+}
+
+/* Input Field */
+#passcode-input {
+  padding: 0 12px;
+  border: 1px solid rgba(0,198,255,0.25);
+  background: rgba(255,255,255,0.05);
+  color: #A7E1EE;
+  text-align: center;
+  outline: none;
+  margin-bottom: 1rem;
+  box-shadow: 0 0 8px rgba(0,198,255,0.1);
+}
+
+#passcode-input:focus {
+  border-color: #00c6ff;
+  box-shadow: 0 0 15px rgba(0,198,255,0.4);
+}
+
+/* Unlock Button */
+#passcode-btn {
+  border: 1px solid #00c6ff;
+  background: rgba(255,255,255,0.02);
+  color: #00c6ff;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  box-shadow: 0 0 12px rgba(0,198,255,0.15);
+}
+
+#passcode-btn:hover {
+  background: #00c6ff;
+  color: #0b0b0b;
+  box-shadow: 0 0 20px #00c6ff;
+  transform: scale(1.03);
+}
+
+/* ---------- Error ---------- */
+#passcode-error {
+  display: none;
+  color: #E63946;
+  margin-top: 0.6rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+/* ---------- Footer ---------- */
+.login-footer {
+  position: fixed;
+  bottom: 14px;
+  font-size: 0.8rem;
+  color: rgba(167,225,238,0.45);
+  letter-spacing: 0.3px;
+}

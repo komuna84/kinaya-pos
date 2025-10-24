@@ -6,178 +6,46 @@
         content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <title>Kinaya Rising — Business Dashboard</title>
 
-  <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
-        crossorigin="anonymous"
-        referrerpolicy="no-referrer">
+  <!-- ====== META ====== -->
+  <meta name="description"
+        content="Kinaya Rising Business Dashboard — track revenue, profit, customer insights, and inventory analytics with unified Kinaya design.">
+
+  <!-- ====== GLOBAL FONTS & ICONS ====== -->
   <link
-        href="https://fonts.googleapis.com/css2?family=Audiowide&family=Roboto:wght@300;400;700&display=swap"
-        rel="stylesheet">
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Audiowide&family=Roboto:wght@300;400;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- ====== UNIFIED KINAYA STYLES ====== -->
+  <link rel="stylesheet" href="styles/kinaya-base.css">
+  <link rel="stylesheet" href="styles/dashboard.css">
+
+  <!-- ====== ACCESS LOCK ====== -->
   <script>
     if (sessionStorage.getItem("posUnlocked") !== "true") {
       window.location.href = "index.html";
     }
   </script>
 
-  <link rel="stylesheet" href="styles.css" />
-
-  <style>
-    body {
-      background: radial-gradient(circle at center, #020202 0%, #000 100%);
-      color: #A7E1EE;
-      font-family: "Roboto", sans-serif;
-      margin: 0;
-      padding: 0;
-    }
-
-    header {
-      text-align: center;
-      padding: 20px 10px;
-      font-family: "Audiowide", sans-serif;
-      color: #bffcff;
-      text-shadow: 0 0 18px rgba(0,198,255,0.9);
-      font-size: 1.8rem;
-      letter-spacing: 1px;
-    }
-
-    .dashboard-controls {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-
-    .dashboard-controls select,
-    .dashboard-controls input {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(0,198,255,0.25);
-      border-radius: 8px;
-      color: #A7E1EE;
-      padding: 8px 12px;
-      font-size: 0.9rem;
-      outline: none;
-      box-shadow: 0 0 8px rgba(0,198,255,0.1);
-    }
-
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 48px;
-      height: 24px;
-    }
-    .switch input { opacity: 0; width: 0; height: 0; }
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      inset: 0;
-      background: rgba(255,255,255,0.1);
-      border: 1px solid #00c6ff;
-      border-radius: 20px;
-      transition: 0.3s;
-    }
-    .slider:before {
-      content: "";
-      position: absolute;
-      height: 18px;
-      width: 18px;
-      left: 2px;
-      bottom: 2px;
-      background-color: #00c6ff;
-      border-radius: 50%;
-      transition: transform 0.3s;
-    }
-    input:checked + .slider { background-color: rgba(0,198,255,0.2); }
-    input:checked + .slider:before { transform: translateX(24px); }
-
-    main.dashboard {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-      gap: 16px;
-      padding: 16px;
-    }
-
-    .panel {
-      background: rgba(5,25,35,0.4);
-      border: 1px solid rgba(0,198,255,0.25);
-      border-radius: 16px;
-      box-shadow:
-        0 0 20px rgba(0,198,255,0.08),
-        inset 0 0 12px rgba(0,198,255,0.05);
-      padding: 16px;
-      backdrop-filter: blur(10px);
-    }
-
-    .panel h2 {
-      font-family: "Audiowide", sans-serif;
-      font-size: 1.1rem;
-      margin-bottom: 12px;
-      color: #7fe3ff;
-      text-shadow: 0 0 12px rgba(0,198,255,0.6);
-    }
-
-    .metric {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin: 6px 0;
-      font-size: 0.95rem;
-    }
-
-    .metric strong {
-      color: #bffcff;
-      font-weight: 700;
-      font-size: 1rem;
-    }
-
-    canvas { margin-top: 10px; }
-
-    .glow-button {
-      display: inline-block;
-      margin-top: 12px;
-      padding: 8px 14px;
-      border: 1px solid #00c6ff;
-      color: #00c6ff;
-      border-radius: 8px;
-      text-align: center;
-      font-weight: 600;
-      cursor: pointer;
-      background: transparent;
-      transition: all 0.3s ease;
-      width: 100%;
-    }
-    .glow-button:hover {
-      background: #00c6ff;
-      color: #0b0b0b;
-      box-shadow: 0 0 15px #00c6ff;
-    }
-
-    nav.kinaya-nav {
-      display: flex;
-      justify-content: space-around;
-      background: rgba(255,255,255,0.05);
-      padding: 10px 0;
-      border-top: 1px solid rgba(167,225,238,0.2);
-    }
-    nav.kinaya-nav .nav-btn {
-      color: #A7E1EE;
-      text-decoration: none;
-      text-align: center;
-      font-size: 0.9rem;
-    }
-    nav.kinaya-nav .nav-btn.active {
-      color: #00c6ff;
-      text-shadow: 0 0 10px #00c6ff;
-    }
-  </style>
+  <!-- ====== DASHBOARD LOGIC ====== -->
+  <script src="scripts/dashboard.js" defer></script>
 </head>
 
 <body>
-  <header>Business Dashboard</header>
+  <!-- ====== HEADER ====== -->
+  <header>
+    Business Dashboard
+    <p class="subtitle">Unified overview of your sales, inventory, and performance</p>
+  </header>
 
-  <!-- ===== CONTROLS ===== -->
-  <div class="dashboard-controls">
+  <!-- ====== CONTROLS ====== -->
+  <section class="dashboard-controls">
     <label>View:
       <select id="view-select">
         <option value="daily">Daily</option>
@@ -186,19 +54,21 @@
         <option value="yearly">Yearly</option>
       </select>
     </label>
+
     <label>Range:
       <input type="text" id="date-range" value="Oct 1 – Oct 23" />
     </label>
+
     <label>Compare:
       <label class="switch">
-        <input type="checkbox" id="compare-toggle">
+        <input type="checkbox" id="compare-toggle" />
         <span class="slider"></span>
       </label>
     </label>
-  </div>
+  </section>
 
-  <!-- ===== DASHBOARD PANELS ===== -->
-  <main class="dashboard">
+  <!-- ====== MAIN DASHBOARD ====== -->
+  <main role="main" class="dashboard">
 
     <!-- A. SALES PERFORMANCE -->
     <section class="panel">
@@ -211,7 +81,7 @@
       <div class="metric"><span>Top Product</span><strong id="top-product">–</strong></div>
       <div class="metric"><span>Sales by Channel</span><strong id="sales-channel">–</strong></div>
       <canvas id="sales-trend" height="100"></canvas>
-      <button class="glow-button">Email Sales Report</button>
+      <button type="button" class="glow-button">Email Sales Report</button>
     </section>
 
     <!-- B. CUSTOMER INSIGHTS -->
@@ -223,7 +93,7 @@
       <div class="metric"><span>Customer Emails Collected</span><strong id="emails-collected">0</strong></div>
       <div class="metric"><span>Refund Rate</span><strong id="refund-rate">0%</strong></div>
       <canvas id="customer-chart" height="100"></canvas>
-      <button class="glow-button">Email Customer Report</button>
+      <button type="button" class="glow-button">Email Customer Report</button>
     </section>
 
     <!-- C. PRODUCT ANALYTICS -->
@@ -235,7 +105,7 @@
       <div class="metric"><span>Category Breakdown</span><strong id="category-breakdown">–</strong></div>
       <div class="metric"><span>Total SKUs Active</span><strong id="total-skus">0</strong></div>
       <canvas id="product-chart" height="100"></canvas>
-      <button class="glow-button">Email Product Report</button>
+      <button type="button" class="glow-button">Email Product Report</button>
     </section>
 
     <!-- D. TAX & ACCOUNTING SUMMARY -->
@@ -246,16 +116,16 @@
       <div class="metric"><span>Expenses Logged</span><strong id="expenses">$0.00</strong></div>
       <div class="metric"><span>Net Profit</span><strong id="account-net-profit">$0.00</strong></div>
       <canvas id="accounting-chart" height="100"></canvas>
-      <button class="glow-button">Email Accounting Report</button>
+      <button type="button" class="glow-button">Email Accounting Report</button>
     </section>
 
   </main>
 
-  <!-- NAVIGATION -->
+  <!-- ====== NAVIGATION ====== -->
   <nav class="kinaya-nav">
-    <a href="sale.html" class="nav-btn"><i class="fas fa-cash-register"></i><br>Sales</a>
-    <a href="inventory.html" class="nav-btn"><i class="fas fa-boxes"></i><br>Inventory</a>
-    <a href="data.html" class="nav-btn active"><i class="fas fa-chart-line"></i><br>Data</a>
+    <a href="sale.html" class="nav-btn"><i class="fas fa-cash-register"></i><span>Sales</span></a>
+    <a href="inventory.html" class="nav-btn"><i class="fas fa-boxes"></i><span>Inventory</span></a>
+    <a href="data.html" class="nav-btn active"><i class="fas fa-chart-line"></i><span>Data</span></a>
   </nav>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

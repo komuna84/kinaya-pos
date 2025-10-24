@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta http-equiv="Cache-Control" content="no-store">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="description" content="Login to the Kinaya Rising POS system to manage sales, inventory, and business analytics.">
   <title>Kinaya Rising POS — Login</title>
 
   <!-- Fonts & Icons -->
@@ -17,26 +19,27 @@
     rel="stylesheet"
   />
 
-  <!-- Local Styles -->
-  <link rel="stylesheet" href="styles.css" />
+  <!-- Unified Styles -->
+  <link rel="stylesheet" href="kinaya-base.css">
+  <link rel="stylesheet" href="login.css">
 </head>
 
 <body class="login-body" oncontextmenu="return false" autocomplete="off">
-  <div class="login-container" autocomplete="off">
+  <div class="login-container">
     <h1>🌿 Kinaya Rising POS</h1>
     <p>Enter Access Code</p>
 
-    <form id="login-form" autocomplete="off">
-     <input
-  type="password"
-  id="passcode-input"
-  placeholder="Enter Passcode"
-  autocomplete="new-password"
-  autocorrect="off"
-  autocapitalize="none"
-  spellcheck="false"
-/>
-      <br />
+    <form id="login-form" autocomplete="off" novalidate>
+      <input
+        type="password"
+        id="passcode-input"
+        aria-label="Enter passcode"
+        placeholder="Enter Passcode"
+        autocomplete="new-password"
+        autocorrect="off"
+        autocapitalize="none"
+        spellcheck="false"
+      />
       <button id="passcode-btn" type="button">Unlock</button>
       <p id="passcode-error">Invalid passcode.</p>
     </form>
@@ -47,24 +50,46 @@
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const PASSCODE = "Lumina2025";
+
+      const form   = document.getElementById("login-form");
       const button = document.getElementById("passcode-btn");
-      const input = document.getElementById("passcode-input");
-      const error = document.getElementById("passcode-error");
+      const input  = document.getElementById("passcode-input");
+      const error  = document.getElementById("passcode-error");
 
       function unlock() {
         const entered = input.value.trim();
         if (entered === PASSCODE) {
           sessionStorage.setItem("posUnlocked", "true");
-          window.location.href = "sale.html"; // ✅ redirect to your sales POS
+          window.location.href = "sale.html";
         } else {
           error.style.display = "block";
           input.value = "";
+          input.focus();
         }
       }
 
-      input.addEventListener("input", () => (error.style.display = "none"));
+      // ✅ Prevent native form submit (page reload)
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        unlock();
+      });
+
+      // Click handler
       button.addEventListener("click", unlock);
-      input.addEventListener("keypress", (e) => e.key === "Enter" && unlock());
+
+      // Enter key handler
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          unlock();
+        }
+      });
+
+      // Hide error on typing
+      input.addEventListener("input", () => (error.style.display = "none"));
+
+      // Auto focus input
+      input.focus();
     });
   </script>
 </body>

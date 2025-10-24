@@ -459,15 +459,22 @@ function updatePaymentSummary() {
 
 // ---------- SHOW PAYPAD ----------
 function openPaypad(type) {
-  currentType = type;
-  const overlay = document.getElementById("payment-overlay");
-  const displayEl = document.getElementById("paypad-display");
-  overlay.classList.remove("hidden");
-  let existing = order._payment[type.toLowerCase()] || 0;
-  buffer = (existing * 100).toString(); // preload cents
-  renderDisplay();
-  displayEl.dataset.mode = type;
+  currentPaymentType = type; // store active payment method
+  if (!paypadOverlay) return;
+
+  const owedEl = document.getElementById("paypad-owed");
+  const grandEl = document.getElementById("grandtotal-summary");
+  let owed = 0;
+  if (grandEl) {
+    owed = parseFloat(grandEl.textContent.replace(/[^0-9.]/g, "")) || 0;
+  }
+  if (owedEl) owedEl.textContent = `$${owed.toFixed(2)}`;
+
+  paypadValue = "";
+  paypadOverlay.classList.remove("hidden");
+  updatePaypadDisplay();
 }
+
 
 // ---------- PAYPAD CORE ----------
 const overlay = document.getElementById("payment-overlay");
@@ -520,6 +527,47 @@ if (cashBtn)
   cashBtn.addEventListener("click", () => openPaypad("Cash"));
 if (cardBtn)
   cardBtn.addEventListener("click", () => openPaypad("Card"));
+// ===========================================================
+// ✅ Confirm Payment Button Logic
+// ===========================================================
+const confirmPaymentBtn = document.getElementById("confirm-payment-btn");
+
+confirmPaymentBtn?.addEventListener("click", () => {
+  const enteredAmount = parseFloat(paypadValue || "0");
+  if (isNaN(enteredAmount) || enteredAmount <= 0) {
+    alert("Please enter a valid payment amount.");
+    return;
+  }
+
+  const grandEl = document.getElementById("grandtotal-summary");
+  let grandTotal = 0;
+  if (grandEl) {
+    grandTotal = parseFloat(grandEl.textContent.replace(/[^0-9.]/g, "")) || 0;
+  }
+
+  // ✅ Apply amount to correct field
+  const amountPaidEl = document.getElementById("amount-paid");
+  const changeEl = document.getElementById("change-amount");
+
+  if (amountPaidEl) amountPaidEl.textContent = `$${enteredAmount.toFixed(2)}`;
+
+  // Compute change or remaining
+  const diff = enteredAmount - grandTotal;
+  if (changeEl) {
+    changeEl.textContent =
+      diff >= 0
+        ? `Change: $${diff.toFixed(2)}`
+        : `Remaining: $${Math.abs(diff).toFixed(2)}`;
+  }
+
+  console.log(`✅ ${currentPaymentType} payment confirmed: $${enteredAmount}`);
+
+  // Hide overlay + reset
+  paypadOverlay.classList.add("hidden");
+  paypadValue = "";
+  updatePaypadDisplay();
+});
+
 
 // ---------- RESET + INITIALIZE ----------
 function resetPayments() {
