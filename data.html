@@ -3,22 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport"
-      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-  <title>Kinaya Rising Dashboard</title>
+        content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>Kinaya Rising — Business Dashboard</title>
 
-  <!-- Fonts & Icons -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer">
   <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
-    crossorigin="anonymous"
-    referrerpolicy="no-referrer"
-  />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Audiowide&family=Roboto:wght@300;400;700&display=swap"
-    rel="stylesheet"
-  />
-
-  <!-- ✅ Session Lock -->
+        href="https://fonts.googleapis.com/css2?family=Audiowide&family=Roboto:wght@300;400;700&display=swap"
+        rel="stylesheet">
   <script>
     if (sessionStorage.getItem("posUnlocked") !== "true") {
       window.location.href = "index.html";
@@ -26,22 +20,22 @@
   </script>
 
   <link rel="stylesheet" href="styles.css" />
+
   <style>
     body {
-      background: #0b0b0b;
+      background: radial-gradient(circle at center, #020202 0%, #000 100%);
       color: #A7E1EE;
       font-family: "Roboto", sans-serif;
       margin: 0;
       padding: 0;
-      overflow-x: hidden;
     }
 
     header {
       text-align: center;
-      padding: 20px;
+      padding: 20px 10px;
       font-family: "Audiowide", sans-serif;
-      color: #A7E1EE;
-      text-shadow: 0 0 15px #00c6ff;
+      color: #bffcff;
+      text-shadow: 0 0 18px rgba(0,198,255,0.9);
       font-size: 1.8rem;
       letter-spacing: 1px;
     }
@@ -49,51 +43,99 @@
     .dashboard-controls {
       display: flex;
       justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
       gap: 12px;
       margin-bottom: 20px;
     }
 
-    .dashboard-controls select, .dashboard-controls input {
+    .dashboard-controls select,
+    .dashboard-controls input {
       background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(167,225,238,0.3);
+      border: 1px solid rgba(0,198,255,0.25);
       border-radius: 8px;
       color: #A7E1EE;
       padding: 8px 12px;
       font-size: 0.9rem;
       outline: none;
+      box-shadow: 0 0 8px rgba(0,198,255,0.1);
     }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 24px;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid #00c6ff;
+      border-radius: 20px;
+      transition: 0.3s;
+    }
+    .slider:before {
+      content: "";
+      position: absolute;
+      height: 18px;
+      width: 18px;
+      left: 2px;
+      bottom: 2px;
+      background-color: #00c6ff;
+      border-radius: 50%;
+      transition: transform 0.3s;
+    }
+    input:checked + .slider { background-color: rgba(0,198,255,0.2); }
+    input:checked + .slider:before { transform: translateX(24px); }
 
     main.dashboard {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
       gap: 16px;
       padding: 16px;
     }
 
     .panel {
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(167,225,238,0.2);
-      border-radius: 12px;
+      background: rgba(5,25,35,0.4);
+      border: 1px solid rgba(0,198,255,0.25);
+      border-radius: 16px;
+      box-shadow:
+        0 0 20px rgba(0,198,255,0.08),
+        inset 0 0 12px rgba(0,198,255,0.05);
       padding: 16px;
-      box-shadow: 0 0 20px rgba(167,225,238,0.08);
+      backdrop-filter: blur(10px);
     }
 
     .panel h2 {
       font-family: "Audiowide", sans-serif;
       font-size: 1.1rem;
       margin-bottom: 12px;
-      color: #A7E1EE;
-      text-shadow: 0 0 10px #00c6ff;
+      color: #7fe3ff;
+      text-shadow: 0 0 12px rgba(0,198,255,0.6);
     }
 
-    .panel p {
+    .metric {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       margin: 6px 0;
       font-size: 0.95rem;
     }
 
+    .metric strong {
+      color: #bffcff;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    canvas { margin-top: 10px; }
+
     .glow-button {
       display: inline-block;
-      margin-top: 10px;
+      margin-top: 12px;
       padding: 8px 14px;
       border: 1px solid #00c6ff;
       color: #00c6ff;
@@ -103,15 +145,14 @@
       cursor: pointer;
       background: transparent;
       transition: all 0.3s ease;
+      width: 100%;
     }
-
     .glow-button:hover {
       background: #00c6ff;
       color: #0b0b0b;
       box-shadow: 0 0 15px #00c6ff;
     }
 
-    /* Nav bar */
     nav.kinaya-nav {
       display: flex;
       justify-content: space-around;
@@ -119,14 +160,12 @@
       padding: 10px 0;
       border-top: 1px solid rgba(167,225,238,0.2);
     }
-
     nav.kinaya-nav .nav-btn {
       color: #A7E1EE;
       text-decoration: none;
       text-align: center;
       font-size: 0.9rem;
     }
-
     nav.kinaya-nav .nav-btn.active {
       color: #00c6ff;
       text-shadow: 0 0 10px #00c6ff;
@@ -135,95 +174,143 @@
 </head>
 
 <body>
-  <header>Kinaya Rising Dashboard</header>
+  <header>Business Dashboard</header>
 
+  <!-- ===== CONTROLS ===== -->
   <div class="dashboard-controls">
-    <select id="view-select">
-      <option value="daily">Daily</option>
-      <option value="monthly" selected>Monthly</option>
-      <option value="quarterly">Quarterly</option>
-      <option value="yearly">Yearly</option>
-    </select>
-    <input type="text" id="date-range" value="Oct 1 – Oct 23" />
-    <label style="display:flex;align-items:center;gap:8px;">
-      Compare:
-      <input type="checkbox" id="compare-toggle" />
+    <label>View:
+      <select id="view-select">
+        <option value="daily">Daily</option>
+        <option value="monthly" selected>Monthly</option>
+        <option value="quarterly">Quarterly</option>
+        <option value="yearly">Yearly</option>
+      </select>
+    </label>
+    <label>Range:
+      <input type="text" id="date-range" value="Oct 1 – Oct 23" />
+    </label>
+    <label>Compare:
+      <label class="switch">
+        <input type="checkbox" id="compare-toggle">
+        <span class="slider"></span>
+      </label>
     </label>
   </div>
 
+  <!-- ===== DASHBOARD PANELS ===== -->
   <main class="dashboard">
-    <section class="panel sales-overview">
-      <h2>Sales Overview</h2>
-      <p>Total Sales: <strong id="total-sales">$0.00</strong></p>
-      <p>Avg Transaction: <strong id="avg-transaction">$0.00</strong></p>
-      <p>Month-to-Date: <strong id="mtd-sales">$0.00</strong></p>
-      <canvas id="sales-chart" height="100"></canvas>
-      <button class="glow-button" id="email-sales-report">Email Sales Report</button>
+
+    <!-- A. SALES PERFORMANCE -->
+    <section class="panel">
+      <h2>Sales Performance</h2>
+      <div class="metric"><span>Total Revenue</span><strong id="total-revenue">$0.00</strong></div>
+      <div class="metric"><span>Gross Profit</span><strong id="gross-profit">$0.00</strong></div>
+      <div class="metric"><span>Net Profit</span><strong id="net-profit">$0.00</strong></div>
+      <div class="metric"><span>Avg Transaction Value</span><strong id="avg-transaction">$0.00</strong></div>
+      <div class="metric"><span>Units Sold</span><strong id="units-sold">0</strong></div>
+      <div class="metric"><span>Top Product</span><strong id="top-product">–</strong></div>
+      <div class="metric"><span>Sales by Channel</span><strong id="sales-channel">–</strong></div>
+      <canvas id="sales-trend" height="100"></canvas>
+      <button class="glow-button">Email Sales Report</button>
     </section>
 
-    <section class="panel inventory-snapshot">
-      <h2>Inventory Snapshot</h2>
-      <p>Total SKUs: <strong id="total-skus">0</strong></p>
-      <p>Low Stock: <strong id="low-stock">0</strong></p>
-      <p>Units Sold: <strong id="units-sold">0</strong></p>
-      <button class="glow-button" id="email-restock-list">Email Restock List</button>
+    <!-- B. CUSTOMER INSIGHTS -->
+    <section class="panel">
+      <h2>Customer Insights</h2>
+      <div class="metric"><span>Number of Transactions</span><strong id="num-transactions">0</strong></div>
+      <div class="metric"><span>Repeat Customers</span><strong id="repeat-customers">0%</strong></div>
+      <div class="metric"><span>Avg Items per Sale</span><strong id="avg-items">0</strong></div>
+      <div class="metric"><span>Customer Emails Collected</span><strong id="emails-collected">0</strong></div>
+      <div class="metric"><span>Refund Rate</span><strong id="refund-rate">0%</strong></div>
+      <canvas id="customer-chart" height="100"></canvas>
+      <button class="glow-button">Email Customer Report</button>
     </section>
 
-    <section class="panel accounting-overview">
-      <h2>Accounting Overview</h2>
-      <p>Gross Revenue: <strong id="gross-revenue">$0.00</strong></p>
-      <p>Tax Collected: <strong id="tax-collected">$0.00</strong></p>
-      <p>Expenses: <strong id="expenses">$0.00</strong></p>
-      <p>Net Profit: <strong id="net-profit">$0.00</strong></p>
-      <button class="glow-button" id="email-monthly-report">Email Monthly Report</button>
+    <!-- C. PRODUCT ANALYTICS -->
+    <section class="panel">
+      <h2>Product Analytics</h2>
+      <div class="metric"><span>Top-Selling Products</span><strong id="top-products">–</strong></div>
+      <div class="metric"><span>Lowest Stocked Products</span><strong id="low-stock-products">–</strong></div>
+      <div class="metric"><span>Profit Margin (Avg)</span><strong id="profit-margin">0%</strong></div>
+      <div class="metric"><span>Category Breakdown</span><strong id="category-breakdown">–</strong></div>
+      <div class="metric"><span>Total SKUs Active</span><strong id="total-skus">0</strong></div>
+      <canvas id="product-chart" height="100"></canvas>
+      <button class="glow-button">Email Product Report</button>
     </section>
+
+    <!-- D. TAX & ACCOUNTING SUMMARY -->
+    <section class="panel">
+      <h2>Tax & Accounting Summary</h2>
+      <div class="metric"><span>Gross Revenue (Before Tax)</span><strong id="gross-revenue">$0.00</strong></div>
+      <div class="metric"><span>Tax Collected</span><strong id="tax-collected">$0.00</strong></div>
+      <div class="metric"><span>Expenses Logged</span><strong id="expenses">$0.00</strong></div>
+      <div class="metric"><span>Net Profit</span><strong id="account-net-profit">$0.00</strong></div>
+      <canvas id="accounting-chart" height="100"></canvas>
+      <button class="glow-button">Email Accounting Report</button>
+    </section>
+
   </main>
 
+  <!-- NAVIGATION -->
   <nav class="kinaya-nav">
-    <a href="sale.html" class="nav-btn">
-      <i class="fas fa-cash-register"></i><br>Sales
-    </a>
-    <a href="inventory.html" class="nav-btn">
-      <i class="fas fa-boxes"></i><br>Inventory
-    </a>
-    <a href="data.html" class="nav-btn active">
-      <i class="fas fa-chart-line"></i><br>Data
-    </a>
+    <a href="sale.html" class="nav-btn"><i class="fas fa-cash-register"></i><br>Sales</a>
+    <a href="inventory.html" class="nav-btn"><i class="fas fa-boxes"></i><br>Inventory</a>
+    <a href="data.html" class="nav-btn active"><i class="fas fa-chart-line"></i><br>Data</a>
   </nav>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    // Highlight active nav
     document.addEventListener("DOMContentLoaded", () => {
-      const links = document.querySelectorAll(".nav-btn");
-      const current = window.location.pathname.split("/").pop();
-      links.forEach(link => {
-        if (link.getAttribute("href") === current) {
-          link.classList.add("active");
-        }
+      // ===== Example Charts =====
+      new Chart(document.getElementById("sales-trend"), {
+        type: "line",
+        data: {
+          labels: ["Week 1", "Week 2", "Week 3", "Week 4"],
+          datasets: [{
+            data: [300, 500, 450, 600],
+            borderColor: "#00c6ff",
+            tension: 0.3,
+            fill: false
+          }]
+        },
+        options: { plugins: { legend: { display: false } } }
       });
 
-      // Example Chart
-      const ctx = document.getElementById("sales-chart");
-      if (ctx) {
-        new Chart(ctx, {
-          type: "line",
-          data: {
-            labels: ["Jan", "Feb", "Mar", "Apr", "May"],
-            datasets: [{
-              label: "Revenue",
-              data: [120, 190, 300, 500, 200],
-              borderColor: "#00c6ff",
-              tension: 0.3,
-              fill: false
-            }]
-          },
-          options: {
-            plugins: { legend: { display: false } },
-            scales: { x: { ticks: { color: "#A7E1EE" } }, y: { ticks: { color: "#A7E1EE" } } }
-          }
-        });
-      }
+      new Chart(document.getElementById("customer-chart"), {
+        type: "doughnut",
+        data: {
+          labels: ["Returning", "New"],
+          datasets: [{
+            data: [40, 60],
+            backgroundColor: ["#00c6ff", "#144b6b"]
+          }]
+        },
+        options: { plugins: { legend: { labels: { color: "#A7E1EE" } } } }
+      });
+
+      new Chart(document.getElementById("product-chart"), {
+        type: "bar",
+        data: {
+          labels: ["Books", "Buttons", "Totes", "Bookmarks"],
+          datasets: [{
+            data: [220, 95, 60, 45],
+            backgroundColor: "#00c6ff"
+          }]
+        },
+        options: { plugins: { legend: { display: false } } }
+      });
+
+      new Chart(document.getElementById("accounting-chart"), {
+        type: "pie",
+        data: {
+          labels: ["Revenue", "Tax", "Expenses"],
+          datasets: [{
+            data: [5921.4, 421, 1200],
+            backgroundColor: ["#00c6ff", "#046b7a", "#144b6b"]
+          }]
+        },
+        options: { plugins: { legend: { labels: { color: "#A7E1EE" } } } }
+      });
     });
   </script>
 </body>
