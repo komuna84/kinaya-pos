@@ -1862,3 +1862,50 @@ input:checked + .slider:before {
     padding: 0.75rem;
   }
 }
+
+/* =========================================================
+   🧾 RECEIPT TABLE FIX: PRODUCT NAMES + MOBILE WRAP
+   ========================================================= */
+
+/* Prevent names from being cut off */
+#receipt-details td,
+#receipt-details th {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  max-width: 140px;
+}
+
+#receipt-details .product-name {
+  white-space: normal;
+  word-wrap: break-word;
+  max-width: 160px;
+  text-align: left;
+}
+
+/* Keep delete button small but accessible */
+#receipt-details .delete-btn {
+  background: none;
+  border: none;
+  color: #e63946;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+#receipt-details .delete-btn:hover {
+  color: #ff7b7b;
+}
+
+/* Mobile fine-tuning */
+@media (max-width: 768px) {
+  #receipt-details td,
+  #receipt-details th {
+    font-size: 0.9rem;
+    max-width: 100px;
+  }
+
+  #receipt-details .product-name {
+    font-size: 0.9rem;
+    max-width: 120px;
+  }
+}
