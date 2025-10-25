@@ -89,8 +89,8 @@
                 <tr><td>Subtotal:</td><td id="subtotal-summary">$0.00</td></tr>
                 <tr><td>Tax:</td><td id="tax-summary">$0.00</td></tr>
                 <tr><td>Grand Total:</td><td id="grandtotal-summary">$0.00</td></tr>
-                <tr><td>Amount Paid:</td><td id="amount-paid-display" class="glow-text">$0.00</td></tr>
-                <tr><td>Change:</td><td id="change-amount">$0.00</td></tr>
+                <tr><td>Amount Paid:</td><td id="amount-paid-display" data-bind="amount-paid" class="glow-text">$0.00</td></tr>
+                <tr><td>Change:</td><td id="change-amount" data-bind="change-due">$0.00</td></tr>
                 <tr><td>Payment Type:</td><td id="split-info">None</td></tr>
                 <tr><td>Email:</td>
                   <td><input type="email" id="customer-email" placeholder="customer@example.com" /></td>
@@ -136,53 +136,177 @@
     <section class="menu-payment grid">
       <div class="menu flex-row" id="menu"></div>
     </section>
+    <button id="open-gallery" class="glow-button mobile-only">
+  <i class="fa-solid fa-images"></i> View All Products
+</button>
 
-  </main>
-  
-  <!-- 💰 PAYMENT OVERLAY (PAYPAD) -->
-<div id="payment-overlay" class="overlay hidden">
-  <div class="paypad">
-    <button id="close-paypad-btn" class="close-paypad-icon">
-      <i class="fa-solid fa-xmark"></i>
-    </button>
-
-    <h2 class="paypad-title">Enter Payment</h2>
-    <div class="owed-section">
-      <span class="owed-label">Amount Owed:</span>
-      <span id="paypad-owed" class="owed-value">$0.00</span>
-    </div>
-
-    <div id="paypad-display" class="paypad-display">$0.00</div>
-
-    <div class="paypad-grid">
-      <button class="paypad-btn" data-value="7">7</button>
-      <button class="paypad-btn" data-value="8">8</button>
-      <button class="paypad-btn" data-value="9">9</button>
-      <button class="paypad-btn" data-value="←">←</button>
-
-      <button class="paypad-btn" data-value="4">4</button>
-      <button class="paypad-btn" data-value="5">5</button>
-      <button class="paypad-btn" data-value="6">6</button>
-      <button class="paypad-btn" data-value="C">C</button>
-
-      <button class="paypad-btn" data-value="1">1</button>
-      <button class="paypad-btn" data-value="2">2</button>
-      <button class="paypad-btn" data-value="3">3</button>
-      <button class="paypad-btn" data-value=".">.</button>
-
-      <button class="paypad-btn" data-value="0">0</button>
-      <button class="paypad-btn" data-value="00">00</button>
-    </div>
-
-    <button id="confirm-payment-btn" class="confirm-payment-btn glow-button">
-      Confirm Payment
-    </button>
+<div id="image-modal" class="image-modal hidden">
+  <div class="modal-content">
+    <span id="close-gallery" class="close-btn">&times;</span>
+    <div id="image-gallery"></div>
   </div>
 </div>
 
-  <!-- ===== JS HANDLERS ===== -->
-    <!-- ===== JS MODULES ===== -->
+  </main>
+
+  <!-- 💰 PAYMENT OVERLAY (PAYPAD) -->
+  <div id="payment-overlay" class="overlay">
+    <div class="paypad">
+      <button id="close-paypad-btn" class="close-paypad-icon">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <h2 class="paypad-title">Enter Payment</h2>
+      <div class="owed-section">
+        <span class="owed-label">Amount Owed:</span>
+        <span id="paypad-owed" class="owed-value">$0.00</span>
+      </div>
+
+      <div id="paypad-display" class="paypad-display" data-bind="amount-paid">$0.00</div>
+
+      <div class="paypad-grid">
+        <button class="paypad-btn" data-value="7">7</button>
+        <button class="paypad-btn" data-value="8">8</button>
+        <button class="paypad-btn" data-value="9">9</button>
+        <button class="paypad-btn" data-value="←">←</button>
+
+        <button class="paypad-btn" data-value="4">4</button>
+        <button class="paypad-btn" data-value="5">5</button>
+        <button class="paypad-btn" data-value="6">6</button>
+        <button class="paypad-btn" data-value="C">C</button>
+
+        <button class="paypad-btn" data-value="1">1</button>
+        <button class="paypad-btn" data-value="2">2</button>
+        <button class="paypad-btn" data-value="3">3</button>
+        <button class="paypad-btn" data-value=".">.</button>
+
+        <button class="paypad-btn" data-value="0">0</button>
+        <button class="paypad-btn" data-value="00">00</button>
+      </div>
+
+      <button id="confirm-payment-btn" class="confirm-payment-btn glow-button">
+        Confirm Payment
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== JS MODULES ===== -->
   <script src="scripts/script.js" defer></script>
   <script src="scripts/sale.js" defer></script>
+
+  <!-- 🌿 Split Payment + Overlay Fix -->
+  <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    // ===== SPLIT PAYMENT LOGIC =====
+    let cashPaid = 0;
+    let cardPaid = 0;
+    let activeMethod = "cash";
+    let keypadBuffer = "";
+
+    const money = v => `$${(Number(v) || 0).toFixed(2)}`;
+
+    function syncDisplays() {
+      const totalPaid = cashPaid + cardPaid;
+      const owedEl = document.getElementById("paypad-owed");
+      const owed = owedEl ? parseFloat(owedEl.textContent.replace(/[^0-9.]/g, "")) || 0 : 0;
+      const change = Math.max(0, totalPaid - owed);
+
+      document.querySelectorAll('[data-bind="amount-paid"]').forEach(el => el.textContent = money(totalPaid));
+      document.querySelectorAll('[data-bind="change-due"]').forEach(el => el.textContent = money(change));
+
+      const splitInfo = document.getElementById("split-info");
+      if (splitInfo) {
+        let parts = [];
+        if (cashPaid > 0) parts.push(`$${cashPaid.toFixed(2)} Cash`);
+        if (cardPaid > 0) parts.push(`$${cardPaid.toFixed(2)} Card`);
+        splitInfo.textContent = parts.length ? parts.join(" + ") : "None";
+      }
+    }
+
+    // ===== ELEMENTS =====
+    const paypadOverlay = document.getElementById("payment-overlay");
+    const paypadDisplay = document.getElementById("paypad-display");
+    const confirmPaymentBtn = document.getElementById("confirm-payment-btn");
+    const cashBtn = document.getElementById("cash-btn");
+    const cardBtn = document.getElementById("card-btn");
+    const closePaypadBtn = document.getElementById("close-paypad-btn");
+    const paypadButtons = document.querySelectorAll(".paypad-btn");
+
+    // ===== OPEN/CLOSE PAYPAD =====
+    if (cashBtn) cashBtn.addEventListener("click", () => {
+      activeMethod = "cash";
+      paypadOverlay.classList.add("active");
+      keypadBuffer = "";
+      paypadDisplay.textContent = "$0.00";
+    });
+    if (cardBtn) cardBtn.addEventListener("click", () => {
+      activeMethod = "card";
+      paypadOverlay.classList.add("active");
+      keypadBuffer = "";
+      paypadDisplay.textContent = "$0.00";
+    });
+    if (closePaypadBtn) closePaypadBtn.addEventListener("click", () => {
+      paypadOverlay.classList.remove("active");
+    });
+
+    // ===== PAYPAD INPUT =====
+    paypadButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const v = btn.dataset.value;
+        if (v === "C") keypadBuffer = "";
+        else if (v === "←") keypadBuffer = keypadBuffer.slice(0, -1);
+        else if (v === ".") {
+          if (!keypadBuffer.includes(".")) keypadBuffer += ".";
+        } else {
+          keypadBuffer += v;
+        }
+        const displayAmount = parseFloat(keypadBuffer || "0") || 0;
+        paypadDisplay.textContent = money(displayAmount);
+      });
+    });
+
+    // ===== CONFIRM PAYMENT =====
+    if (confirmPaymentBtn) confirmPaymentBtn.addEventListener("click", () => {
+      const entered = parseFloat(paypadDisplay.textContent.replace(/[^0-9.]/g, "")) || 0;
+      if (activeMethod === "cash") cashPaid += entered;
+      else if (activeMethod === "card") cardPaid += entered;
+
+      keypadBuffer = "";
+      paypadDisplay.textContent = "$0.00";
+      syncDisplays();
+      paypadOverlay.classList.remove("active");
+    });
+
+    // Helper
+    window.getTotalPaid = () => cashPaid + cardPaid;
+  });
+  </script>
+
+  <!-- ===== FIXED OVERLAY BEHAVIOR ===== -->
+  <style>
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(6px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+
+  .overlay.active {
+    display: flex;
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .hidden {
+    display: none !important;
+  }
+  </style>
 </body>
 </html>
