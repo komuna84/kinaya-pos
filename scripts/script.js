@@ -270,6 +270,18 @@ class Ui {
     if (grandEl) grandEl.textContent = fmt(grandTotal);
   }
 }
+// 🪙 Fix: Recalculate payment info even if zero
+const grandDisplay = document.getElementById("grandtotal-summary");
+const payDisplay = document.getElementById("amount-paid-display");
+const changeDisplay = document.getElementById("change-amount");
+
+if (grandDisplay) grandDisplay.textContent = `$${grand.toFixed(2)}`;
+if (payDisplay) payDisplay.textContent = `$${(paymentRecord.cash + paymentRecord.card).toFixed(2)}`;
+if (changeDisplay) {
+  const diff = (paymentRecord.cash + paymentRecord.card) - grand;
+  changeDisplay.textContent = diff >= 0 ? `$${diff.toFixed(2)}` : `-$${Math.abs(diff).toFixed(2)}`;
+}
+
 
 // ===========================================================
 // INIT
