@@ -5,8 +5,8 @@
 document.addEventListener("DOMContentLoaded", async () => {
   console.log("🌿 Loading advanced inventory system...");
 
-  const INVENTORY_SHEET_URL =
-  "https://script.google.com/macros/s/AKfycbyR-1IXv_ez6K1knaGizSVavXxN7Zzd--gB8G_3YjRAuiHnzLeFkp1a34M1TVzVQk8usQ/exec";
+  const API_URL =
+    "https://script.google.com/macros/s/AKfycbyR-1IXv_ez6K1knaGizSVavXxN7Zzd--gB8G_3YjRAuiHnzLeFkp1a34M1TVzVQk8usQ/exec";
 
   const tableBody = document.getElementById("inventory-body");
   const saveBtn = document.getElementById("save-inventory");
@@ -22,17 +22,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   // ===========================================================
   async function loadInventoryData() {
     try {
-      const res = await fetch(`${INVENTORY_SHEET_URL}?mode=inventory`);
+      const res = await fetch(`${API_URL}?mode=inventory`);
       if (!res.ok) throw new Error(`Network error: ${res.status}`);
-      const text = await res.text();
-
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch (err) {
-        console.error("❌ Invalid JSON:", text);
-        throw err;
-      }
+      const data = await res.json();
 
       if (!Array.isArray(data)) throw new Error("Data not an array");
       renderTable(data);
@@ -50,8 +42,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   // 🧩 RENDER TABLE
   // ===========================================================
   function renderTable(products) {
-    if (!Array.isArray(products)) return;
-
     tableBody.innerHTML = products
       .map((p, i) => {
         const price = parseFloat(p.Price) || 0;
@@ -64,11 +54,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         const netAssets = (inStock * price).toFixed(2);
 
         return `
-          <tr data-index="${i}" data-stable="${p.StableSku || p.Sku}">
+          <tr data-index="${i}" data-stable="${p["Stable Sku"] || p.Sku}">
             <td><img src="${p.Image || ""}" alt="${p.Product || ""}" 
                 style="width:40px;height:40px;border-radius:6px;object-fit:cover;"></td>
             <td>${p.Sku || ""}</td>
-            <td>${p.Product || ""}</td>
+            <td>${p["Stable Sku"] || p.Sku || ""}</td>
+            <td>${p["Product Title"] || p.Product || ""}</td>
             <td contenteditable="true" class="editable price">${price.toFixed(2)}</td>
             <td contenteditable="true" class="editable units">${unitsInSet}</td>
             <td contenteditable="true" class="editable received">${received}</td>
@@ -77,7 +68,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             <td contenteditable="true" class="editable sold">${sold}</td>
             <td class="instock">${inStock}</td>
             <td class="net-assets">$${netAssets}</td>
-            <td>${p.StableSku || p.Sku}</td>
           </tr>`;
       })
       .join("");
@@ -142,22 +132,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     const rows = [...document.querySelectorAll("#inventory-body tr")];
     const payload = rows.map(row => ({
       Sku: row.children[1]?.textContent.trim(),
-      StableSku: row.dataset.stable,
-      Product: row.children[2]?.textContent.trim(),
-      Price: parseFloat(row.children[3]?.textContent.trim()) || 0,
-      UnitsInSet: parseFloat(row.children[4]?.textContent.trim()) || 1,
-      Received: parseFloat(row.children[5]?.textContent.trim()) || 0,
-      Damaged: parseFloat(row.children[6]?.textContent.trim()) || 0,
-      Returned: parseFloat(row.children[7]?.textContent.trim()) || 0,
-      Sold: parseFloat(row.children[8]?.textContent.trim()) || 0,
-      InStock: parseFloat(row.children[9]?.textContent.trim()) || 0,
+      "Stable Sku": row.dataset.stable,
+      "Product Title": row.children[3]?.textContent.trim(),
+      Price: parseFloat(row.children[4]?.textContent.trim()) || 0,
+      UnitsInSet: parseFloat(row.children[5]?.textContent.trim()) || 1,
+      Received: parseFloat(row.children[6]?.textContent.trim()) || 0,
+      Damaged: parseFloat(row.children[7]?.textContent.trim()) || 0,
+      Returned: parseFloat(row.children[8]?.textContent.trim()) || 0,
+      Sold: parseFloat(row.children[9]?.textContent.trim()) || 0,
+      InStock: parseFloat(row.children[10]?.textContent.trim()) || 0,
       NetAssets: parseFloat(
-        row.children[10]?.textContent.replace("$", "").trim()
+        row.children[11]?.textContent.replace("$", "").trim()
       ) || 0,
     }));
 
     try {
-      const res = await fetch(INVENTORY_SHEET_URL, {
+      const res = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
