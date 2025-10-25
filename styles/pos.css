@@ -540,3 +540,58 @@ header h1 {
   text-align: center;
 }
 
+.mobile-only {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-only {
+    display: block;
+    width: 100%;
+    margin: 1rem auto;
+    text-align: center;
+  }
+
+  .image-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .image-modal.hidden {
+    display: none;
+  }
+
+  .modal-content {
+    position: relative;
+    width: 90%;
+    height: 90%;
+    overflow-y: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+  }
+
+  .modal-content img {
+    width: 45%;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+
+  .close-btn {
+    position: absolute;
+    top: 8px;
+    right: 16px;
+    font-size: 2rem;
+    color: #00c6ff;
+    cursor: pointer;
+  }
+}
