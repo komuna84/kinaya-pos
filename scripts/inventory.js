@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   console.log("🌿 Loading advanced inventory system...");
 
   const API_URL =
-    "https://script.google.com/macros/s/AKfycbypCQ4obuOwc7XqGO1SVPKNdEwBMD1mH1WPMJKbvUONrbt5rY-MOcqq4IfQ-wNlUMcAwA/exec";
+    "https://script.google.com/macros/s/AKfycbyVpqR9T-EqES1SOT_UdWXo--701meni3yq4KiJ4HTHrLkLGVyC9Luuj8XjDf_q7HT3kg/exec";
 
   const tableBody = document.getElementById("inventory-body");
   const saveBtn = document.getElementById("save-inventory");
