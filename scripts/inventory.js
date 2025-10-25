@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   console.log("🌿 Loading advanced inventory system...");
 
   const API_URL =
-    "https://script.google.com/macros/s/AKfycbyVpqR9T-EqES1SOT_UdWXo--701meni3yq4KiJ4HTHrLkLGVyC9Luuj8XjDf_q7HT3kg/exec";
+    "https://script.google.com/macros/s/AKfycbw2Ma07Iuec9HtoilJxjAyzstRfMLjJWeEDM8nPmDphqynNzcSJAYXokOeZ1iTt3n-bEg/exec";
 
   const tableBody = document.getElementById("inventory-body");
   const saveBtn = document.getElementById("save-inventory");
@@ -129,7 +129,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // 💾 SAVE BACK TO SHEET (Unified Kinaya Rising POS Endpoint)
   // ===========================================================
   const SHEET_API =
-    "https://script.google.com/macros/s/AKfycbyVpqR9T-EqES1SOT_UdWXo--701meni3yq4KiJ4HTHrLkLGVyC9Luuj8XjDf_q7HT3kg/exec";
+    "https://script.google.com/macros/s/AKfycbw2Ma07Iuec9HtoilJxjAyzstRfMLjJWeEDM8nPmDphqynNzcSJAYXokOeZ1iTt3n-bEg/exec";
 
   async function saveInventory() {
     const rows = [...document.querySelectorAll("#inventory-body tr")];
