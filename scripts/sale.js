@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const toggleReturnMain = document.getElementById("toggle-return-main");
   const paypadOverlay = document.getElementById("payment-overlay");
   const paypadDisplay = document.getElementById("paypad-display");
+  const amountPaidDisplay = document.getElementById("amount-paid-display");
   const paypadButtons = document.querySelectorAll(".paypad-btn");
   const confirmPaymentBtn = document.getElementById("confirm-payment-btn");
   const cashBtn = document.getElementById("cash-btn");
@@ -33,8 +34,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // 🔁 INVENTORY LOAD
   // ===========================================================
   const INVENTORY_SHEET_URL =
-  "https://script.google.com/macros/s/AKfycbz1Z9NnfDCxWSxirvAE2tKK-mB9135X_uEuei2Wg-r-qptcpT2sNCPWObcGTbAibCZBFw/exec";
-
+  "https://script.google.com/macros/s/AKfycbwXyExample12345abcdef67890/exec";
 
 
   async function loadInventoryData() {
@@ -105,43 +105,69 @@ document.addEventListener("DOMContentLoaded", async () => {
   toggleReturnMain?.addEventListener("click", toggleReturn);
 
   // ===========================================================
-  // 🔁 RETURN MODE FIX + RECEIPT
-  // ===========================================================
-  function updateReceipt(product) {
-    const tableBody = document.getElementById("receipt-details");
-    if (!tableBody) return;
+// 🔁 RECEIPT UPDATE — Add or Remove Products
+// ===========================================================
+function updateReceipt(product) {
+  const tableBody = document.getElementById("receipt-details");
+  if (!tableBody) return;
 
-    const price = returnMode ? -Math.abs(product.price) : product.price;
+  const price = returnMode ? -Math.abs(product.price) : product.price;
+  let existing = Array.from(tableBody.children).find(
+    (row) => row.dataset.sku === product.sku
+  );
 
-    let existing = Array.from(tableBody.children).find((row) =>
-      row.textContent.includes(product.sku)
-    );
+  if (existing) {
+    let qtyCell = existing.querySelector(".qty");
+    let subCell = existing.querySelector(".subtotal");
+    let qty = parseInt(qtyCell.textContent) + product.qtyChange;
 
-    if (existing) {
-      let qtyCell = existing.children[1];
-      let subCell = existing.children[3];
-      let qty = parseInt(qtyCell.textContent) + product.qtyChange;
-
-      if (qty === 0) existing.remove();
-      else {
-        qtyCell.textContent = qty;
-        subCell.textContent = `$${(qty * price).toFixed(2)}`;
-      }
-    } else {
-      const newRow = document.createElement("tr");
-      const style = returnMode ? "color:#e63946;font-weight:bold;" : "";
-      newRow.innerHTML = `
-        <td style="${style}">${product.name}</td>
-        <td style="${style}">${product.qtyChange}</td>
-        <td style="${style}">$${price.toFixed(2)}</td>
-        <td style="${style}">$${price.toFixed(2)}</td>
-        <td><i class="fas fa-trash"></i></td>
-      `;
-      tableBody.appendChild(newRow);
+    if (qty <= 0) existing.remove();
+    else {
+      qtyCell.textContent = qty;
+      subCell.textContent = `$${(qty * price).toFixed(2)}`;
     }
-
-    updateTotals();
+  } else {
+    const newRow = document.createElement("tr");
+    newRow.dataset.sku = product.sku;
+    const style = returnMode ? "color:#e63946;font-weight:bold;" : "";
+    newRow.innerHTML = `
+      <td style="${style}">${product.name}</td>
+      <td class="qty" style="${style}">${product.qtyChange}</td>
+      <td style="${style}">$${price.toFixed(2)}</td>
+      <td class="subtotal" style="${style}">$${price.toFixed(2)}</td>
+      <td><button class="del-btn"><i class="fas fa-trash"></i></button></td>
+    `;
+    tableBody.appendChild(newRow);
   }
+
+  updateTotals();
+}
+
+// ===========================================================
+// 💸 TOTAL CALCULATION — Stable and Always Refresh
+// ===========================================================
+function updateTotals() {
+  const tableBody = document.getElementById("receipt-details");
+  let subtotal = 0;
+
+  tableBody.querySelectorAll("tr").forEach((row) => {
+    const sub = parseFloat(
+      row.querySelector(".subtotal")?.textContent.replace(/[^0-9.-]/g, "") || 0
+    );
+    subtotal += sub;
+  });
+
+  const discountAmt = (subtotal * discountPercent) / 100;
+  const discountedSubtotal = subtotal - discountAmt;
+  const tax = discountedSubtotal * 0.07;
+  const grand = discountedSubtotal + tax;
+
+  document.getElementById("subtotal-summary").textContent = `$${subtotal.toFixed(2)}`;
+  document.getElementById("tax-summary").textContent = `$${tax.toFixed(2)}`;
+  document.getElementById("grandtotal-summary").textContent = `$${grand.toFixed(2)}`;
+  document.getElementById("amount-paid-display").textContent = `$${(paymentRecord.cash + paymentRecord.card).toFixed(2)}`;
+}
+
 
   // ===========================================================
   // 💸 DISCOUNT FIELD + TOTAL CALCULATION
