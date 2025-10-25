@@ -1,1 +1,126 @@
+// ===========================================================
+// 🌿 Kinaya Rising — Live Unified Business Dashboard (2025)
+// ===========================================================
+
+document.addEventListener("DOMContentLoaded", async () => {
+  console.log("🌿 Kinaya Dashboard initializing...");
+
+  // 🔗 Unified Google Apps Script endpoint
+  const INVENTORY_SHEET_URL =
+  "https://script.google.com/macros/s/AKfycbwXyExample12345abcdef67890/exec";
+
+  // ===========================================================
+  // 🧠 FETCH FROM BACKEND
+  // ===========================================================
+  async function fetchData(mode) {
+    try {
+      const res = await fetch(`${API_URL}?mode=${mode}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.json();
+    } catch (err) {
+      console.error(`❌ Fetch failed for ${mode}:`, err);
+      return [];
+    }
+  }
+
+  // ===========================================================
+  // 🌱 DATA LOADING
+  // ===========================================================
+  const [sales, products] = await Promise.all([
+    fetchData("sales"),
+    fetchData("inventory")
+  ]);
+
+  if (!sales.length) {
+    console.warn("⚠️ No sales data found.");
+    return;
+  }
+
+  // ===========================================================
+  // 📊 CALCULATE METRICS
+  // ===========================================================
+  const revenue = sales.reduce((sum, r) => sum + (parseFloat(r.Total) || 0), 0);
+  const tax = sales.reduce((sum, r) => sum + (parseFloat(r.Tax) || 0), 0);
+  const unitsSold = sales.reduce((sum, r) => sum + (parseFloat(r.Quantity) || 0), 0);
+  const avgTransaction = revenue / sales.length;
+  const topProduct = (() => {
+    const counts = {};
+    sales.forEach(r => {
+      const name = r["Product Title"];
+      counts[name] = (counts[name] || 0) + (parseFloat(r.Quantity) || 0);
+    });
+    return Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] || "–";
+  })();
+
+  // Simple profit assumption (replace with accounting sheet later)
+  const expenses = 1200; // Example placeholder
+  const grossProfit = revenue - tax;
+  const netProfit = grossProfit - expenses;
+
+  // ===========================================================
+  // 💾 UPDATE UI METRICS
+  // ===========================================================
+  document.getElementById("total-revenue").textContent = `$${revenue.toFixed(2)}`;
+  document.getElementById("gross-profit").textContent = `$${grossProfit.toFixed(2)}`;
+  document.getElementById("net-profit").textContent = `$${netProfit.toFixed(2)}`;
+  document.getElementById("avg-transaction").textContent = `$${avgTransaction.toFixed(2)}`;
+  document.getElementById("units-sold").textContent = unitsSold.toString();
+  document.getElementById("top-product").textContent = topProduct;
+  document.getElementById("tax-collected").textContent = `$${tax.toFixed(2)}`;
+  document.getElementById("gross-revenue").textContent = `$${revenue.toFixed(2)}`;
+  document.getElementById("account-net-profit").textContent = `$${netProfit.toFixed(2)}`;
+  document.getElementById("expenses").textContent = `$${expenses.toFixed(2)}`;
+
+  // ===========================================================
+  // 📈 SALES TREND CHART
+  // ===========================================================
+  const ctx = document.getElementById("sales-trend");
+  if (ctx) {
+    const dailyTotals = {};
+    sales.forEach(r => {
+      const d = new Date(r.Date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      dailyTotals[d] = (dailyTotals[d] || 0) + (parseFloat(r.Total) || 0);
+    });
+
+    new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: Object.keys(dailyTotals),
+        datasets: [
+          {
+            label: "Revenue",
+            data: Object.values(dailyTotals),
+            borderColor: "#00c6ff",
+            fill: false,
+            tension: 0.3
+          }
+        ]
+      },
+      options: { plugins: { legend: { display: false } } }
+    });
+  }
+
+  // ===========================================================
+  // 📦 PRODUCT BREAKDOWN
+  // ===========================================================
+  const categoryCtx = document.getElementById("product-chart");
+  if (categoryCtx && products.length) {
+    const labels = products.map(p => p.name);
+    const stock = products.map(p => parseFloat(p.price));
+    new Chart(categoryCtx, {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [{
+          label: "Product Prices",
+          data: stock,
+          backgroundColor: "#00c6ff"
+        }]
+      },
+      options: { plugins: { legend: { display: false } } }
+    });
+  }
+
+  console.log("✅ Dashboard live sync ready.");
+});
 
