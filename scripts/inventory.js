@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   console.log("🌿 Loading advanced inventory system...");
 
   const API_URL =
-    "https://script.google.com/macros/s/AKfycbyR-1IXv_ez6K1knaGizSVavXxN7Zzd--gB8G_3YjRAuiHnzLeFkp1a34M1TVzVQk8usQ/exec";
+    "https://script.google.com/macros/s/AKfycbypCQ4obuOwc7XqGO1SVPKNdEwBMD1mH1WPMJKbvUONrbt5rY-MOcqq4IfQ-wNlUMcAwA/exec";
 
   const tableBody = document.getElementById("inventory-body");
   const saveBtn = document.getElementById("save-inventory");
@@ -147,7 +147,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }));
 
     try {
-      const res = await fetch(API_URL, {
+      const res = await fetch(, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
