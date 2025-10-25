@@ -126,41 +126,53 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // ===========================================================
-  // 💾 SAVE BACK TO SHEET
-  // ===========================================================
-  async function saveInventory() {
-    const rows = [...document.querySelectorAll("#inventory-body tr")];
-    const payload = rows.map(row => ({
-      Sku: row.children[1]?.textContent.trim(),
-      "Stable Sku": row.dataset.stable,
-      "Product Title": row.children[3]?.textContent.trim(),
-      Price: parseFloat(row.children[4]?.textContent.trim()) || 0,
-      UnitsInSet: parseFloat(row.children[5]?.textContent.trim()) || 1,
-      Received: parseFloat(row.children[6]?.textContent.trim()) || 0,
-      Damaged: parseFloat(row.children[7]?.textContent.trim()) || 0,
-      Returned: parseFloat(row.children[8]?.textContent.trim()) || 0,
-      Sold: parseFloat(row.children[9]?.textContent.trim()) || 0,
-      InStock: parseFloat(row.children[10]?.textContent.trim()) || 0,
-      NetAssets: parseFloat(
-        row.children[11]?.textContent.replace("$", "").trim()
-      ) || 0,
-    }));
+// 💾 SAVE BACK TO SHEET (Unified Kinaya Rising POS Endpoint)
+// ===========================================================
 
-    try {
-      const res = await fetch(, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      alert("✅ Inventory synced successfully!");
-    } catch (err) {
-      console.error("❌ Save error:", err);
-      alert("⚠️ Could not save inventory.");
-    }
+const SHEET_API =
+  "https://script.google.com/macros/s/AKfycbyVpqR9T-EqES1SOT_UdWXo--701meni3yq4KiJ4HTHrLkLGVyC9Luuj8XjDf_q7HT3kg/exec"; // 🔗 replace with your current deployed backend URL
+
+async function saveInventory() {
+  const rows = [...document.querySelectorAll("#inventory-body tr")];
+  if (rows.length === 0) {
+    alert("⚠️ No inventory rows to save.");
+    return;
   }
 
-  saveBtn?.addEventListener("click", saveInventory);
+  const payload = rows.map(row => ({
+    Sku: row.children[1]?.textContent.trim() || "",
+    "Stable Sku": row.dataset.stable || "",
+    "Product Title": row.children[3]?.textContent.trim() || "",
+    Price: parseFloat(row.children[4]?.textContent.trim()) || 0,
+    UnitsInSet: parseFloat(row.children[5]?.textContent.trim()) || 1,
+    Received: parseFloat(row.children[6]?.textContent.trim()) || 0,
+    Damaged: parseFloat(row.children[7]?.textContent.trim()) || 0,
+    Returned: parseFloat(row.children[8]?.textContent.trim()) || 0,
+    Sold: parseFloat(row.children[9]?.textContent.trim()) || 0,
+    InStock: parseFloat(row.children[10]?.textContent.trim()) || 0,
+    NetAssets:
+      parseFloat(row.children[11]?.textContent.replace("$", "").trim()) || 0,
+  }));
+
+  try {
+    const res = await fetch(`${SHEET_API}?mode=inventory`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    alert("✅ Inventory synced successfully!");
+    console.log("🌿 Inventory data sent:", payload);
+  } catch (err) {
+    console.error("❌ Save error:", err);
+    alert("⚠️ Could not save inventory. Check console for details.");
+  }
+}
+
+// 🧩 Bind Save button
+saveBtn?.addEventListener("click", saveInventory);
 
   // ===========================================================
   // 🚀 INIT
