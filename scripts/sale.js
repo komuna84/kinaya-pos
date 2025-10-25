@@ -31,23 +31,23 @@ document.addEventListener("DOMContentLoaded", async () => {
   let discountPercent = 0;
 
   // ===========================================================
-  // 🔁 INVENTORY LOAD
-  // ===========================================================
-  const INVENTORY_SHEET_URL =
+// 🔁 INVENTORY LOAD
+// ===========================================================
+const INVENTORY_SHEET_URL =
   "https://script.google.com/macros/s/AKfycbyR-1IXv_ez6K1knaGizSVavXxN7Zzd--gB8G_3YjRAuiHnzLeFkp1a34M1TVzVQk8usQ/exec";
 
-
-  async function loadInventoryData() {
-    try {
-      const response = await fetch(INVENTORY_SHEET_URL);
-      if (!response.ok) throw new Error("Network error loading inventory");
-      const data = await response.json();
-      renderProducts(data);
-    } catch (error) {
-      console.warn("⚠️ Using fallback products:", error);
-      renderProducts(fallbackProducts);
-    }
+async function loadInventoryData() {
+  try {
+    const response = await fetch(`${INVENTORY_SHEET_URL}?mode=inventory`);
+    if (!response.ok) throw new Error("Network error loading inventory");
+    const data = await response.json();
+    renderProducts(data);
+  } catch (error) {
+    console.warn("⚠️ Using fallback products:", error);
+    renderProducts(fallbackProducts);
   }
+}
+
 
   // ===========================================================
   // 🛍️ RENDER PRODUCTS + CLICK HANDLER
@@ -301,11 +301,8 @@ async function submitSale() {
   const email = emailInput?.value.trim().toLowerCase() || "";
   const share = emailToggle?.checked ? "Yes" : "No";
   const paymentType = document.getElementById("split-info").textContent.trim();
-  const totalPaid = (paymentRecord.cash + paymentRecord.card).toFixed(2);
-  const discount = discountPercent;
   const date = new Date().toLocaleString();
 
-  // 🧾 Build sale rows from the receipt table
   const tableBody = document.getElementById("receipt-details");
   const rows = Array.from(tableBody.querySelectorAll("tr")).map(row => {
     const name = row.children[0]?.textContent || "";
@@ -314,7 +311,7 @@ async function submitSale() {
     const subtotal = parseFloat(row.children[3]?.textContent.replace(/[^0-9.]/g, "") || "0");
     const tax = subtotal * 0.07;
     const total = subtotal + tax;
-    const sku = name.split(" ").slice(-1)[0]; // crude SKU match fallback
+    const sku = row.dataset?.sku || "";
 
     return {
       Date: date,
@@ -338,12 +335,11 @@ async function submitSale() {
   }
 
   try {
-    const res = await fetch(`${INVENTORY_SHEET_URL}?mode=sales`, {
+    const res = await fetch(INVENTORY_SHEET_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(rows)
     });
-
     if (!res.ok) throw new Error(await res.text());
     alert("✅ Sale recorded and inventory updated!");
     console.log("✅ Sent to backend:", rows);
@@ -352,6 +348,7 @@ async function submitSale() {
     alert("⚠️ Could not sync sale. Check console for details.");
   }
 }
+
 
 
   // ===========================================================
