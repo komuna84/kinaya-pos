@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 // 🔁 INVENTORY LOAD
 // ===========================================================
 const INVENTORY_SHEET_URL =
-  "https://script.google.com/macros/s/AKfycbyR-1IXv_ez6K1knaGizSVavXxN7Zzd--gB8G_3YjRAuiHnzLeFkp1a34M1TVzVQk8usQ/exec";
+  "https://script.google.com/macros/s/AKfycbypCQ4obuOwc7XqGO1SVPKNdEwBMD1mH1WPMJKbvUONrbt5rY-MOcqq4IfQ-wNlUMcAwA/exec";
 
 async function loadInventoryData() {
   try {
