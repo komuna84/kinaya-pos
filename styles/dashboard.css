@@ -1,9 +1,9 @@
 /* ============================================================
-   📊 KINAYA RISING — DASHBOARD PAGE
-   Extends kinaya-base.css
+   🌿 KINAYA RISING — BUSINESS DASHBOARD (2025 FINAL CLEAN)
+   Extends kinaya-base.css aesthetic
    ============================================================ */
 
-/* ---------- DASHBOARD HEADER ---------- */
+/* ---------- HEADER ---------- */
 header {
   text-align: center;
   padding: 1.2rem 0;
@@ -12,6 +12,12 @@ header {
   text-shadow: 0 0 18px rgba(0,198,255,0.8);
   font-size: 1.8rem;
   letter-spacing: 1px;
+}
+.subtitle {
+  color: var(--color-accent);
+  font-size: 0.95rem;
+  letter-spacing: 0.5px;
+  margin-top: 0.25rem;
 }
 
 /* ---------- CONTROL PANEL ---------- */
@@ -23,7 +29,6 @@ header {
   gap: 0.8rem;
   margin-bottom: 1.5rem;
 }
-
 .dashboard-controls select,
 .dashboard-controls input {
   background: rgba(255,255,255,0.05);
@@ -36,7 +41,7 @@ header {
   box-shadow: 0 0 8px rgba(0,198,255,0.1);
 }
 
-/* ---------- SWITCH (Dark Mode / Toggle) ---------- */
+/* ---------- TOGGLE SWITCH ---------- */
 .switch {
   position: relative;
   display: inline-block;
@@ -70,15 +75,32 @@ input:checked + .slider:before {
   transform: translateX(22px);
 }
 
-/* ---------- MAIN GRID ---------- */
+/* ---------- GRID LAYOUT ---------- */
 main.dashboard {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 1rem;
-  padding: 1rem;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-auto-rows: auto;
+  gap: 1.25rem;
+  padding: 1.25rem 2rem;
+  align-items: start;
 }
 
-/* ---------- PANELS ---------- */
+/* Top Row — 3 Panels */
+main.dashboard .panel:nth-child(1),
+main.dashboard .panel:nth-child(2),
+main.dashboard .panel:nth-child(3) {
+  grid-column: span 4;
+  min-height: 360px;
+}
+
+/* Bottom Row — 2 Panels */
+main.dashboard .panel:nth-child(4),
+main.dashboard .panel:nth-child(5) {
+  grid-column: span 6;
+  min-height: 280px;
+}
+
+/* ---------- PANEL BASE ---------- */
 .panel {
   background: rgba(5,25,35,0.4);
   border: 1px solid rgba(0,198,255,0.25);
@@ -86,7 +108,11 @@ main.dashboard {
   box-shadow: inset 0 0 12px rgba(0,198,255,0.08);
   padding: 1rem 1.2rem;
   backdrop-filter: blur(10px);
-  transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
 }
 .panel:hover {
   transform: translateY(-2px);
@@ -101,12 +127,14 @@ main.dashboard {
 }
 
 /* ---------- METRICS ---------- */
-.metric {
+.metric,
+.panel p {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 0.5rem 0;
+  margin: 0.4rem 0;
   font-size: 0.95rem;
+  color: var(--color-accent);
 }
 .metric strong {
   color: var(--color-accent-light);
@@ -114,19 +142,24 @@ main.dashboard {
   font-size: 1rem;
 }
 
-/* ---------- ACTION BUTTON ---------- */
+/* ---------- CANVAS ---------- */
+canvas {
+  margin-top: 0.6rem;
+  margin-bottom: auto;
+}
+
+/* ---------- BUTTONS ---------- */
 .glow-button {
-  display: inline-block;
-  margin-top: 0.75rem;
-  padding: 0.6rem 1rem;
+  margin-top: 1rem;
+  width: 100%;
   border: 1px solid var(--color-accent);
   color: var(--color-accent);
   border-radius: var(--radius-md);
   text-align: center;
   font-weight: 600;
   background: transparent;
-  transition: all var(--transition-fast);
-  width: 100%;
+  padding: 0.6rem 1rem;
+  transition: all 0.2s ease;
 }
 .glow-button:hover {
   background: var(--color-accent);
@@ -134,16 +167,33 @@ main.dashboard {
   box-shadow: var(--glow-accent);
 }
 
-/* ---------- RESPONSIVE ---------- */
-@media (max-width: 768px) {
-  header {
-    font-size: 1.4rem;
-  }
-  .dashboard-controls {
-    gap: 0.6rem;
-    margin-bottom: 1rem;
-  }
-  .panel {
-    padding: 0.8rem;
-  }
+/* ---------- POLISH ---------- */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
+.panel.summary {
+  border-color: rgba(0,198,255,0.15);
+  box-shadow: inset 0 0 8px rgba(0,198,255,0.05);
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 1024px) {
+  main.dashboard { grid-template-columns: repeat(6, 1fr); }
+  main.dashboard .panel { grid-column: span 6; min-height: auto; }
+}
+@media (max-width: 640px) {
+  main.dashboard { grid-template-columns: 1fr; padding: 1rem; }
+  .panel { min-height: auto; }
+  header { font-size: 1.4rem; }
+}
+
+/* Only affect the Product Analytics section */
+.panel:nth-child(3) .metric {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 0.25rem;
+}
+
