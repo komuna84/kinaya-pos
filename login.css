@@ -127,3 +127,11 @@ body.login-body {
   color: rgba(167,225,238,0.45);
   letter-spacing: 0.3px;
 }
+.return-banner {
+  display: none;
+  color: #ff4f4f;
+  font-weight: bold;
+  font-size: 1rem;
+  margin-top: 0.5rem;
+  text-shadow: 0 0 10px rgba(255, 79, 79, 0.8);
+}
