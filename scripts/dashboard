@@ -1,127 +1,175 @@
 // ===========================================================
-// 🌿 Kinaya Rising — Live Unified Business Dashboard (2025)
+// 🌿 MAIN POST HANDLER (Sales + Returns + Inventory Sync + Email)
 // ===========================================================
+function doPost(e) {
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const sales = ss.getSheetByName("Sales Log");
+  const pos = ss.getSheetByName("pos");         // Optional, in case you track stock there too
+  const inventory = ss.getSheetByName("inventory");
 
-document.addEventListener("DOMContentLoaded", async () => {
-  console.log("🌿 Kinaya Dashboard initializing...");
+  // ✅ SAFETY CHECKS — Prevent null reference crashes
+  if (!sales) {
+    return sendJSON({ success: false, error: "❌ 'Sales Log' sheet not found. Check tab name." });
+  }
+  if (!inventory) {
+    return sendJSON({ success: false, error: "❌ 'inventory' sheet not found. Check tab name." });
+  }
 
-  // 🔗 Unified Google Apps Script endpoint
-  const API_URL =
-    "https://script.google.com/macros/s/AKfycbw2Ma07Iuec9HtoilJxjAyzstRfMLjJWeEDM8nPmDphqynNzcSJAYXokOeZ1iTt3n-bEg/exec";
+  try {
+    const rows = JSON.parse(e.postData.contents || "[]");
+    if (!rows.length) return sendJSON({ success: false, error: "Empty payload" });
 
-  // ===========================================================
-  // 🧠 FETCH FROM BACKEND
-  // ===========================================================
-  async function fetchData(mode) {
-    try {
-      const res = await fetch(`${API_URL}?mode=${mode}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return await res.json();
-    } catch (err) {
-      console.error(`❌ Fetch failed for ${mode}:`, err);
-      return [];
+    const isReturn = rows.some(r => r.ReturnMode === true);
+    const originalInvoice = (rows[0].OriginalInvoice || "").toString().trim();
+    const returnConditionColName = "Return Condition";
+
+    // ---------- Build header index maps ----------
+    const salesHeaders = sales.getRange(1, 1, 1, sales.getLastColumn()).getValues()[0].map(String);
+    const S = name => salesHeaders.indexOf(name); // helper
+
+    const invHeaders = inventory.getRange(1, 1, 1, inventory.getLastColumn()).getValues()[0].map(String);
+    const I = name => invHeaders.indexOf(name);
+
+    // ---------- Get next invoice number ----------
+    let lastInvoice = 1000;
+    const lastRow = sales.getLastRow();
+    if (lastRow > 1) {
+      const maybe = sales.getRange(lastRow, S("Invoice #") + 1).getValue();
+      if (maybe !== "" && !isNaN(maybe)) lastInvoice = Number(maybe);
     }
-  }
+    const invoiceNumber = lastInvoice + 1;
 
-  // ===========================================================
-  // 🌱 DATA LOADING
-  // ===========================================================
-  const [sales, products] = await Promise.all([
-    fetchData("sales"),
-    fetchData("inventory")
-  ]);
+    // ===========================================================
+    // 🔒 VALIDATE RETURNS
+    // ===========================================================
+    if (isReturn) {
+      if (!originalInvoice)
+        return sendJSON({ success: false, error: "Return requires OriginalInvoice." });
 
-  if (!sales.length) {
-    console.warn("⚠️ No sales data found.");
-    return;
-  }
+      const all = sales.getDataRange().getValues();
+      const hdr = all[0].map(String);
+      const invIdx = hdr.indexOf("Invoice #");
+      const skuIdx = hdr.indexOf("Sku");
+      const qtyIdx = hdr.indexOf("Quantity");
+      const linkIdx = hdr.indexOf("Return Link");
 
-  // ===========================================================
-  // 📊 CALCULATE METRICS
-  // ===========================================================
-  const revenue = sales.reduce((sum, r) => sum + (parseFloat(r.Total) || 0), 0);
-  const tax = sales.reduce((sum, r) => sum + (parseFloat(r.Tax) || 0), 0);
-  const unitsSold = sales.reduce((sum, r) => sum + (parseFloat(r.Quantity) || 0), 0);
-  const avgTransaction = revenue / sales.length;
+      const soldBySku = {};
+      const returnedBySku = {};
 
-  const topProduct = (() => {
-    const counts = {};
-    sales.forEach(r => {
-      const name = r["Product Title"];
-      counts[name] = (counts[name] || 0) + (parseFloat(r.Quantity) || 0);
+      for (let i = 1; i < all.length; i++) {
+        const row = all[i];
+        const inv = String(row[invIdx] || "");
+        const sku = String(row[skuIdx] || "");
+        const qty = Number(row[qtyIdx] || 0);
+
+        if (inv === originalInvoice) soldBySku[sku] = (soldBySku[sku] || 0) + qty;
+        if (String(row[linkIdx] || "") === originalInvoice)
+          returnedBySku[sku] = (returnedBySku[sku] || 0) + Math.abs(qty);
+      }
+
+      for (const r of rows) {
+        if (!r.Sku) continue;
+        const sku = String(r.Sku);
+        const qty = Math.abs(Number(r.Quantity || 0));
+        const sold = soldBySku[sku] || 0;
+        const alreadyReturned = returnedBySku[sku] || 0;
+        const stillReturnable = Math.max(sold - alreadyReturned, 0);
+
+        if (sold <= 0)
+          return sendJSON({ success: false, error: `SKU ${sku} not found on Invoice #${originalInvoice}.` });
+
+        if (qty > stillReturnable)
+          return sendJSON({
+            success: false,
+            error: `Return qty for ${sku} exceeds remaining (sold ${sold}, already returned ${alreadyReturned}, remaining ${stillReturnable}).`
+          });
+      }
+    }
+
+    // ===========================================================
+    // 🧾 APPEND ROWS TO SALES LOG
+    // ===========================================================
+    rows.forEach(r => {
+      if (!r["Stable Sku"] && r["Sku"]) r["Stable Sku"] = String(r["Sku"]).split("-")[0];
+
+      const discount = parseFloat(r.Discount) || 0;
+      const returnLink = isReturn ? (originalInvoice || "N/A") : "–";
+      const salePrice =
+        r["Sale Price"] && Number(r["Sale Price"]) > 0
+          ? Number(r["Sale Price"])
+          : Number(r["Retail Price"] || r.Price || 0);
+
+      const cashPaid = Number(r.CashPaid || 0);
+      const cardPaid = Number(r.CardPaid || 0);
+      const paid = Number(r.Paid || (cashPaid + cardPaid));
+      const returnCondition = (r.ReturnCondition || "").toString();
+
+      const rowValues = [];
+      rowValues[S("Date")] = r.Date || new Date();
+      rowValues[S("Sku")] = r.Sku || "";
+      rowValues[S("Stable Sku")] = r["Stable Sku"] || "";
+      rowValues[S("Product Title")] = r["Product Title"] || "";
+      rowValues[S("Quantity")] = r.Quantity || 0;
+      rowValues[S("Price")] = r.Price || 0;
+      rowValues[S("Subtotal")] = r.Subtotal || 0;
+      rowValues[S("Tax")] = r.Tax || 0;
+      rowValues[S("Total")] = r.Total || 0;
+      rowValues[S("Invoice #")] = invoiceNumber;
+      rowValues[S("Email")] = r.Email || "";
+      rowValues[S("Subscribe")] = r.Subscribe || "";
+      rowValues[S("Payment")] = r.Payment || "";
+      rowValues[S("Discount")] = discount;
+      rowValues[S("Return Link")] = returnLink;
+      rowValues[S("Sale Price")] = salePrice;
+
+      if (S("Cash Paid") >= 0) rowValues[S("Cash Paid")] = cashPaid;
+      if (S("Card Paid") >= 0) rowValues[S("Card Paid")] = cardPaid;
+      if (S("Paid") >= 0) rowValues[S("Paid")] = paid;
+      if (S(returnConditionColName) >= 0) rowValues[S(returnConditionColName)] = returnCondition;
+
+      // ✅ Append safely aligned with headers
+      const finalRow = salesHeaders.map(h => {
+        const idx = salesHeaders.indexOf(h);
+        const val = rowValues[idx];
+        return val === undefined ? "" : val;
+      });
+      sales.appendRow(finalRow);
     });
-    return Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] || "–";
-  })();
 
-  // Simple profit assumption (replace with accounting sheet later)
-  const expenses = 1200;
-  const grossProfit = revenue - tax;
-  const netProfit = grossProfit - expenses;
+    // ===========================================================
+    // 📦 INVENTORY SYNC (POS + INVENTORY sheets)
+    // ===========================================================
+    const invData = inventory.getDataRange().getValues();
+    const invHdrs = invData[0].map(String);
+    const skuIndex = invHdrs.indexOf("Sku");
+    const qtyIndex = invHdrs.indexOf("In Stock");
+    const dmgIndex = invHdrs.indexOf("Damaged");
 
-  // ===========================================================
-  // 💾 UPDATE UI METRICS
-  // ===========================================================
-  document.getElementById("total-revenue").textContent = `$${revenue.toFixed(2)}`;
-  document.getElementById("gross-profit").textContent = `$${grossProfit.toFixed(2)}`;
-  document.getElementById("net-profit").textContent = `$${netProfit.toFixed(2)}`;
-  document.getElementById("avg-transaction").textContent = `$${avgTransaction.toFixed(2)}`;
-  document.getElementById("units-sold").textContent = unitsSold.toString();
-  document.getElementById("top-product").textContent = topProduct;
-  document.getElementById("tax-collected").textContent = `$${tax.toFixed(2)}`;
-  document.getElementById("gross-revenue").textContent = `$${revenue.toFixed(2)}`;
-  document.getElementById("account-net-profit").textContent = `$${netProfit.toFixed(2)}`;
-  document.getElementById("expenses").textContent = `$${expenses.toFixed(2)}`;
+    rows.forEach(r => {
+      const sku = r.Sku;
+      const qty = Math.abs(Number(r.Quantity) || 0);
+      if (!sku || !qty) return;
 
-  // ===========================================================
-  // 📈 SALES TREND CHART
-  // ===========================================================
-  const ctx = document.getElementById("sales-trend");
-  if (ctx) {
-    const dailyTotals = {};
-    sales.forEach(r => {
-      const d = new Date(r.Date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-      dailyTotals[d] = (dailyTotals[d] || 0) + (parseFloat(r.Total) || 0);
+      let rowIndex = -1;
+      for (let i = 1; i < invData.length; i++) {
+        if (String(invData[i][skuIndex]) === String(sku)) {
+          rowIndex = i + 1;
+          break;
+        }
+      }
+      if (rowIndex < 0) return;
+
+      const current = Number(inventory.getRange(rowIndex, qtyIndex + 1).getValue() || 0);
+
+      if (!isReturn) {
+        inventory.getRange(rowIndex, qtyIndex + 1).setValue(Math.max(current - qty, 0));
+      } else {
+        const cond = (r.ReturnCondition || "").toString().toLowerCase();
+        if (cond === "restock") {
+          inventory.getRange(rowIndex, qtyIndex + 1).setValue(current + qty);
+        } else if (dmgIndex >= 0) {
+          const currentD = Number(inventory.getRange(rowIndex, dmgIndex + 1).getValue() || 0);
+          inventory.getRange(rowIndex, dmgIndex + 1).setValue(currentD + qty);
+        }
+      }
     });
-
-    new Chart(ctx, {
-      type: "line",
-      data: {
-        labels: Object.keys(dailyTotals),
-        datasets: [
-          {
-            label: "Revenue",
-            data: Object.values(dailyTotals),
-            borderColor: "#00c6ff",
-            fill: false,
-            tension: 0.3
-          }
-        ]
-      },
-      options: { plugins: { legend: { display: false } } }
-    });
-  }
-
-  // ===========================================================
-  // 📦 PRODUCT BREAKDOWN
-  // ===========================================================
-  const categoryCtx = document.getElementById("product-chart");
-  if (categoryCtx && products.length) {
-    const labels = products.map(p => p.Product);
-    const stock = products.map(p => parseFloat(p.Price) || 0);
-
-    new Chart(categoryCtx, {
-      type: "bar",
-      data: {
-        labels,
-        datasets: [{
-          label: "Product Prices",
-          data: stock,
-          backgroundColor: "#00c6ff"
-        }]
-      },
-      options: { plugins: { legend: { display: false } } }
-    });
-  }
-
-  console.log("✅ Dashboard live sync ready.");
-});
