@@ -3,48 +3,43 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport"
-        content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+        content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <title>Kinaya Rising — Business Dashboard</title>
 
-  <!-- ====== META ====== -->
+  <!-- ===== META ===== -->
   <meta name="description"
-        content="Kinaya Rising Business Dashboard — track revenue, profit, customer insights, and inventory analytics with unified Kinaya design.">
+        content="Kinaya Rising Business Dashboard — track revenue, profit, customer insights, and inventory analytics with unified Kinaya design." />
 
-  <!-- ====== GLOBAL FONTS & ICONS ====== -->
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
-    crossorigin="anonymous"
-    referrerpolicy="no-referrer"
-  />
+  <!-- ===== GLOBAL FONTS & ICONS ===== -->
+  <link rel="icon" href="assets/favicon.png" type="image/png" />
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer" />
   <link
     href="https://fonts.googleapis.com/css2?family=Audiowide&family=Roboto:wght@300;400;700&display=swap"
-    rel="stylesheet"
-  />
+    rel="stylesheet" />
 
-  <!-- ====== UNIFIED KINAYA STYLES ====== -->
-  <link rel="stylesheet" href="styles/kinaya-base.css">
-  <link rel="stylesheet" href="styles/dashboard.css">
+  <!-- ===== UNIFIED KINAYA STYLES ===== -->
+  <link rel="stylesheet" href="styles/kinaya-base.css?v=7" />
+  <link rel="stylesheet" href="styles/dashboard.css?v=7" />
 
-  <!-- ====== ACCESS LOCK ====== -->
+  <!-- ===== ACCESS LOCK ===== -->
   <script>
     if (sessionStorage.getItem("posUnlocked") !== "true") {
       window.location.href = "index.html";
     }
   </script>
-
-  <!-- ====== DASHBOARD LOGIC ====== -->
-  <script src="scripts/dashboard.js" defer></script>
 </head>
 
 <body>
-  <!-- ====== HEADER ====== -->
+  <!-- ===== HEADER ===== -->
   <header>
-    Business Dashboard
+    <h1>Business Dashboard</h1>
     <p class="subtitle">Unified overview of your sales, inventory, and performance</p>
   </header>
 
-  <!-- ====== CONTROLS ====== -->
+  <!-- ===== CONTROLS ===== -->
   <section class="dashboard-controls">
     <label>View:
       <select id="view-select">
@@ -55,9 +50,10 @@
       </select>
     </label>
 
-    <label>Range:
-      <input type="text" id="date-range" value="Oct 1 – Oct 23" />
-    </label>
+    <label>Range:</label>
+    <input type="date" id="start-date" />
+    <span>to</span>
+    <input type="date" id="end-date" />
 
     <label>Compare:
       <label class="switch">
@@ -65,9 +61,11 @@
         <span class="slider"></span>
       </label>
     </label>
+
+    <button id="refresh-btn" class="small-btn glow">🔄 Refresh</button>
   </section>
 
-  <!-- ====== MAIN DASHBOARD ====== -->
+  <!-- ===== MAIN DASHBOARD ===== -->
   <main role="main" class="dashboard">
 
     <!-- A. SALES PERFORMANCE -->
@@ -78,8 +76,6 @@
       <div class="metric"><span>Net Profit</span><strong id="net-profit">$0.00</strong></div>
       <div class="metric"><span>Avg Transaction Value</span><strong id="avg-transaction">$0.00</strong></div>
       <div class="metric"><span>Units Sold</span><strong id="units-sold">0</strong></div>
-      <div class="metric"><span>Top Product</span><strong id="top-product">–</strong></div>
-      <div class="metric"><span>Sales by Channel</span><strong id="sales-channel">–</strong></div>
       <canvas id="sales-trend" height="100"></canvas>
       <button type="button" class="glow-button">Email Sales Report</button>
     </section>
@@ -87,11 +83,11 @@
     <!-- B. CUSTOMER INSIGHTS -->
     <section class="panel">
       <h2>Customer Insights</h2>
-      <div class="metric"><span>Number of Transactions</span><strong id="num-transactions">0</strong></div>
-      <div class="metric"><span>Repeat Customers</span><strong id="repeat-customers">0%</strong></div>
-      <div class="metric"><span>Avg Items per Sale</span><strong id="avg-items">0</strong></div>
-      <div class="metric"><span>Customer Emails Collected</span><strong id="emails-collected">0</strong></div>
-      <div class="metric"><span>Refund Rate</span><strong id="refund-rate">0%</strong></div>
+      <p>Number of Transactions <span id="num-transactions">0</span></p>
+<p>Repeat Customers <span id="repeat-customers">0%</span></p>
+<p>Avg Items per Sale <span id="avg-items-sale">0</span></p>
+<p>Customer Emails Collected <span id="emails-collected">0</span></p>
+<p>Refund Rate <span id="refund-rate">0%</span></p>
       <canvas id="customer-chart" height="100"></canvas>
       <button type="button" class="glow-button">Email Customer Report</button>
     </section>
@@ -102,7 +98,6 @@
       <div class="metric"><span>Top-Selling Products</span><strong id="top-products">–</strong></div>
       <div class="metric"><span>Lowest Stocked Products</span><strong id="low-stock-products">–</strong></div>
       <div class="metric"><span>Profit Margin (Avg)</span><strong id="profit-margin">0%</strong></div>
-      <div class="metric"><span>Category Breakdown</span><strong id="category-breakdown">–</strong></div>
       <div class="metric"><span>Total SKUs Active</span><strong id="total-skus">0</strong></div>
       <canvas id="product-chart" height="100"></canvas>
       <button type="button" class="glow-button">Email Product Report</button>
@@ -119,69 +114,46 @@
       <button type="button" class="glow-button">Email Accounting Report</button>
     </section>
 
+    <!-- E. INVENTORY OVERVIEW -->
+<section class="panel">
+  <h2>Inventory Overview</h2>
+
+  <div class="metric"><span>Total Units In Stock</span><strong id="inv-total-units">0</strong></div>
+  <div class="metric"><span>Total Stock Value</span><strong id="inv-stock-value">$0.00</strong></div>
+  <div class="metric"><span>Average Cost per SKU</span><strong id="inv-avg-cost">$0.00</strong></div>
+  <div class="metric"><span>Low Stock Items (≤5)</span><strong id="inv-low-stock">0</strong></div>
+  <div class="metric"><span>Active SKUs</span><strong id="inv-active-skus">0</strong></div>
+
+  <canvas id="inventory-chart" height="100"></canvas>
+  <button type="button" class="glow-button">Email Inventory Report</button>
+</section>
+
   </main>
 
-  <!-- ====== NAVIGATION ====== -->
-  <nav class="kinaya-nav">
+  <!-- ===== NAVIGATION ===== -->
+  <nav class="kinaya-nav" aria-label="Main navigation">
     <a href="sale.html" class="nav-btn"><i class="fas fa-cash-register"></i><span>Sales</span></a>
     <a href="inventory.html" class="nav-btn"><i class="fas fa-boxes"></i><span>Inventory</span></a>
     <a href="data.html" class="nav-btn active"><i class="fas fa-chart-line"></i><span>Data</span></a>
   </nav>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- ===== DEFAULT RANGE INITIALIZER ===== -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      // ===== Example Charts =====
-      new Chart(document.getElementById("sales-trend"), {
-        type: "line",
-        data: {
-          labels: ["Week 1", "Week 2", "Week 3", "Week 4"],
-          datasets: [{
-            data: [300, 500, 450, 600],
-            borderColor: "#00c6ff",
-            tension: 0.3,
-            fill: false
-          }]
-        },
-        options: { plugins: { legend: { display: false } } }
-      });
+      const today = new Date();
+      const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
 
-      new Chart(document.getElementById("customer-chart"), {
-        type: "doughnut",
-        data: {
-          labels: ["Returning", "New"],
-          datasets: [{
-            data: [40, 60],
-            backgroundColor: ["#00c6ff", "#144b6b"]
-          }]
-        },
-        options: { plugins: { legend: { labels: { color: "#A7E1EE" } } } }
-      });
+      const startInput = document.getElementById("start-date");
+      const endInput = document.getElementById("end-date");
 
-      new Chart(document.getElementById("product-chart"), {
-        type: "bar",
-        data: {
-          labels: ["Books", "Buttons", "Totes", "Bookmarks"],
-          datasets: [{
-            data: [220, 95, 60, 45],
-            backgroundColor: "#00c6ff"
-          }]
-        },
-        options: { plugins: { legend: { display: false } } }
-      });
-
-      new Chart(document.getElementById("accounting-chart"), {
-        type: "pie",
-        data: {
-          labels: ["Revenue", "Tax", "Expenses"],
-          datasets: [{
-            data: [5921.4, 421, 1200],
-            backgroundColor: ["#00c6ff", "#046b7a", "#144b6b"]
-          }]
-        },
-        options: { plugins: { legend: { labels: { color: "#A7E1EE" } } } }
-      });
+      // Pre-fill current month
+      startInput.value = firstDay.toISOString().split("T")[0];
+      endInput.value = today.toISOString().split("T")[0];
     });
   </script>
+
+  <!-- ===== CHARTS & DASHBOARD LOGIC ===== -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="scripts/dashboard.js?v=7" defer></script>
 </body>
 </html>
