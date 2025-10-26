@@ -1,290 +1,840 @@
 /* ============================================================
-   🌿 KINAYA RISING — INVENTORY PAGE
-   Extends kinaya-base.css (Unified 2025)
+   🌿 KINAYA RISING POS — FINAL UNIFIED GLOW (2025)
+   Includes: Return Mode overlay, glowing panels, bottom spacing
    ============================================================ */
 
-/* ---------- LAYOUT ---------- */
-main {
-  max-width: 1150px;
-  margin: 0 auto;
-  padding: 1rem 1.2rem 8rem;
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
+/* ---------- BASE ---------- */
+body {
+  background: radial-gradient(circle at center, #020202 0%, #000 100%);
+  color: #A7E1EE;
+  font-family: "Roboto", sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  transition: all 0.3s ease;
 }
 
-/* ---------- HEADER OVERRIDE ---------- */
-header {
+/* ---------- HEADER ---------- */
+header.pos-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
   text-align: center;
-  padding: 1.2rem 0 1rem;
-  font-family: var(--font-display);
-  color: var(--color-accent-light);
-  text-shadow: 0 0 18px rgba(0,198,255,0.9);
-  font-size: 1.8rem;
-  letter-spacing: 1px;
+  background: rgba(5, 25, 35, 0.6);
+  border-bottom: 1px solid rgba(0,198,255,0.25);
+  box-shadow: 0 2px 12px rgba(0,198,255,0.15);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  padding: 1rem 0;
+}
+header.pos-header h1 {
+  font-family: "Audiowide", sans-serif;
+  color: #bffcff;
+  font-size: 1.7rem;
+  letter-spacing: 0.5px;
+  text-shadow: 0 0 20px rgba(0,198,255,0.9);
+}
+header.pos-header .subtitle {
+  color: #78dfff;
+  font-size: 0.9rem;
+  opacity: 0.8;
 }
 
 /* ============================================================
-   🌸 ADD INVENTORY FORM
+   🔥 RETURN MODE — Animated Red Overlay Banner
    ============================================================ */
-.add-inventory-container {
+#return-mode-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: var(--radius-lg);
-  padding: 2rem;
-  box-shadow: var(--glow-accent-soft);
-  backdrop-filter: blur(8px);
-  transition: box-shadow var(--transition-med), transform var(--transition-fast);
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Audiowide", sans-serif;
+  font-size: 1.2rem;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: #ffeaea;
+  background: linear-gradient(
+    90deg,
+    rgba(120, 0, 0, 0.9),
+    rgba(255, 0, 0, 0.95),
+    rgba(120, 0, 0, 0.9)
+  );
+  background-size: 400% 100%;
+  border-bottom: 1px solid rgba(255, 120, 120, 0.5);
+  box-shadow: 0 0 40px rgba(255, 0, 0, 0.7),
+              inset 0 0 20px rgba(255, 80, 80, 0.5);
+  text-shadow: 0 0 10px #ff8a8a, 0 0 25px #ff4040, 0 0 50px #ff0000;
+  opacity: 0;
+  transform: translateY(-100%);
+  transition: all 0.4s ease;
+  z-index: 1500;
 }
-.add-inventory-container:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--glow-accent);
+#return-mode-banner.active {
+  opacity: 1;
+  transform: translateY(0);
+  animation:
+    redPulse 1.6s infinite ease-in-out,
+    redSweep 6s linear infinite;
+}
+@keyframes redPulse {
+  0%, 100% {
+    box-shadow:
+      0 0 30px rgba(255, 0, 0, 0.5),
+      inset 0 0 25px rgba(255, 50, 50, 0.4);
+  }
+  50% {
+    box-shadow:
+      0 0 60px rgba(255, 40, 40, 0.9),
+      inset 0 0 40px rgba(255, 0, 0, 0.8);
+  }
+}
+@keyframes redSweep {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
-.add-inventory-container h2 {
-  font-family: var(--font-display);
-  color: var(--color-accent-warm);
-  text-shadow: 0 0 10px rgba(191,216,193,0.3);
-  margin-bottom: 1.5rem;
+/* ============================================================
+   🔹 MAIN CONTAINER
+   ============================================================ */
+.main-container {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 1.8rem;
+  height: calc(100vh - 120px); /* gives more vertical space */
+  padding: 1.2rem 1.5rem;
+  box-sizing: border-box;
+  margin-top: 5px; /* 🔹 raises panels closer to header */
+  margin-bottom: 65px; /* tighter bottom for balance */
+}
+
+/* ============================================================
+   🧾 RECEIPT PANEL
+   ============================================================ */
+.receipt {
+  flex: 1;
+  background: rgba(10,20,25,0.75);
+  border: 1px solid rgba(0,198,255,0.25);
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+  padding: 1.5rem;
+  box-shadow:
+    0 0 25px rgba(0,198,255,0.08),
+    inset 0 0 12px rgba(0,198,255,0.05);
+  animation: pulseGlow 4s infinite ease-in-out;
+  max-width: 420px;
+  overflow-y: auto;
+}
+@keyframes pulseGlow {
+  0%,100% {
+    box-shadow: 0 0 25px rgba(0,198,255,0.08),
+                inset 0 0 12px rgba(0,198,255,0.05);
+  }
+  50% {
+    box-shadow: 0 0 35px rgba(0,198,255,0.18),
+                inset 0 0 14px rgba(0,198,255,0.08);
+  }
+}
+.receipt table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.receipt th, .receipt td {
+  padding: 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.receipt-footer {
+  margin-top: 1rem;
   text-align: center;
+  color: #bffcff;
+  font-size: 0.9rem;
+  text-shadow: 0 0 10px rgba(0,198,255,0.5);
 }
 
-/* ---------- FORM GRID ---------- */
-.inventory-fields {
+/* ============================================================
+   🔁 RETURN MODE — Red Highlight + Overlay Glow
+   ============================================================ */
+.return-line td {
+  color: #ff5252 !important;
+  font-weight: 600;
+  text-shadow: 0 0 10px rgba(255,80,80,0.6);
+}
+.return-line .subtotal::before { content: "("; }
+.return-line .subtotal::after { content: ")"; }
+
+body.return-active {
+  box-shadow: inset 0 0 120px rgba(255, 0, 0, 0.25);
+  transition: box-shadow 0.6s ease-in-out;
+}
+body.return-active .menu-item {
+  border-color: rgba(255, 50, 50, 0.7);
+  box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
+}
+body.return-active .receipt {
+  box-shadow:
+    0 0 40px rgba(255, 0, 0, 0.25),
+    inset 0 0 20px rgba(255, 50, 50, 0.25);
+}
+
+/* ============================================================
+   🌿 PRODUCT GRID (POS Mirror)
+   ============================================================ */
+.menu-payment {
+  flex: 2;
+  overflow-y: auto;
+  background: rgba(5,25,35,0.5);
+  border: 1px solid rgba(0,198,255,0.25);
+  border-radius: 16px;
+  box-shadow:
+    0 0 25px rgba(0,198,255,0.08),
+    inset 0 0 12px rgba(0,198,255,0.05);
+  padding: 1rem;
+  backdrop-filter: blur(10px);
+}
+.menu {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1.2rem 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+  padding: 0.5rem;
+}
+.product-card {
+  background: rgba(10,20,25,0.85);
+  border: 1px solid rgba(0,198,255,0.25);
+  border-radius: 12px;
+  padding: 0.8rem;
+  text-align: center;
+  color: #A7E1EE;
+  box-shadow: 0 0 10px rgba(0,198,255,0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+.product-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 25px rgba(0,198,255,0.4);
+}
+.product-card img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 0.5rem;
+}
+.product-card h3 {
+  font-size: 0.9rem;
+  color: #bffcff;
+  margin: 0.3rem 0 0;
+}
+.product-card .price {
+  color: #00c6ff;
+  font-weight: 600;
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
 }
 
-.field-group {
+
+/* ============================================================
+   🌿 MAIN CONTAINER — Balanced Layout
+   ============================================================ */
+.main-container {
+  display: flex;
+  align-items: stretch;          /* ✅ keeps both sides same height */
+  justify-content: space-between;
+  gap: 1.5rem;
+  height: calc(100vh - 180px);   /* header + footer space */
+  padding: 1.5rem;
+  box-sizing: border-box;
+}
+
+/* ============================================================
+   🧾 RECEIPT PANEL — Full Height + Scrollable Summary
+   ============================================================ */
+.receipt {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-}
-.field-group label {
-  font-size: 0.9rem;
-  color: var(--color-accent);
-  font-weight: 600;
-}
-.field-group input,
-.field-group textarea,
-.field-group select {
-  background: rgba(15, 25, 30, 0.8);
-  border: 1px solid rgba(167,225,238,0.25);
-  border-radius: var(--radius-md);
-  padding: 10px 12px;
-  color: #fff;
-  font-size: 0.9rem;
-}
-.field-group input:focus,
-.field-group textarea:focus,
-.field-group select:focus {
-  border-color: var(--color-accent);
-  box-shadow: var(--glow-accent);
-  outline: none;
-}
-textarea {
-  resize: vertical;
-  min-height: 60px;
+  height: 100%;
+  overflow: hidden;
 }
 
-/* ---------- FORM BUTTONS ---------- */
-.card-actions {
+/* Flexible structure inside the receipt */
+.receipt-details {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Summary area scrolls */
+.receipt-summary {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  margin-top: 0.5rem;
+  padding-right: 0.5rem;
+  scroll-behavior: smooth;
+}
+
+.receipt-summary::after {
+  content: "";
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.7));
+  pointer-events: none;
+}
+
+/* Footer always visible */
+.submit-row,
+.receipt-footer {
+  flex: 0 0 auto;
+  margin-top: 1rem;
+  text-align: center;
+  color: #bffcff;
+  text-shadow: 0 0 10px rgba(0,198,255,0.4);
+}
+
+/* ============================================================
+   🔘 TOOLBAR BUTTONS
+   ============================================================ */
+.toolbar {
   display: flex;
   justify-content: center;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-top: 1.5rem;
+  gap: 0.75rem;
+  margin-top: 1rem;
 }
-#save-item-btn {
-  background: linear-gradient(90deg, var(--color-accent), #5FC7D9);
+.toolbar-btn {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(0,198,255,0.3);
+  border-radius: 8px;
+  color: #A7E1EE;
+  font-size: 1.1rem;
+  padding: 0.6rem 0.8rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 0 8px rgba(0,198,255,0.15);
+}
+.toolbar-btn:hover {
+  background: #00c6ff;
+  color: #000;
+  box-shadow: 0 0 25px #00c6ff;
+  transform: scale(1.08);
+}
+
+/* ============================================================
+   🔹 BOTTOM NAVIGATION
+   ============================================================ */
+.kinaya-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  background: rgba(10, 10, 10, 0.9);
+  border-top: 1px solid rgba(0,198,255,0.2);
+  backdrop-filter: blur(10px);
+  padding: 10px 0;
+  z-index: 100;
+}
+.kinaya-nav .nav-btn {
+  color: #A7E1EE;
+  text-decoration: none;
+  text-align: center;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+.kinaya-nav .nav-btn.active,
+.kinaya-nav .nav-btn:hover {
+  color: #00c6ff;
+  text-shadow: 0 0 10px #00c6ff;
+}
+
+/* ============================================================
+   🔹 RESPONSIVE ADJUSTMENTS
+   ============================================================ */
+@media (max-width: 1100px) {
+  .main-container {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .receipt {
+    width: 100%;
+    max-width: 100%;
+    min-width: unset;
+    margin-bottom: 1.5rem;
+  }
+
+  .menu-payment {
+    width: 100%;
+    height: auto;
+  }
+}
+
+/* ---------- MOBILE TOGGLE LOGIC ---------- */
+@media (max-width: 900px) {
+  body.mobile-view .receipt {
+    display: none;
+  }
+
+  body.mobile-view .menu-payment {
+    display: block;
+  }
+
+  body.show-receipt .receipt {
+    display: block;
+  }
+
+  body.show-receipt .menu-payment {
+    display: none;
+  }
+
+  /* Floating toggle button */
+  .toggle-view-btn {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    background: rgba(0, 198, 255, 0.1);
+    border: 1px solid rgba(0,198,255,0.4);
+    border-radius: 50%;
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    color: #A7E1EE;
+    box-shadow: 0 0 15px rgba(0,198,255,0.4);
+    backdrop-filter: blur(6px);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 1200;
+  }
+
+  .toggle-view-btn:hover {
+    background: #00c6ff;
+    color: #000;
+    box-shadow: 0 0 25px #00c6ff;
+    transform: scale(1.08);
+  }
+
+  .toggle-view-btn i {
+    transition: transform 0.4s ease;
+  }
+
+  body.show-receipt .toggle-view-btn i {
+    transform: rotateY(180deg);
+  }
+}
+
+/* Overlay */
+#payment-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 10, 20, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.paypad-container {
+  text-align: center;
+  background: rgba(10, 20, 25, 0.75);
+  border: 1px solid rgba(0,198,255,0.25);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 0 25px rgba(0,198,255,0.15), inset 0 0 12px rgba(0,198,255,0.05);
+  width: 360px;
+  animation: pulseGlow 4s infinite ease-in-out;
+  color: #bffcff;
+}
+
+.paypad-title {
+  font-family: "Audiowide", sans-serif;
+  color: #bffcff;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 0 10px rgba(0,198,255,0.6);
+}
+
+.amount-owed {
+  font-size: 0.9rem;
+  color: #a7e1ee;
+  margin-bottom: 1rem;
+}
+
+.paypad-display {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+  color: #bffcff;
+  text-shadow: 0 0 10px rgba(0,198,255,0.5);
+}
+
+/* Grid */
+.paypad-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* Tighter numeric grid */
+  gap: 0.8rem; /* More spacing between buttons */
+  justify-items: center;
+  margin-top: 0.5rem;
+  margin-bottom: 1.2rem; /* Adds space before Confirm Payment */
+}
+
+.paypad-btn {
+  width: 80px;
+  height: 60px;
+  padding: 0.7rem 0;
+  font-size: 1.1rem;
+  color: #bffcff;
+  background: rgba(0, 30, 40, 0.5);
+  border: 1px solid rgba(0, 198, 255, 0.3);
+  border-radius: 10px;
+  box-shadow: 0 0 6px rgba(0, 198, 255, 0.2);
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.paypad-btn:hover {
+  background: rgba(0, 198, 255, 0.2);
+  box-shadow: 0 0 12px rgba(0, 198, 255, 0.4);
+}
+
+.confirm-btn {
+  display: block;
+  width: 100%;
+  padding: 0.9rem 0;
+  margin-top: 1rem;
+  background: rgba(0, 198, 255, 0.15);
+  border: 1px solid rgba(0, 198, 255, 0.3);
+  border-radius: 10px;
+  color: #bffcff;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  text-shadow: 0 0 10px rgba(0,198,255,0.5);
+  box-shadow: 0 0 8px rgba(0,198,255,0.2);
+  transition: all 0.3s ease;
+}
+
+.confirm-btn:hover {
+  background: rgba(0,198,255,0.25);
+  box-shadow: 0 0 18px rgba(0,198,255,0.5);
+}
+
+/* ============================================================
+   🌿 INVENTORY ACTIONS & CONTROL BAR
+   ============================================================ */
+.inventory-control {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+  background: rgba(255,255,255,0.05);
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(0,198,255,0.08);
+  backdrop-filter: blur(6px);
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.control-group label {
+  font-size: 0.9rem;
+  color: #78dfff;
+  margin-bottom: 0.3rem;
+}
+.control-group input {
+  width: 80px;
+  text-align: center;
+  background: rgba(10,20,30,0.8);
+  border: 1px solid rgba(0,198,255,0.25);
+  border-radius: 8px;
+  padding: 0.4rem 0.5rem;
+  color: #A7E1EE;
+  font-weight: 600;
+}
+.small-btn {
+  background: linear-gradient(90deg, #00c6ff, #5FC7D9);
   color: #000;
   border: none;
-  border-radius: var(--radius-md);
-  padding: 0.8rem 1.8rem;
+  border-radius: 8px;
+  padding: 0.6rem 1.2rem;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: var(--glow-accent-soft);
-  transition: all var(--transition-fast);
+  box-shadow: 0 0 12px rgba(0,198,255,0.25);
+  transition: all 0.2s ease;
 }
-#save-item-btn:hover {
+.small-btn:hover {
   transform: scale(1.05);
-  box-shadow: var(--glow-accent);
+  box-shadow: 0 0 20px rgba(0,198,255,0.45);
 }
+/* ============================================================
+   🌿 FIXED ORDER PANEL SCROLL — INVENTORY EDIT SECTION
+   ============================================================ */
+/* Scroll only inside .receipt (like receipt-details in POS) */
+.receipt {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto; /* ✅ internal scroll enabled */
+  overflow-x: hidden;
+  padding-right: 0.5rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 198, 255, 0.3) transparent;
+}
+
+/* Make sure form fields stay readable */
+.receipt input,
+.receipt textarea,
+.receipt select {
+  background: rgba(15, 25, 30, 0.85);
+  border: 1px solid rgba(167, 225, 238, 0.25);
+  border-radius: 10px;
+  color: #A7E1EE;
+}
+
+.receipt::-webkit-scrollbar {
+  width: 6px;
+}
+.receipt::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 198, 255, 0.35);
+  border-radius: 10px;
+}
+
+/* ============================================================
+   🌿 STICKY TOOLBAR INSIDE RECEIPT (Inventory Page)
+   ============================================================ */
+
+.receipt .toolbar.flex-row {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  justify-content: center;
+  gap: 1rem;
+  background: rgba(10, 20, 25, 0.92);
+  border-top: 1px solid rgba(0,198,255,0.25);
+  backdrop-filter: blur(10px);
+  padding: 1rem 0;
+  box-shadow: 0 -4px 20px rgba(0,198,255,0.12);
+  z-index: 10;
+}
+
+/* Matching Kinaya glow buttons */
+.receipt .toolbar button {
+  border: 1px solid rgba(0,198,255,0.3);
+  background: rgba(255,255,255,0.05);
+  color: #A7E1EE;
+  font-weight: 600;
+  padding: 0.75rem 1.6rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 0 8px rgba(0,198,255,0.15);
+}
+
+.receipt .toolbar button:hover {
+  background: #00c6ff;
+  color: #000;
+  box-shadow: 0 0 25px #00c6ff;
+  transform: scale(1.05);
+}
+
+/* Primary glowing Save button */
+#save-item-btn {
+  background: linear-gradient(90deg, #00c6ff, #5FC7D9);
+  color: #000;
+  box-shadow: 0 0 15px rgba(0,198,255,0.25);
+}
+
+/* Subtle neutral secondary buttons */
 .secondary-btn {
-  background: rgba(255,255,255,0.1);
-  color: var(--color-accent);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(0,198,255,0.3);
+  color: #A7E1EE;
 }
 .secondary-btn:hover {
-  background: rgba(167,225,238,0.25);
+  background: rgba(255,255,255,0.15);
+  color: #bffcff;
+  box-shadow: 0 0 25px rgba(0,198,255,0.4);
 }
 
 /* ============================================================
-   🌸 INVENTORY TABLE
+   🌿 INVENTORY CONTROL GRID — Final Kinaya Glow Layout
    ============================================================ */
-.inventory-table-wrapper {
-  max-height: 65vh;
-  overflow: auto;
-  border-radius: var(--radius-md);
-  background: rgba(255,255,255,0.02);
-  box-shadow: var(--glow-accent-soft);
-  -webkit-overflow-scrolling: touch;
+.input-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(140px, 1fr));
+  gap: 1rem;
+  background: rgba(5, 25, 35, 0.7);
+  border: 1px solid rgba(0,198,255,0.25);
+  border-radius: 16px;
+  padding: 1.2rem 1.4rem;
+  margin: 0 auto 1.2rem;
+  width: 90%;
+  box-shadow:
+    0 0 25px rgba(0,198,255,0.08),
+    inset 0 0 20px rgba(0,198,255,0.05);
+  backdrop-filter: blur(10px);
 }
-.inventory-table {
+
+.input-grid div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.input-grid label {
+  font-size: 0.82rem;
+  color: #9ae8ff;
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  text-shadow: 0 0 6px rgba(0,198,255,0.4);
+}
+
+.input-grid input {
   width: 100%;
-  border-collapse: collapse;
-  min-width: 800px;
-}
-th, td {
-  padding: 10px 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-  text-align: left;
-  white-space: nowrap;
-}
-th {
-  background: rgba(167,225,238,0.08);
-  color: var(--color-accent);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: 0.85rem;
-  position: sticky;
-  top: 0;
-  z-index: 3;
-  backdrop-filter: blur(5px);
-}
-th:first-child,
-td:first-child {
-  position: sticky;
-  left: 0;
-  background: rgba(10,15,20,0.95);
-  backdrop-filter: blur(4px);
-  z-index: 5;
-}
-tr:nth-child(even) { background: rgba(255,255,255,0.02); }
-tr:hover { background: rgba(167,225,238,0.05); }
-
-/* ---------- TABLE IMAGES ---------- */
-td img {
-  width: 55px;
-  height: 55px;
-  object-fit: cover;
-  border-radius: var(--radius-sm);
-  box-shadow: 0 0 6px rgba(167,225,238,0.2);
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
-}
-td img:hover {
-  transform: scale(1.15);
-  box-shadow: var(--glow-accent);
-}
-
-/* ---------- TOTAL SUMMARY ---------- */
-.total-summary {
   text-align: center;
-  font-size: 1rem;
-  color: var(--color-accent);
-  margin: 0.8rem auto 1rem;
-  padding: 0.8rem 1rem;
-  background: rgba(167,225,238,0.06);
-  border-radius: var(--radius-md);
-  box-shadow: var(--glow-accent-soft);
-  width: 95%;
-  max-width: 800px;
-  transition: all var(--transition-med);
+  padding: 0.5rem;
+  font-size: 0.9rem;
+  color: #bffcff;
+  background: rgba(10, 25, 35, 0.9);
+  border: 1px solid rgba(0,198,255,0.25);
+  border-radius: 10px;
+  font-weight: 600;
+  transition: all 0.25s ease;
+  box-shadow: inset 0 0 10px rgba(0,198,255,0.05);
 }
 
-/* ---------- SAVE CHANGES BUTTON ---------- */
-#save-inventory {
-  background: linear-gradient(90deg, var(--color-accent), #5FC7D9);
+.input-grid input:focus {
+  outline: none;
+  border-color: #00c6ff;
+  box-shadow:
+    0 0 12px rgba(0,198,255,0.4),
+    inset 0 0 8px rgba(0,198,255,0.25);
+}
+
+/* ============================================================
+   🌿 COMPACT INVENTORY CONTROL PANEL — Kinaya Glow (2025)
+   ============================================================ */
+.input-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(100px, 1fr));
+  gap: 0.6rem 0.8rem;
+  background: rgba(5, 25, 35, 0.65);
+  border: 1px solid rgba(0,198,255,0.25);
+  border-radius: 12px;
+  padding: 0.8rem 1rem;
+  margin: 0 auto 0.8rem;
+  width: 85%;
+  box-shadow:
+    0 0 20px rgba(0,198,255,0.06),
+    inset 0 0 10px rgba(0,198,255,0.05);
+  backdrop-filter: blur(6px);
+}
+
+.input-grid div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.input-grid label {
+  font-size: 0.75rem;
+  color: #8ee7ff;
+  margin-bottom: 0.2rem;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  text-shadow: 0 0 4px rgba(0,198,255,0.4);
+}
+
+.input-grid input {
+  width: 100%;
+  text-align: center;
+  padding: 0.35rem 0.4rem;
+  font-size: 0.85rem;
+  color: #bffcff;
+  background: rgba(10, 25, 35, 0.9);
+  border: 1px solid rgba(0,198,255,0.25);
+  border-radius: 8px;
+  font-weight: 600;
+  box-shadow: inset 0 0 6px rgba(0,198,255,0.05);
+  transition: all 0.2s ease;
+}
+
+.input-grid input:focus {
+  outline: none;
+  border-color: #00c6ff;
+  box-shadow: 0 0 8px rgba(0,198,255,0.4),
+              inset 0 0 5px rgba(0,198,255,0.25);
+}
+
+/* Compact integrated button */
+#update-btn {
+  display: block;
+  width: 70%;
+  margin: 0.8rem auto 0;
+  padding: 0.5rem 0;
+  background: linear-gradient(90deg, #00c6ff, #008fb5);
   color: #000;
   border: none;
-  border-radius: var(--radius-md);
-  padding: 12px 36px;
+  border-radius: 8px;
   font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
   cursor: pointer;
-  display: block;
-  margin: 1rem auto 2rem;
-  box-shadow: var(--glow-accent-soft);
-  transition: all var(--transition-fast);
-}
-#save-inventory:hover {
-  transform: scale(1.05);
-  box-shadow: var(--glow-accent);
+  box-shadow: 0 0 15px rgba(0,198,255,0.25),
+              inset 0 0 6px rgba(0,198,255,0.15);
+  transition: all 0.25s ease-in-out;
 }
 
-/* ============================================================
-   🌿 RESPONSIVE DESIGN
-   ============================================================ */
-@media (max-width: 768px) {
-  header h1 { font-size: 1.4rem; }
-  .inventory-fields { grid-template-columns: 1fr; }
-  main { padding-bottom: 6.5rem; }
-  #save-inventory { margin-bottom: 5.5rem; }
-  th, td { font-size: 0.8rem; padding: 8px; }
-  td img { width: 45px; height: 45px; }
-
-  .add-inventory-container {
-    padding: 1.2rem;
-    border-radius: var(--radius-md);
-  }
-  .card-actions {
-    flex-direction: column;
-    gap: 0.8rem;
-  }
-  .inventory-table-wrapper {
-    overflow-x: auto;
-    border-radius: var(--radius-md);
-  }
-  .total-summary {
-    font-size: 0.9rem;
-    width: 90%;
-    padding: 0.7rem;
-  }
-}
-/* ============================================================
-   🌿 KINAYA RISING — INVENTORY PAGE (Stable SKU Support)
-   ============================================================ */
-
-/* ---------- ADD: Make Description full span ---------- */
-.field-group.full-width {
-  grid-column: 1 / -1; /* span across all columns */
+#update-btn:hover {
+  transform: scale(1.04);
+  box-shadow: 0 0 25px rgba(0,198,255,0.55),
+              inset 0 0 10px rgba(0,198,255,0.3);
 }
 
-/* ---------- ADD: Stable SKU Column ---------- */
-.inventory-table th:nth-child(12),
-.inventory-table td:nth-child(12) {
+#update-btn:active {
+  transform: scale(0.97);
+}
+
+/* Give the entire left form a card glow */
+.receipt {
+  background: rgba(10,20,25,0.75);
+  border: 1px solid rgba(0,198,255,0.25);
+  border-radius: 16px;
+  box-shadow:
+    0 0 25px rgba(0,198,255,0.08),
+    inset 0 0 12px rgba(0,198,255,0.05);
+  padding: 1.5rem;
+  backdrop-filter: blur(12px);
+  animation: pulseGlow 4s infinite ease-in-out;
+}
+.receipt h2 {
+  font-family: "Audiowide", sans-serif;
+  color: #bffcff;
+  font-size: 1.3rem;
+  letter-spacing: 0.5px;
   text-align: center;
-  color: var(--color-accent-light);
-  font-weight: 500;
-  background: rgba(167, 225, 238, 0.03);
-}
-
-/* ---------- ADJUST TABLE COLUMN LAYOUT ---------- */
-.inventory-table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 950px; /* slightly wider for new column */
-}
-
-th, td {
-  padding: 10px 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-  text-align: left;
-  white-space: nowrap;
-}
-
-/* ---------- ADJUST RESPONSIVE VIEW ---------- */
-@media (max-width: 768px) {
-  .inventory-fields {
-    grid-template-columns: 1fr;
-  }
-
-  /* make stable sku scroll nicely */
-  .inventory-table {
-    min-width: 900px;
-  }
-
-  th:nth-child(12),
-  td:nth-child(12) {
-    display: table-cell;
-  }
+  text-shadow: 0 0 15px rgba(0,198,255,0.5);
+  margin-bottom: 1rem;
 }
