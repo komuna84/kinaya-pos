@@ -1,0 +1,162 @@
+/* ============================================================
+   🌿 KINAYA RISING — EXPENSE LOG PAGE (Full-Width Layout)
+   Matches the Kinaya Glow visual system (Inventory aesthetic)
+   ============================================================ */
+
+/* ===== Layout ===== */
+main.pos-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 1.5rem;
+  max-width: 1200px; /* centers content neatly on large screens */
+  margin: 0 auto;
+}
+
+/* ===== Glowing Section Containers ===== */
+.receipt {
+  width: 100%;
+  max-width: 100%;
+  background: rgba(10, 20, 25, 0.75);
+  border: 1px solid rgba(0, 198, 255, 0.25);
+  border-radius: 16px;
+  padding: 1.5rem 2rem;
+  box-shadow:
+    0 0 25px rgba(0, 198, 255, 0.08),
+    inset 0 0 12px rgba(0, 198, 255, 0.05);
+  box-sizing: border-box;
+  animation: pulseGlow 4s infinite ease-in-out;
+}
+
+/* ===== Headings ===== */
+.glow-title {
+  font-family: "Audiowide", sans-serif;
+  color: #bffcff;
+  text-align: center;
+  text-shadow: 0 0 20px rgba(0, 198, 255, 0.4);
+  margin-bottom: 1rem;
+  font-size: 1.4rem;
+}
+
+.glow-subtext {
+  text-align: center;
+  color: #a7e1ee;
+  font-size: 0.9rem;
+  margin-top: -0.5rem;
+  margin-bottom: 1.5rem;
+  opacity: 0.8;
+}
+
+/* ===== Input Grid ===== */
+.input-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.input-grid label {
+  display: block;
+  font-size: 0.9rem;
+  color: #bffcff;
+  margin-bottom: 0.3rem;
+}
+
+.input-grid input,
+.input-grid select {
+  width: 100%;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid rgba(0, 198, 255, 0.2);
+  border-radius: 6px;
+  background: rgba(5, 15, 20, 0.6);
+  color: #bffcff;
+  font-size: 0.9rem;
+  box-shadow: inset 0 0 4px rgba(0, 198, 255, 0.1);
+}
+
+.input-grid input:focus,
+.input-grid select:focus {
+  outline: none;
+  border-color: rgba(0, 198, 255, 0.8);
+  box-shadow: 0 0 10px rgba(0, 198, 255, 0.3);
+}
+
+/* ===== Buttons ===== */
+.submit-row {
+  text-align: center;
+  margin-top: 1.5rem;
+}
+
+.save-btn,
+.clear-btn {
+  padding: 0.6rem 1.4rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.25s;
+}
+
+.save-btn {
+  background: rgba(0, 198, 255, 0.25);
+  color: #bffcff;
+  box-shadow: 0 0 10px rgba(0, 198, 255, 0.2);
+}
+
+.save-btn:hover {
+  background: rgba(0, 198, 255, 0.45);
+  box-shadow: 0 0 20px rgba(0, 198, 255, 0.4);
+}
+
+.clear-btn {
+  background: rgba(200, 20, 20, 0.2);
+  color: #ffbfbf;
+  margin-left: 1rem;
+}
+
+.clear-btn:hover {
+  background: rgba(255, 50, 50, 0.4);
+  box-shadow: 0 0 20px rgba(255, 100, 100, 0.3);
+}
+
+/* ===== Table ===== */
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.glow-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: #a7e1ee;
+  font-size: 0.9rem;
+}
+
+.glow-table th,
+.glow-table td {
+  padding: 0.6rem 0.8rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(0, 198, 255, 0.15);
+}
+
+.glow-table th {
+  text-shadow: 0 0 8px rgba(0, 198, 255, 0.4);
+  font-weight: 700;
+  color: #bffcff;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  main.pos-container {
+    padding: 1rem;
+  }
+
+  .glow-title {
+    font-size: 1.2rem;
+  }
+}
+
+/* ===== Kinaya Glow Animation ===== */
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 20px rgba(0, 198, 255, 0.08); }
+  50% { box-shadow: 0 0 30px rgba(0, 198, 255, 0.15); }
+}
