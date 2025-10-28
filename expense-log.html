@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>Kinaya Rising — Expense Log</title>
+
+  <!-- ===== META ===== -->
+  <meta name="description"
+        content="Kinaya Rising Expense Log — Track orders, vendor costs, and event fees with unified Kinaya Glow design." />
+
+  <!-- ===== GLOBAL FONTS & ICONS ===== -->
+  <link rel="icon" href="assets/favicon.png" type="image/png" />
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Audiowide&family=Roboto:wght@300;400;700&display=swap"
+    rel="stylesheet" />
+
+  <!-- ===== UNIFIED KINAYA STYLES ===== -->
+  <link rel="stylesheet" href="styles/kinaya-base.css?v=7" />
+  <link rel="stylesheet" href="styles/dashboard.css?v=7" />
+  <link rel="stylesheet" href="styles/expense-log.css?v=1" />
+
+
+  <!-- ===== ACCESS LOCK ===== -->
+  <script>
+    if (sessionStorage.getItem("posUnlocked") !== "true") {
+      window.location.href = "index.html";
+    }
+  </script>
+</head>
+
+<body>
+  <!-- ===== HEADER ===== -->
+  <header class="pos-header">
+    <h1>Expense Log</h1>
+    <p class="subtitle">Track purchases, booth fees, and vendor costs across your journey.</p>
+  </header>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="pos-container">
+    <!-- 🌿 EXPENSE ENTRY PANEL -->
+    <section class="receipt">
+      <h2 class="glow-title">💰 Add or Edit Expense</h2>
+
+      <div class="input-grid">
+        <div><label>Date</label><input id="date" type="date" /></div>
+        <div><label>Category</label><input id="category" type="text" placeholder="Event Fee, Order, etc." /></div>
+        <div><label>Description</label><input id="description" type="text" placeholder="Booth rental, journal order..." /></div>
+        <div><label>Vendor</label><input id="vendor" type="text" placeholder="Printify, UPrinting, etc." /></div>
+        <div><label>SKU (optional)</label><input id="sku" type="text" placeholder="If linked to inventory" /></div>
+        <div><label>Amount ($)</label><input id="amount" type="number" step="0.01" placeholder="0.00" /></div>
+        <div><label>Quantity</label><input id="quantity" type="number" placeholder="0" /></div>
+        <div><label>Unit Cost ($)</label><input id="unit-cost" type="number" step="0.01" placeholder="0.00" /></div>
+        <div><label>Total ($)</label><input id="total" type="number" step="0.01" placeholder="Auto" readonly /></div>
+        <div><label>Payment Method</label><input id="payment" type="text" placeholder="Card, PayPal, CashApp..." /></div>
+        <div><label>Tax Deductible</label>
+          <select id="tax">
+            <option value="Y">Yes</option>
+            <option value="N">No</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="submit-row">
+        <button id="save-expense-btn" class="save-btn">💾 SAVE</button>
+        <button id="clear-expense-btn" class="clear-btn">🧹 CLEAR</button>
+      </div>
+    </section>
+
+    <!-- 🌿 EXPENSE TABLE OVERVIEW -->
+    <section class="receipt">
+      <h2 class="glow-title">📊 Current Expense Overview</h2>
+      <p class="glow-subtext">Review your recent purchases, event fees, and vendor payments below.</p>
+
+      <div class="table-wrapper">
+        <table id="expense-table" class="glow-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Category</th>
+              <th>Description</th>
+              <th>Vendor</th>
+              <th>SKU</th>
+              <th>Amount</th>
+              <th>Quantity</th>
+              <th>Unit Cost</th>
+              <th>Total</th>
+              <th>Payment</th>
+              <th>Tax</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="11" style="text-align:center; opacity:0.7;">Loading expense data...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===== FOOTER NAVIGATION ===== -->
+  <nav class="kinaya-nav" aria-label="Main navigation">
+    <a href="sale.html" class="nav-btn"><i class="fas fa-cash-register"></i><span>Sales</span></a>
+    <a href="inventory.html" class="nav-btn"><i class="fas fa-boxes"></i><span>Inventory</span></a>
+    <a href="expense-log.html" class="nav-btn active"><i class="fas fa-receipt"></i><span>Expenses</span></a>
+    <a href="data.html" class="nav-btn"><i class="fas fa-chart-line"></i><span>Data</span></a>
+  </nav>
+
+  <!-- ===== JS MODULE ===== -->
+  <script src="scripts/expense-log.js" defer></script>
+</body>
+</html>
