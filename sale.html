@@ -57,12 +57,14 @@
       <p id="current-date"></p>
     </div>
 
-    <!-- ✅ FIXED INVOICE SEARCH SECTION -->
     <div class="invoice-search" id="search-container">
-      <input id="invoice-search-input" placeholder="Enter invoice number" />
-      <button id="invoice-search-btn">SEARCH</button>
-      <div id="invoice-result"></div>
-    </div>
+  <div class="search-row">
+    <input id="invoice-search-input" placeholder="Enter invoice number" />
+    <button id="invoice-search-btn">Search</button>
+  </div>
+  <div id="invoice-result"></div>
+</div>
+
 
     <!-- ✅ RETURN INPUT (for return mode) -->
     <div class="return-link-section hidden" id="return-container">
@@ -99,37 +101,73 @@
                   <option value="">Select...</option>
                   <option value="Restock">Restock (sellable)</option>
                   <option value="Damaged">Damaged (unsellable)</option>
-                  <option value="Discard">Discard / Lost</option>
                 </select>
               </td>
             </tr>
+            
+            
 
             <!-- 🎁 Discount -->
             <tr>
-              <td>Discount (%):</td>
-              <td><input type="number" id="discount-input" placeholder="0" min="0" max="100" step="0.01" /></td>
-            </tr>
-            <tr><td>Discount:</td><td id="discount-display">$0.00</td></tr>
+              <tr>
+  <td>Discount:</td>
+  <td>
+    <input type="text" id="discount-input" placeholder="0 or 10%" />
+  </td>
+</tr>
+<tr id="discount-row">
+  <td>Discount Value:</td>
+  <td id="discount-display">$0.00</td>
+</tr>
+
 
             <!-- 💵 Totals -->
-            <tr><td>Subtotal:</td><td id="subtotal-summary">$0.00</td></tr>
-            <tr><td>Tax:</td><td id="tax-summary">$0.00</td></tr>
-            <tr><td>Grand Total:</td><td id="grandtotal-summary">$0.00</td></tr>
-            <tr><td>Amount Paid:</td><td id="amount-paid-display" class="glow-text">$0.00</td></tr>
-            <tr id="change-row">
-              <td>Change:</td><td id="change-amount">$0.00</td>
-            </tr>
+<tr><td>Subtotal:</td><td id="subtotal-summary">$0.00</td></tr>
+<tr><td>Tax:</td><td id="tax-summary">$0.00</td></tr>
+<tr><td>Grand Total:</td><td id="grandtotal-summary">$0.00</td></tr>
+<tr><td>Amount Paid:</td><td id="amount-paid-display" class="glow-text">$0.00</td></tr>
+<tr id="change-row">
+  <td>Change:</td><td id="change-amount">$0.00</td>
+</tr>
 
-            <tr id="difference-row" class="return-only hidden">
-              <td colspan="2">
-                <div style="display:flex;flex-direction:column;gap:4px;">
-                  <div>Original Paid: <span id="original-paid">$0.00</span></div>
-                  <div>Return Value: <span id="return-value">$0.00</span></div>
-                  <div>New Balance: <span id="new-total">$0.00</span></div>
-                  <div style="font-weight:bold;">Difference: <span id="difference-amount">$0.00</span> <small id="difference-note"></small></div>
-                </div>
-              </td>
-            </tr>
+<!-- 🌿 Divider -->
+<tr class="summary-divider">
+  <td colspan="2"><hr style="border:1px dashed rgba(0,198,255,0.3);"></td>
+</tr>
+
+<!-- 🌿 RETURN SUMMARY — Header + Right Aligned -->
+<tr id="return-summary-row" class="hidden">
+  <td colspan="2" style="
+    padding-top: 0.75rem;
+    font-size: 0.95em;
+    line-height: 1.6;
+    letter-spacing: 0.3px;
+    color: #A7E1EE;
+  ">
+    <div style="text-align:center; font-size:1.05em; color:#66caff; margin-bottom:4px;">
+      Return Summary
+    </div>
+    <div style="text-align:center; color:#66caff; margin-bottom:8px;">
+      Invoice <span id="linked-invoice-number" style="color:#66caff;">#—</span>
+    </div>
+    <table style="width:100%; border-collapse:collapse;">
+      <tr>
+        <td style="text-align:left;">Original Purchase Amount:</td>
+        <td style="text-align:right;"><span id="original-total" style="color:#A7E1EE;">$0.00</span></td>
+      </tr>
+      <tr>
+        <td style="text-align:left;">Returned Items Total:</td>
+        <td style="text-align:right;"><span id="return-total" style="color:#ff8080;">$0.00</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+
+<input type="hidden" id="refund-amount" value="0">
+
+
+
+
 
             <tr><td>Payment Type:</td><td id="split-info">None</td></tr>
 
@@ -168,9 +206,10 @@
           <button id="card-btn" class="toolbar-btn" title="Card Payment">
             <i class="fa-solid fa-credit-card"></i>
           </button>
-          <button id="clear-order-btn" class="toolbar-btn" title="Clear Order">
-            <i class="fa-solid fa-trash"></i>
-          </button>
+          <button id="reset-order-btn" class="toolbar-btn" title="Clear Order">
+  <i class="fa-solid fa-trash"></i>
+</button>
+
           <button id="toggle-return-main" class="toolbar-btn" title="Toggle Return Mode">
             <i class="fa-solid fa-rotate-left"></i>
           </button>
@@ -178,22 +217,34 @@
       </article>
     </section>
 
-    <!-- ===== PRODUCT GRID ===== -->
-    <section class="menu-payment grid">
-      <div class="menu flex-row" id="menu"></div>
-    </section>
+    <!-- ============================================================
+🌿 KINAYA RISING POS — PRODUCT GRID + MODALS
+============================================================ -->
 
-    <button id="open-gallery" class="glow-button mobile-only">
-      <i class="fa-solid fa-images"></i> View All Products
-    </button>
+<!-- 🖥️ Always-visible product grid for desktop/tablet -->
+<section class="menu-payment grid" id="menu-section">
+  <div class="menu flex-row" id="menu"></div>
+</section>
 
-    <div id="image-modal" class="image-modal hidden">
-      <div class="modal-content">
-        <span id="close-gallery" class="close-btn">&times;</span>
-        <div id="image-gallery"></div>
-      </div>
-    </div>
-  </main>
+
+
+<!-- ============================================================
+🖼️ IMAGE GALLERY MODAL (for browsing only)
+============================================================ -->
+
+<div id="image-modal" class="image-modal hidden">
+  <div class="modal-content glass-panel">
+    <header class="modal-header flex-row">
+      <h2>📸 Product Gallery</h2>
+      <button id="close-gallery" class="close-btn">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </header>
+
+    <div id="image-gallery"></div>
+  </div>
+</div>
+
 
   <!-- ===== FOOTER NAVIGATION ===== -->
   <nav class="kinaya-nav">
@@ -203,49 +254,64 @@
     <a href="inventory.html" class="nav-btn">
       <i class="fas fa-boxes"></i><span>Inventory</span>
     </a>
+    <a href="expense-log.html" class="nav-btn">
+      <i class="fas fa-receipt"></i><span>Expenses</span>
+    </a>
     <a href="data.html" class="nav-btn">
       <i class="fas fa-chart-line"></i><span>Data</span>
     </a>
   </nav>
 
   <!-- 💰 PAYMENT OVERLAY (PAYPAD) -->
-  <div id="payment-overlay" class="overlay">
-    <div class="paypad">
-      <button id="close-paypad-btn" class="close-paypad-icon">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
+<div id="payment-overlay" class="overlay">
+  <div class="paypad" style="padding: 15px;">
+    <button id="close-paypad-btn" class="close-paypad-icon" style="padding: 10px;">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
 
-      <h2 class="paypad-title">Enter Payment</h2>
-      <div class="owed-section">
-        <span class="owed-label">Amount Owed:</span>
-        <span id="paypad-owed" class="owed-value">$0.00</span>
+    <h2 class="paypad-title">Enter Payment</h2>
+
+    <div class="owed-section">
+      <!-- Tax Mode -->
+      <div id="tax-status-row" 
+           style="text-align:center; font-size:0.9em; color:#66caff; margin-bottom:4px;">
+        Tax Mode: On
       </div>
 
-      <div id="paypad-display" class="paypad-display" data-bind="amount-paid">$0.00</div>
+      <span class="owed-label">Amount Owed:</span>
+      <span id="paypad-owed" class="owed-value">$0.00</span>
+    </div>
+    <div id="paypad-display" class="paypad-display" data-bind="amount-paid" >
+      $0.00
+    </div>
+    
 
-      <div class="paypad-grid">
-        <button class="paypad-btn" data-value="7">7</button>
-        <button class="paypad-btn" data-value="8">8</button>
-        <button class="paypad-btn" data-value="9">9</button>
-        <button class="paypad-btn" data-value="←">←</button>
+    <div class="paypad-grid" style="padding: 15px;">
+      <button class="paypad-btn" data-value="7">7</button>
+      <button class="paypad-btn" data-value="8">8</button>
+      <button class="paypad-btn" data-value="9">9</button>
+      <button class="paypad-btn" data-value="←">←</button>
 
-        <button class="paypad-btn" data-value="4">4</button>
-        <button class="paypad-btn" data-value="5">5</button>
-        <button class="paypad-btn" data-value="6">6</button>
-        <button class="paypad-btn" data-value="C">C</button>
+      <button class="paypad-btn" data-value="4">4</button>
+      <button class="paypad-btn" data-value="5">5</button>
+      <button class="paypad-btn" data-value="6">6</button>
+      <button class="paypad-btn" data-value="C">C</button>
 
-        <button class="paypad-btn" data-value="1">1</button>
-        <button class="paypad-btn" data-value="2">2</button>
-        <button class="paypad-btn" data-value="3">3</button>
-        <button class="paypad-btn" data-value=".">.</button>
+      <button class="paypad-btn" data-value="1">1</button>
+      <button class="paypad-btn" data-value="2">2</button>
+      <button class="paypad-btn" data-value="3">3</button>
+      <button class="paypad-btn" data-value=".">.</button>
 
-        <button class="paypad-btn" data-value="0">0</button>
-        <button class="paypad-btn" data-value="00">00</button>
-      </div>
-
+      <button class="paypad-btn" data-value="TAX">TAX</button>
+      <button class="paypad-btn" data-value="0">0</button>
+      <button class="paypad-btn" data-value="00">00</button>
+      <button class="paypad-btn" data-value="%">%</button>
+    </div>
+    <div style="padding: 5px;">
       <button id="confirm-payment-btn" class="confirm-payment-btn glow-button">
         Confirm Payment
       </button>
+      </div>
     </div>
   </div>
 
