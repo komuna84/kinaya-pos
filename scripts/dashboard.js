@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ---------- CONFIG ----------
   const API_URL =
-    "https://script.google.com/macros/s/AKfycbw56BFnWW5CqsHsqwE9gmZE5SLu-Z-WJLaSgx8RHb4aYFC3B7jo-GogBWkVUKyH_eo9sg/exec"; // 🔹 Replace if redeployed
+    "https://script.google.com/macros/s/AKfycbz83-usxoCG3YpHFACMTH9SA8CP2PLANhdFC92fbpm55qo3KSF30lb9ph3iOooQhQWX0A/exec"; // 🔹 Replace if redeployed
 
   // ---------- ELEMENTS ----------
   const startInput = document.getElementById("start-date");
