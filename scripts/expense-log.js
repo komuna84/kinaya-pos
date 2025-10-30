@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // ---------- CONFIG ----------
   const SHEET_API =
-    "https://script.google.com/macros/s/AKfycbz83-usxoCG3YpHFACMTH9SA8CP2PLANhdFC92fbpm55qo3KSF30lb9ph3iOooQhQWX0A/exec"; // replace with your active endpoint
+    "https://script.google.com/macros/s/AKfycbw2tVFsnIuZdorUrUJShEZjP2uRcuz1VwHiz2KpdlrHj9q04qyIvYJT1nAMobPYzFa9RQ/exec"; // replace with your active endpoint
 
   const tableBody = document.querySelector("#expense-table tbody");
   const saveBtn = document.getElementById("save-expense-btn");
