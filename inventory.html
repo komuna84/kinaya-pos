@@ -8,12 +8,19 @@
         content="Manage Kinaya Rising inventory, track stock, materials, vendors, and update product details with live totals.">
   <title>Kinaya Rising POS — Inventory</title>
 
+  
+
+
   <!-- ===== FONTS & ICONS ===== -->
   <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
         crossorigin="anonymous" referrerpolicy="no-referrer">
   <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet"/>
-  <link rel="icon" href="assets/favicon.png" type="image/png" />
+  <!-- 🌿 Kinaya Rising POS — Favicon + PWA -->
+<link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+<link rel="apple-touch-icon" sizes="192x192" href="assets/favicon-192.png">
+<link rel="manifest" href="assets/manifest.json">
+<meta name="theme-color" content="#00c6ff">
 
   <!-- ===== UNIFIED KINAYA STYLES ===== -->
   <link rel="stylesheet" href="styles/kinaya-base.css?v=7">
@@ -52,11 +59,11 @@
 
             <div class="input-grid">
               <div><label>📊 In Stock</label><input id="in-stock"/></div>
+              <div><label>🔢 Running</label><input id="running" type="number" value="0" /></div>
               <div><label>📦 Received</label><input id="received" type="number" value="0" /></div>
               <div><label>🔢 Counted</label><input id="counted" type="number" value="0" /></div>
               <div><label>💥 Damaged</label><input id="damaged" type="number" value="0" /></div>
               <div><label>💰 Sale Price ($)</label><input id="sale-price" type="number" step="0.01" value="0" /></div>
-              <div><label>🪙 Unit Cost ($)</label><input id="unit-cost" type="number" step="0.01" value="0" /></div>
             </div>
           </div>
 
