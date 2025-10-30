@@ -11,6 +11,7 @@
         content="Kinaya Rising POS — Create and manage purchase orders, track payments, and process returns in a unified Kinaya interface." />
   <title>Kinaya Rising POS — Purchase Order</title>
 
+
   <!-- ===== GLOBAL FONTS & ICONS ===== -->
   <link
     rel="stylesheet"
@@ -20,7 +21,11 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Audiowide&family=Roboto:wght@300;400;700&display=swap"
     rel="stylesheet" />
-  <link rel="icon" href="assets/favicon.png" type="image/png" />
+  <!-- 🌿 Kinaya Rising POS — Favicon + PWA -->
+<link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+<link rel="apple-touch-icon" sizes="192x192" href="assets/favicon-192.png">
+<link rel="manifest" href="assets/manifest.json">
+<meta name="theme-color" content="#00c6ff">
 
   <!-- ===== KINAYA UNIFIED STYLES ===== -->
   <link rel="stylesheet" href="styles/kinaya-base.css" />
@@ -91,21 +96,7 @@
 
       <div class="receipt-summary">
         <table class="summary-table">
-          <tbody id="summary-section">
-
-            <!-- 🌿 Return Condition -->
-            <tr id="return-condition-row" class="hidden">
-              <td>Return Condition:</td>
-              <td>
-                <select id="return-condition" style="width:100%; background:#0b1a22; color:#A7E1EE; border:1px solid #00c6ff; border-radius:6px; padding:0.25rem;">
-                  <option value="">Select...</option>
-                  <option value="Restock">Restock (sellable)</option>
-                  <option value="Damaged">Damaged (unsellable)</option>
-                </select>
-              </td>
-            </tr>
-            
-            
+          <tbody id="summary-section"
 
             <!-- 🎁 Discount -->
             <tr>
@@ -189,9 +180,10 @@
         </table>
       </div>
 
-      <div id="submit-row" class="submit-row hidden">
-        <button id="submit-sale" class="submit-sale-btn glow-button">Submit Sale</button>
-      </div>
+      <div id="submit-row" class="submit-row">
+  <button id="submit-sale" class="submit-sale-btn">Confirm Sale</button>
+</div>
+
     </div>
 
     <div class="receipt-footer">Thank You For Your Support!</div>
@@ -217,7 +209,7 @@
       </article>
     </section>
 
-    <!-- ============================================================
+<!-- ============================================================
 🌿 KINAYA RISING POS — PRODUCT GRID + MODALS
 ============================================================ -->
 
@@ -225,26 +217,6 @@
 <section class="menu-payment grid" id="menu-section">
   <div class="menu flex-row" id="menu"></div>
 </section>
-
-
-
-<!-- ============================================================
-🖼️ IMAGE GALLERY MODAL (for browsing only)
-============================================================ -->
-
-<div id="image-modal" class="image-modal hidden">
-  <div class="modal-content glass-panel">
-    <header class="modal-header flex-row">
-      <h2>📸 Product Gallery</h2>
-      <button id="close-gallery" class="close-btn">
-        <i class="fa-solid fa-xmark"></i>
-      </button>
-    </header>
-
-    <div id="image-gallery"></div>
-  </div>
-</div>
-
 
   <!-- ===== FOOTER NAVIGATION ===== -->
   <nav class="kinaya-nav">
@@ -263,29 +235,32 @@
   </nav>
 
   <!-- 💰 PAYMENT OVERLAY (PAYPAD) -->
-<div id="payment-overlay" class="overlay">
-  <div class="paypad" style="padding: 15px;">
-    <button id="close-paypad-btn" class="close-paypad-icon" style="padding: 10px;">
+<div id="payment-overlay" class="hidden">
+  <div class="paypad" style="padding: 15px; position: relative;">
+    
+    <!-- Close Button -->
+    <button id="close-paypad-btn" class="close-paypad-icon" style="padding: 10px; position: absolute; top: 10px; right: 10px;">
       <i class="fa-solid fa-xmark"></i>
     </button>
 
     <h2 class="paypad-title">Enter Payment</h2>
 
+    <!-- Amount Owed Section -->
     <div class="owed-section">
-      <!-- Tax Mode -->
-      <div id="tax-status-row" 
-           style="text-align:center; font-size:0.9em; color:#66caff; margin-bottom:4px;">
+      <div id="tax-status-row" style="text-align:center; font-size:0.9em; color:#66caff; margin-bottom:4px;">
         Tax Mode: On
       </div>
 
       <span class="owed-label">Amount Owed:</span>
       <span id="paypad-owed" class="owed-value">$0.00</span>
     </div>
-    <div id="paypad-display" class="paypad-display" data-bind="amount-paid" >
+
+    <!-- Display -->
+    <div id="paypad-display" class="paypad-display" data-bind="amount-paid">
       $0.00
     </div>
-    
 
+    <!-- Keypad -->
     <div class="paypad-grid" style="padding: 15px;">
       <button class="paypad-btn" data-value="7">7</button>
       <button class="paypad-btn" data-value="8">8</button>
@@ -307,13 +282,16 @@
       <button class="paypad-btn" data-value="00">00</button>
       <button class="paypad-btn" data-value="%">%</button>
     </div>
-    <div style="padding: 5px;">
+
+    <!-- Confirm Button -->
+    <div style="padding: 5px; text-align:center;">
       <button id="confirm-payment-btn" class="confirm-payment-btn glow-button">
         Confirm Payment
       </button>
-      </div>
     </div>
-  </div>
+
+  </div> <!-- end .paypad -->
+</div> <!-- end #payment-overlay -->
 
   <!-- ===== JS MODULES ===== -->
   <script src="scripts/sale.js" defer></script>
