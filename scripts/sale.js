@@ -1,13 +1,25 @@
-// ===========================================================
+/// ===========================================================
 // 🌿 KINAYA RISING POS — FINAL UNIFIED LOGIC (2025)
 // ===========================================================
 
+// ---------- GLOBAL TAX SETTINGS ----------
+window.taxEnabled = true;  // default ON
+window.taxRate = 0.07;     // 7% default rate
+
 document.addEventListener("DOMContentLoaded", async () => {
   console.log("🌿 Kinaya POS initializing...");
+  
+  // ---------- GLOBAL CACHE ----------
+window.productCache = {
+  loaded: false,
+  products: []
+};
+
+
 
   // ---------- CONFIG ----------
   const SHEET_API =
-    "https://script.google.com/macros/s/AKfycbz83-usxoCG3YpHFACMTH9SA8CP2PLANhdFC92fbpm55qo3KSF30lb9ph3iOooQhQWX0A/exec"; // 🔹 Replace if redeployed
+    "https://script.google.com/macros/s/AKfycbw2tVFsnIuZdorUrUJShEZjP2uRcuz1VwHiz2KpdlrHj9q04qyIvYJT1nAMobPYzFa9RQ/exec"; // 🔹 Replace if redeployed
 
   // ---------- CORE ELEMENTS ----------
   const menu = document.getElementById("menu");
@@ -38,25 +50,74 @@ async function updateInvoiceNumber() {
     const invoiceNumEl = document.getElementById("invoice-number");
     const res = await fetch(`${SHEET_API}?mode=nextInvoice`, { mode: "cors" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
 
-    if (data?.nextInvoice) {
-      // 🔹 Save it globally for submitSale()
-      window.nextInvoiceNumber = data.nextInvoice;
+    const result = await res.json();
 
-      // 🔹 Update the text on the receipt
-      if (invoiceNumEl) invoiceNumEl.textContent = `Invoice #${data.nextInvoice}`;
-
-      console.log(`🧾 Next invoice number loaded: ${data.nextInvoice}`);
+    // ✅ Directly read result.nextInvoice, not data.nextInvoice
+    const nextNum = result.nextInvoice || result?.data?.nextInvoice;
+    if (nextNum) {
+      window.nextInvoiceNumber = nextNum;
+      if (invoiceNumEl) invoiceNumEl.textContent = `Invoice #${nextNum}`;
+      console.log(`🧾 Next invoice number loaded: ${nextNum}`);
     } else {
       throw new Error("Missing nextInvoice in response");
     }
+
   } catch (err) {
     console.error("❌ Could not fetch invoice number:", err);
     const invoiceNumEl = document.getElementById("invoice-number");
     if (invoiceNumEl) invoiceNumEl.textContent = "Invoice #Error";
   }
 } // 👈 this final brace must exist
+
+// ===========================================================
+// 🔗 LINKED INVOICE REFERENCE — Syncs Search + Return Summary
+// ===========================================================
+function updateLinkedInvoiceReference(currentId, linkedId) {
+  const topInvoiceEl = document.getElementById("invoice-number");
+  const linkedEl = document.getElementById("linked-invoice-number");
+  const summaryRow = document.getElementById("return-summary-row");
+
+  if (!linkedEl || !summaryRow) return;
+
+  // show both invoices in relationship form (e.g. #1005 → #1006)
+  linkedEl.innerHTML = `
+    <small style="color:#66caff;cursor:pointer;text-decoration:underline;">
+      View Original Invoice #${linkedId}
+    </small>
+  `;
+
+  linkedEl.onclick = () => {
+    document.getElementById("invoice-search-input").value = linkedId;
+    document.getElementById("invoice-search-btn").click();
+  };
+
+  summaryRow.classList.remove("hidden");
+
+  // add visual cue to top
+  if (topInvoiceEl) {
+    topInvoiceEl.innerHTML = `
+      Invoice #${currentId} 
+      <span style="color:#66caff;font-size:0.85em;margin-left:8px;">
+        ← linked to #${linkedId}
+      </span>
+    `;
+  }
+
+  console.log(`🔗 Linked invoice reference set: ${currentId} ← ${linkedId}`);
+}
+
+// ✅ Add optional "Next →" navigation only if invoice element exists
+if (document.getElementById("invoice-number")) {
+  const topInvoiceEl = document.getElementById("invoice-number");
+  const nextSpan = document.createElement("span");
+  nextSpan.innerHTML = `&nbsp;<span style="color:#66caff;cursor:pointer;">→ Next</span>`;
+  nextSpan.onclick = () => {
+    document.getElementById("invoice-search-input").value = window.nextInvoiceNumber || "";
+    document.getElementById("invoice-search-btn").click();
+  };
+  topInvoiceEl.appendChild(nextSpan);
+}
 
 
 // ===========================================================
@@ -72,23 +133,25 @@ document.getElementById("invoice-search-btn")?.addEventListener("click", async (
   try {
     const res = await fetch(`${SHEET_API}?mode=invoice&id=${id}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
+    const json = await res.json();
+    const data = Array.isArray(json.data) ? json.data : json; // ✅ ensure array
+
 
     if (!data || data.length === 0) {
       resultDiv.innerHTML = `<p style="color:red;">❌ No record found for Invoice #${id}</p>`;
       return;
     }
 
-    // ✅ Build receipt rows first
-    tableBody.innerHTML = data.map(r => `
-      <tr data-sku="${r.Sku || ""}">
-        <td>${r["Product Title"] || "Unknown"}</td>
-        <td class="qty">${r.Quantity || 0}</td>
-        <td>$${parseFloat(r.Price || 0).toFixed(2)}</td>
-        <td class="subtotal">$${parseFloat(r.Subtotal || 0).toFixed(2)}</td>
-        <td><button class="del-btn"><i class="fas fa-trash"></i></button></td>
-      </tr>
-    `).join("");
+    // ✅ Build receipt rows first (original rows have NO dropdown)
+tableBody.innerHTML = data.map(r => `
+  <tr data-sku="${r.Sku || ""}">
+    <td>${r["Product Title"] || "Unknown"}</td>
+    <td class="qty">${r.Quantity || 0}</td>
+    <td>$${parseFloat(r.Price || 0).toFixed(2)}</td>
+    <td class="subtotal">$${parseFloat(r.Subtotal || 0).toFixed(2)}</td>
+    <td><button class="del-btn"><i class="fas fa-trash"></i></button></td>
+  </tr>
+`).join("");
 
     // 🧾 Tag all loaded rows as original (after they exist)
     tableBody.querySelectorAll("tr").forEach(row => {
@@ -112,71 +175,76 @@ document.getElementById("invoice-search-btn")?.addEventListener("click", async (
     document.getElementById("split-info").textContent = payment;
     document.getElementById("customer-email").value = email;
 
-    // 💾 Store paid for return math
-const amountPaidEl = document.getElementById("amount-paid-display");
-if (amountPaidEl) amountPaidEl.dataset.originalPaid = paid;
+    // 💾 Store paid for return math + persist to dataset
+    const amountPaidEl = document.getElementById("amount-paid-display");
+    if (amountPaidEl) amountPaidEl.dataset.originalPaid = paid;
 
-// 💾 Persist Original Purchase Amount in Return Summary
-const originalEl = document.getElementById("original-total");
-if (originalEl) {
-  // Unlock if switching to a new invoice
-  originalEl.dataset.locked = "false";
+    /// 💾 Persist Original Purchase Amount in Return Summary (guaranteed timing)
+setTimeout(() => {
+  const originalEl = document.getElementById("original-total");
+  const grandEl = document.getElementById("grandtotal-summary");
 
-  // Pull the current grand total from this invoice
-  const grand = parseFloat(
-    document.getElementById("grandtotal-summary")?.textContent.replace(/[^0-9.-]/g, "")
-  ) || 0;
+  if (!originalEl || !grandEl) {
+    console.warn("⚠️ Missing elements for Original Purchase Amount");
+    return;
+  }
 
-  // Set and lock the original amount
-  originalEl.textContent = `$${grand.toFixed(2)}`;
-  originalEl.dataset.locked = "true";
-  console.log(`💾 Original Purchase Amount set and locked: $${grand.toFixed(2)}`);
-}
+  // Get live grand total after render
+  const grand = parseFloat(grandEl.textContent.replace(/[^0-9.-]/g, "")) || 0;
 
-// ✅ Show success
-resultDiv.innerHTML = `<p style="color:lightgreen;">✅ Invoice #${id} loaded successfully.</p>`;
+  if (grand > 0) {
+    originalEl.dataset.locked = "true";
+    originalEl.textContent = `$${grand.toFixed(2)}`;
+    console.log(`💾 Original Purchase Amount confirmed after render: $${grand.toFixed(2)}`);
+  } else {
+    console.warn("⚠️ Grand total still 0 — skipping original total update");
+  }
+}, 200); // small delay ensures DOM + totals are rendered
 
-// 💾 Save for Return Mode
-const originalInvoiceInput = document.getElementById("original-invoice");
-if (originalInvoiceInput) originalInvoiceInput.value = id;
+    // ✅ Show success
+    resultDiv.innerHTML = `<p style="color:lightgreen;">✅ Invoice #${id} loaded successfully.</p>`;
 
-// 🟦 Show linked invoice in Return Summary
-const linkedInvoiceNum = document.getElementById("linked-invoice-number");
-const summaryRow = document.getElementById("return-summary-row");
+    // 💾 Save for Return Mode
+    const originalInvoiceInput = document.getElementById("original-invoice");
+    if (originalInvoiceInput) originalInvoiceInput.value = id;
 
-if (linkedInvoiceNum && summaryRow) {
-  linkedInvoiceNum.textContent = `#${id}`;
-  summaryRow.classList.remove("hidden");
-}
+    // 🟦 Show linked invoice in Return Summary
+    const linkedInvoiceNum = document.getElementById("linked-invoice-number");
+    const summaryRow = document.getElementById("return-summary-row");
 
-// 🔗 Update linked invoice under Return Summary
-const linkRow = document.getElementById("linked-invoice-row");
-if (linkRow) {
-  linkRow.classList.remove("hidden");
-  linkRow.innerHTML = `
-    <small style="color:#66caff;cursor:pointer;text-decoration:underline;">
-      View Original Invoice #${id}
-    </small>
-  `;
-  linkRow.onclick = () => {
-    document.getElementById("invoice-search-input").value = id;
-    document.getElementById("invoice-search-btn").click();
-  };
-}
+    if (linkedInvoiceNum && summaryRow) {
+      linkedInvoiceNum.textContent = `#${id}`;
+      summaryRow.classList.remove("hidden");
+    }
 
-// ✅ Enable Return Mode automatically
-if (typeof setReturnMode === "function") setReturnMode(true);
+    // 🔗 Update linked invoice clickable row (optional)
+    const linkRow = document.getElementById("linked-invoice-row");
+    if (linkRow) {
+      linkRow.classList.remove("hidden");
+      linkRow.innerHTML = `
+        <small style="color:#66caff;cursor:pointer;text-decoration:underline;">
+          View Original Invoice #${id}
+        </small>
+      `;
+      linkRow.onclick = () => {
+        document.getElementById("invoice-search-input").value = id;
+        document.getElementById("invoice-search-btn").click();
+      };
+    }
 
-// ✅ Refresh summaries
-if (typeof updateTotals === "function") updateTotals();
-if (typeof updateReturnSummary === "function") updateReturnSummary();
+    // ✅ Enable Return Mode automatically
+    if (typeof setReturnMode === "function") setReturnMode(true);
 
-// ✅ Apply discount and re-check submit state
-applyDiscount();
-toggleSubmitButton();
+    // ✅ Refresh summaries
+    if (typeof updateTotals === "function") updateTotals();
+    if (typeof updateReturnSummary === "function") updateReturnSummary();
 
-// Focus on condition selector
-document.getElementById("return-condition")?.focus();
+    // ✅ Apply discount and re-check submit state
+    applyDiscount();
+    toggleSubmitButton();
+
+    // Focus on condition selector
+    document.getElementById("return-condition")?.focus();
 
   } catch (err) {
     console.error("❌ Invoice lookup failed:", err);
@@ -184,22 +252,33 @@ document.getElementById("return-condition")?.focus();
   }
 }); // ✅ closes the event listener properly
 
-
 // ===========================================================
-  // 🔁 LOAD PRODUCT CATALOG (from POS Sheet)
-  // ===========================================================
-  async function loadProductCatalog() {
-    try {
-      const res = await fetch(`${SHEET_API}?mode=pos`);
-      if (!res.ok) throw new Error(`Network error: ${res.status}`);
-      const data = await res.json();
-      renderProducts(data);
-      console.log(`✅ Loaded ${data.length} products from sheet.`);
-    } catch (err) {
-      console.error("❌ Could not load POS data:", err);
-      renderProducts(fallbackProducts);
-    }
+// 🔁 LOAD PRODUCT CATALOG (Cached for speed)
+// ===========================================================
+async function loadProductCatalog(forceReload = false) {
+  // 🧠 Use cached version unless forced
+  if (window.productCache.loaded && !forceReload) {
+    console.log("⚡ Using cached product catalog");
+    renderProducts(window.productCache.products);
+    return;
   }
+
+  try {
+    const res = await fetch(`${SHEET_API}?mode=pos`);
+    if (!res.ok) throw new Error(`Network error: ${res.status}`);
+    const data = await res.json();
+
+    // 🧠 Cache the result
+    window.productCache.products = data;
+    window.productCache.loaded = true;
+
+    renderProducts(data);
+    console.log(`✅ Loaded and cached ${data.length} products from sheet.`);
+  } catch (err) {
+    console.error("❌ Could not load POS data:", err);
+    renderProducts(fallbackProducts);
+  }
+}
 
   // ===========================================================
   //  RETURN MODEE HELPERR
@@ -406,9 +485,9 @@ toggleReturnMain?.addEventListener("click", () => {
 
 
   // ===========================================================
-  // 🧾 RECEIPT HANDLER
-  // ===========================================================
-  function updateReceipt(product) {
+// 🧾 RECEIPT HANDLER — Fixed so R/D only shows for returns
+// ===========================================================
+function updateReceipt(product) {
   const tableBody = document.getElementById("receipt-details");
   if (!tableBody) return;
 
@@ -417,7 +496,7 @@ toggleReturnMain?.addEventListener("click", () => {
     (row) => row.dataset.sku === product.sku && !row.classList.contains("return-line")
   );
 
-  // Normal sale behavior (add or increment)
+  // 🔹 Normal Sale Mode
   if (!window.returnMode) {
     if (existing) {
       const qtyCell = existing.querySelector(".qty");
@@ -439,7 +518,7 @@ toggleReturnMain?.addEventListener("click", () => {
     }
   }
 
-  // 🔁 Return mode — always append a separate red negative line
+  // 🔁 Return Mode — red line + R/D condition
   else {
     const newRow = document.createElement("tr");
     newRow.dataset.sku = product.sku;
@@ -451,8 +530,30 @@ toggleReturnMain?.addEventListener("click", () => {
       <td class="qty" style="color:#ff5252;">-1</td>
       <td style="color:#ff5252;">$${product.price.toFixed(2)}</td>
       <td class="subtotal" style="color:#ff5252;">$${negPrice.toFixed(2)}</td>
-      <td><button class="del-btn"><i class="fas fa-trash"></i></button></td>
+      <td style="display:flex;align-items:center;gap:6px;">
+        <select class="return-condition-row" title="R = Restock, D = Damaged">
+          <option value="Restock (sellable)">R</option>
+          <option value="Damaged (unsellable)">D</option>
+        </select>
+        <button class="del-btn"><i class="fas fa-trash"></i></button>
+      </td>
     `;
+
+    // 🌿 Handle R/D change
+    const select = newRow.querySelector(".return-condition-row");
+    select.addEventListener("change", (e) => {
+      const value = e.target.value;
+      const sku = newRow.dataset.sku;
+
+      switch (value) {
+        case "Restock (sellable)":
+          console.log(`Item ${sku}: restocked to inventory.`);
+          break;
+        case "Damaged (unsellable)":
+          console.log(`Item ${sku}: marked damaged.`);
+          break;
+      }
+    });
 
     tableBody.appendChild(newRow);
   }
@@ -464,54 +565,128 @@ toggleReturnMain?.addEventListener("click", () => {
 }
 
 // ===========================================================
-// 💸 TOTAL CALCULATION — Always Accurate (Sales + Returns)
+// 💾 ENSURE ORIGINAL PURCHASE AMOUNT IS DISPLAYED
+// ===========================================================
+function ensureOriginalAmountDisplay() {
+  const amountPaidDisplay = document.getElementById("amount-paid-display");
+  const originalPaidValue = parseFloat(amountPaidDisplay?.dataset.originalPaid || 0) || 0;
+  const originalEl = document.getElementById("original-total") || document.getElementById("original-paid");
+
+  if (!originalEl) return;
+
+  // Always show even if 0.00
+  originalEl.textContent = `$${originalPaidValue.toFixed(2)}`;
+}
+
+
+// ===========================================================
+// 💸 UNIVERSAL TOTAL CALCULATION — Works for Sales + Returns
 // ===========================================================
 function updateTotals() {
   const tableBody = document.getElementById("receipt-details");
   if (!tableBody) return;
 
-  // 1️⃣ Separate positive vs. negative lines
+  // ---------- Base Setup ----------
+  const taxRate = window.taxEnabled ? window.taxRate || 0.07 : 0;
+  const discountPercent = parseFloat(document.getElementById("discount-input")?.value || 0);
+  const amountPaidDisplay = document.getElementById("amount-paid-display");
+  const originalPaidValue = parseFloat(amountPaidDisplay?.dataset.originalPaid || 0) || 0;
+
+  // ---------- Subtotals ----------
   let saleSubtotal = 0;
   let returnSubtotal = 0;
 
-  tableBody.querySelectorAll("tr").forEach((row) => {
+  tableBody.querySelectorAll("tr").forEach(row => {
     const sub = parseFloat(row.querySelector(".subtotal")?.textContent.replace(/[^0-9.-]/g, "") || 0);
     if (sub >= 0) saleSubtotal += sub;
-    else returnSubtotal += Math.abs(sub); // positive value for returns
+    else returnSubtotal += Math.abs(sub);
   });
 
-  // 2️⃣ Discount logic (applies only to sale lines)
-  const discountPercent = parseFloat(document.getElementById("discount-input")?.value || 0);
+  // ---------- Discounts ----------
   const discountAmount = saleSubtotal * (discountPercent / 100);
   const discountedSubtotal = saleSubtotal - discountAmount;
 
-  // 3️⃣ Tax calculation (7% of both sales and returns)
-  const taxRate = window.taxEnabled ? 0.07 : 0;
+  // ---------- Tax ----------
   const saleTax = discountedSubtotal * taxRate;
   const returnTax = returnSubtotal * taxRate;
-  const totalTax = saleTax; // Tax only applies to new sales in your UI summary
+  const totalTax = saleTax + returnTax;
 
-  // 4️⃣ Returned total (items + tax)
-  const returnedItemsTotal = returnSubtotal + returnTax;
+  // ---------- Totals ----------
+  const newPurchases = discountedSubtotal + saleTax;
+  const returns = returnSubtotal + returnTax;
+  const grandTotal = (newPurchases - returns) - originalPaidValue;
 
-  // 5️⃣ Grand Total formula (Subtotal + Tax - Returns)
-  const grandTotal = discountedSubtotal + saleTax - returnedItemsTotal;
+  // ---------- UI Summary ----------
+  const subtotalEl = document.getElementById("subtotal-summary");
+  const taxEl = document.getElementById("tax-summary");
+  const returnEl = document.getElementById("return-total");
+  const grandEl = document.getElementById("grandtotal-summary");
+  const balanceLabel = document.getElementById("balance-label");
+  const balanceAmount = document.getElementById("balance-amount");
 
-  // 6️⃣ Update displays
-document.getElementById("subtotal-summary").textContent = `$${discountedSubtotal.toFixed(2)}`;
-document.getElementById("tax-summary").textContent = `$${saleTax.toFixed(2)}`;
-document.getElementById("return-total").textContent = `$${returnedItemsTotal.toFixed(2)}`;
-document.getElementById("grandtotal-summary").textContent = `$${grandTotal.toFixed(2)}`;
+  if (subtotalEl) subtotalEl.textContent = `$${discountedSubtotal.toFixed(2)}`;
+  if (taxEl) taxEl.textContent = `$${saleTax.toFixed(2)}`;
+  if (returnEl) returnEl.textContent = `$${returns.toFixed(2)}`;
+  if (grandEl) grandEl.textContent = `$${(newPurchases - returns).toFixed(2)}`;
 
-  // 7️⃣ Payment + Change
+  // ---------- Payment + Change ----------
   const totalPaid = (window.cashMemory + window.cardMemory) || 0;
-  const change = Math.max(totalPaid - grandTotal, 0);
+  const change = Math.max(totalPaid - (newPurchases - returns), 0);
   document.getElementById("amount-paid-display").textContent = `$${totalPaid.toFixed(2)}`;
   document.getElementById("change-amount").textContent = `$${change.toFixed(2)}`;
 
-  console.log(`🧾 Totals updated — Subtotal:$${discountedSubtotal.toFixed(2)}, Tax:$${saleTax.toFixed(2)}, Returns:$${returnedItemsTotal.toFixed(2)}, Grand:$${grandTotal.toFixed(2)}`);
+  // ---------- Refund / Balance Logic ----------
+  let label = "Even Exchange:";
+  let color = "#A7E1EE";
+
+  if (grandTotal > 0) {
+    label = "Balance Due:";
+    color = "#4FD9FF";
+  } else if (grandTotal < 0) {
+    label = "Refund Due:";
+    color = "#ff8080";
+  }
+
+  if (balanceLabel) balanceLabel.textContent = label;
+  if (balanceAmount) {
+    balanceAmount.style.color = color;
+    balanceAmount.textContent = `$${Math.abs(grandTotal).toFixed(2)}`;
+  }
+
+  ensureOriginalAmountDisplay();
+
+  console.log("🧾 Totals Updated", {
+    saleSubtotal,
+    returnSubtotal,
+    discountedSubtotal,
+    saleTax,
+    returnTax,
+    newPurchases,
+    returns,
+    originalPaidValue,
+    grandTotal
+  });
 }
-if (window.returnMode && typeof updateReturnSummary === "function") updateReturnSummary();
+
+// ===========================================================
+// 🧭 Ensure Original Purchase Amount Persists on Screen
+// ===========================================================
+function ensureOriginalAmountDisplay() {
+  const amountPaidDisplay = document.getElementById("amount-paid-display");
+  const originalEl = document.getElementById("original-total");
+
+  if (!amountPaidDisplay || !originalEl) return;
+
+  const stored = parseFloat(amountPaidDisplay.dataset.originalPaid || 0);
+  const locked = originalEl.dataset.locked === "true";
+
+  if (stored > 0 && !locked) {
+    originalEl.textContent = `$${stored.toFixed(2)}`;
+    originalEl.dataset.locked = "true";
+    console.log(`🔒 Restored Original Purchase Amount from dataset: $${stored.toFixed(2)}`);
+  }
+}
+
 
 // ===========================================================
 // 🎯 PARSE DISCOUNT — Handle $, %, or plain numbers
@@ -590,61 +765,6 @@ document.addEventListener("click", (e) => {
 });
 
 // ===========================================================
-// 🔁 RETURN SUMMARY — Reflects Actual Totals + Tax (Persistent Original)
-// ===========================================================
-function updateReturnSummary() {
-  const summaryRow = document.getElementById("return-summary-row");
-  if (!summaryRow) return;
-
-  summaryRow.classList.remove("hidden");
-
-  const amountPaidDisplay = document.getElementById("amount-paid-display");
-  const originalPaidValue = parseFloat(amountPaidDisplay?.dataset.originalPaid || 0) || 0;
-  const returnedValue = parseFloat(
-    document.getElementById("return-value")?.textContent.replace(/[^0-9.-]/g, "") || 0
-  );
-  const grandTotal = parseFloat(
-    document.getElementById("grandtotal-summary")?.textContent.replace(/[^0-9.-]/g, "") || 0
-  );
-
-  const net = originalPaidValue - grandTotal;
-
-  const originalEl = document.getElementById("original-total") || document.getElementById("original-paid");
-  const returnEl = document.getElementById("return-total") || document.getElementById("return-value");
-  const labelEl = document.getElementById("balance-label");
-  const balanceEl = document.getElementById("balance-amount");
-
-  if (!originalEl || !returnEl || !labelEl || !balanceEl) {
-    console.warn("⚠️ Missing return summary elements — skipping updateReturnSummary()");
-    return;
-  }
-
-  // 🔒 Persist original purchase amount — only set once unless unlocked
-  if (!originalEl.dataset.locked || originalEl.dataset.locked === "false") {
-    originalEl.textContent = `$${originalPaidValue.toFixed(2)}`;
-    originalEl.dataset.locked = "true";
-  }
-
-  // Update returned amount each time
-  returnEl.textContent = `$${returnedValue.toFixed(2)}`;
-
-  // Update label and color for balance result
-  if (net < 0) {
-    labelEl.textContent = "Balance Due:";
-    balanceEl.style.color = "#4FD9FF";
-  } else if (net > 0) {
-    labelEl.textContent = "Refund Due:";
-    balanceEl.style.color = "#ff8080";
-  } else {
-    labelEl.textContent = "Even Exchange:";
-    balanceEl.style.color = "#A7E1EE";
-  }
-
-  balanceEl.textContent = `$${Math.abs(net).toFixed(2)}`;
-  console.log("🔁 Return Summary Updated", { originalPaidValue, returnedValue, grandTotal, net });
-}
-
-// ===========================================================
 // 💰 PAYMENT OVERLAY (Cash/Card with Draft Memory + Dynamic Owed)
 // ===========================================================
 (() => {
@@ -667,55 +787,85 @@ function updateReturnSummary() {
   window.cardDraft = window.cardDraft || "0";
   let tempAmount = "0";
 
-  // ---------- OPEN ----------
+  // ===========================================================
+  // 🔹 OPEN PAYPAD
+  // ===========================================================
   function openPaypad(type) {
+    window.openPaypad = openPaypad;
+
     // 💾 Preserve current pad’s draft before switching
     if (currentPaymentType === "cash") window.cashDraft = tempAmount;
     if (currentPaymentType === "card") window.cardDraft = tempAmount;
 
     currentPaymentType = type;
+
+    // ✅ Force visible overlay
+    overlay.classList.remove("hidden");
+    overlay.style.display = "flex";
     overlay.classList.add("active");
+
     document.querySelector(".paypad-title").textContent =
       type === "cash" ? "Enter Cash Amount" : "Enter Card Amount";
 
     // 💾 Restore typed value or memory
-    if (type === "cash") tempAmount = window.cashDraft || String(window.cashMemory || "0");
-    if (type === "card") tempAmount = window.cardDraft || "0";
+    tempAmount =
+      type === "cash"
+        ? window.cashDraft || String(window.cashMemory || "0")
+        : window.cardDraft || String(window.cardMemory || "0");
 
     updateOwedDisplay();
     updatePaypadDisplay();
     updateCashPreview();
+
+    console.log(`💰 Paypad opened for ${type}`);
   }
 
-  // ---------- CLOSE ----------
-  function closePaypad(save = false) {
-    overlay.classList.remove("active");
-    const val = parseFloat(tempAmount || "0") || 0;
+  // ===========================================================
+// 💰 CLOSE PAYPAD — commits or drafts entered amount
+// ===========================================================
+function closePaypad(save = false) {
+  overlay.classList.remove("active");
+  overlay.classList.add("hidden");
+  overlay.style.display = "none";
 
-    if (save) {
-      // Save confirmed amount
-      if (currentPaymentType === "cash") {
-        window.cashMemory = val;
-        window.cashDraft = "0";
-      } else if (currentPaymentType === "card") {
-        window.cardMemory = val;
-        window.cardDraft = "0";
-      }
-    } else {
-      // Save what’s typed as a draft
-      if (currentPaymentType === "cash") window.cashDraft = tempAmount;
-      if (currentPaymentType === "card") window.cardDraft = tempAmount;
+  const val = parseFloat(tempAmount || "0") || 0;
+
+  if (save) {
+    // 💾 Confirm and commit value to memory
+    if (currentPaymentType === "cash") {
+      window.cashMemory = val;
+      window.cashDraft = "0";
+    } else if (currentPaymentType === "card") {
+      window.cardMemory = val;
+      window.cardDraft = "0";
     }
-
-    updateTotals();
-    updatePaymentSummary();
-    applyDiscount();
-    toggleSubmitButton();
+  } else {
+    // 💾 Just save what was typed as a draft
+    if (currentPaymentType === "cash") window.cashDraft = tempAmount;
+    if (currentPaymentType === "card") window.cardDraft = tempAmount;
   }
 
-  // ---------- Owed + Display helpers ----------
+  // 🔹 Recalculate totals + payment summary
+  updateTotals();
+  updatePaymentSummary();
+  applyDiscount();
+  toggleSubmitButton();
+
+  console.log(`💰 ${currentPaymentType} recorded: $${val.toFixed(2)} (save=${save})`);
+}
+
+// ===========================================================
+// 🔹 ONE-TIME BINDINGS (outside function)
+// ===========================================================
+confirmBtn?.addEventListener("click", () => closePaypad(true));
+closeBtn?.addEventListener("click", () => closePaypad(false));
+
+  // ===========================================================
+  // 🔹 HELPERS
+  // ===========================================================
   function updateOwedDisplay() {
-    const grandText = document.getElementById("grandtotal-summary")?.textContent || "$0.00";
+    const grandText =
+      document.getElementById("grandtotal-summary")?.textContent || "$0.00";
     const grand = parseFloat(grandText.replace(/[^0-9.]/g, "")) || 0;
     const paidSoFar = (window.cashMemory || 0) + (window.cardMemory || 0);
     const remaining = Math.max(grand - paidSoFar, 0);
@@ -723,12 +873,9 @@ function updateReturnSummary() {
   }
 
   function updateCashPreview() {
-    if (currentPaymentType !== "cash") {
-      document.getElementById("paypad-given").textContent = "";
-      document.getElementById("paypad-change").textContent = "";
-      return;
-    }
-    const grandText = document.getElementById("grandtotal-summary")?.textContent || "$0.00";
+    if (currentPaymentType !== "cash") return;
+    const grandText =
+      document.getElementById("grandtotal-summary")?.textContent || "$0.00";
     const grand = parseFloat(grandText.replace(/[^0-9.]/g, "")) || 0;
     const paidCard = window.cardMemory || 0;
     const remaining = Math.max(grand - paidCard, 0);
@@ -743,7 +890,6 @@ function updateReturnSummary() {
     paypadDisplay.textContent = `$${parseFloat(tempAmount || "0").toFixed(2)}`;
   }
 
-  // ---------- PAYMENT SUMMARY ----------
   function updatePaymentSummary() {
     const totalPaid = (window.cashMemory + window.cardMemory) || 0;
     const split =
@@ -758,35 +904,86 @@ function updateReturnSummary() {
     amountPaidDisplay.textContent = `$${totalPaid.toFixed(2)}`;
     splitInfo.textContent = split;
 
-    const grandText = document.getElementById("grandtotal-summary")?.textContent || "$0.00";
+    const grandText =
+      document.getElementById("grandtotal-summary")?.textContent || "$0.00";
     const grand = parseFloat(grandText.replace(/[^0-9.]/g, "")) || 0;
     const change = Math.max(window.cashMemory - grand, 0);
+
     document.getElementById("change-amount").textContent = `$${change.toFixed(2)}`;
   }
 
-  // ---------- BUTTON LOGIC ----------
+  function showToast(message) {
+  const toast = document.createElement("div");
+  toast.textContent = message;
+  toast.style.cssText = `
+    position: fixed;
+    bottom: 3rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,198,255,0.1);
+    border: 1px solid #00c6ff;
+    color: #bffcff;
+    font-family: 'Audiowide', sans-serif;
+    padding: 0.6rem 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0,198,255,0.3);
+    z-index: 9999;
+    opacity: 1;
+    transition: opacity 0.6s ease;
+  `;
+  document.body.appendChild(toast);
+  setTimeout(() => (toast.style.opacity = 0), 1500);
+  setTimeout(() => toast.remove(), 2100);
+}
+
+  // ===========================================================
+  // 🔹 BUTTON LOGIC
+  // ===========================================================
   paypadButtons.forEach((btn) => {
     btn.addEventListener("click", () => {
       const val = btn.dataset.value;
       if (!val) return;
 
-      if (val === "C" || val === "clear") tempAmount = "0";
-      else if (val === "←" || val === "back") tempAmount = tempAmount.slice(0, -1) || "0";
-      else tempAmount = tempAmount === "0" ? val : tempAmount + val;
+      switch (val) {
+        case "C":
+          tempAmount = "0";
+          break;
+
+        case "←":
+          tempAmount = tempAmount.slice(0, -1) || "0";
+          break;
+
+        case "TAX":
+          window.taxEnabled = !window.taxEnabled;
+          const taxStatus = document.getElementById("tax-status-row");
+          if (taxStatus) {
+            taxStatus.textContent = `Tax Mode: ${window.taxEnabled ? "On" : "Off"}`;
+            taxStatus.style.color = window.taxEnabled ? "#66caff" : "#ff8080";
+          }
+          updateTotals();
+          updateOwedDisplay();
+          break;
+
+        default:
+          tempAmount = tempAmount === "0" ? val : tempAmount + val;
+          break;
+      }
 
       updatePaypadDisplay();
-      updateCashPreview(); // live change display for cash
+      updateCashPreview();
     });
   });
 
-  // ---------- CONFIRM / CLOSE ----------
+  // ===========================================================
+  // 🔹 EVENT BINDINGS
+  // ===========================================================
   confirmBtn?.addEventListener("click", () => closePaypad(true));
   closeBtn?.addEventListener("click", () => closePaypad(false));
 
-  // ---------- OPEN TRIGGERS ----------
   cashBtn?.addEventListener("click", () => openPaypad("cash"));
   cardBtn?.addEventListener("click", () => openPaypad("card"));
 })();
+
 
 // ===========================================================
 // 📧 EMAIL FIELD + TOGGLE LOGIC
@@ -826,30 +1023,50 @@ function updateReturnSummary() {
 })();
 
 // ===========================================================
-// 🔘 RESTORE SUBMIT BUTTON LOGIC (Full Conditioned Visibility)
+// 🔘 SMART SUBMIT BUTTON LOGIC (Keeps Calculator Button Visible)
 // ===========================================================
 function toggleSubmitButton() {
   const tableBody = document.getElementById("receipt-details");
-  const submitRow = document.getElementById("submit-row");
   const emailInput = document.getElementById("customer-email");
-
-  const cash = window.cashMemory || 0;
-  const card = window.cardMemory || 0;
+  const footerBtn = document.getElementById("submit-sale"); // 🧾 footer Confirm Sale button
+  const calcBtn = document.getElementById("open-paypad-btn"); // 💳 open calculator
+  const submitRow = document.getElementById("submit-row");
 
   if (!tableBody || !submitRow) return;
 
-  // ✅ Conditions for showing the button
+  const cash = window.cashMemory || 0;
+  const card = window.cardMemory || 0;
+  const total = parseFloat(
+    document.getElementById("grandtotal-summary")?.textContent.replace(/[^0-9.-]/g, "") || 0
+  );
+
   const hasItems = tableBody.querySelectorAll("tr").length > 0;
   const hasPayment = (cash + card) > 0;
   const email = (emailInput?.value || "").trim();
   const validEmail = email === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const isReturnOrExchange = !!window.returnMode || total <= 0;
 
-  // 🔘 Show only when all required info is ready
-  const readyToSubmit = hasItems && hasPayment && validEmail;
-  submitRow.classList.toggle("hidden", !readyToSubmit);
+  const readyToSubmit = hasItems && (hasPayment || isReturnOrExchange) && validEmail;
 
-  console.log(`🧾 Submit button ${readyToSubmit ? "visible" : "hidden"} (items=${hasItems}, payment=${hasPayment}, email=${validEmail})`);
+  // 💳 Show calculator button when items exist
+  if (calcBtn) calcBtn.style.display = hasItems ? "inline-flex" : "none";
+
+  // 🧾 Footer confirm button — visible when ready
+  if (footerBtn) {
+    footerBtn.style.display = readyToSubmit ? "inline-flex" : "none";
+    footerBtn.disabled = !readyToSubmit;
+  }
+
+  // 🌿 Footer bar visibility
+  submitRow.style.display = hasItems ? "flex" : "none";
+
+  console.log(
+    `🧾 Button state: footer=${readyToSubmit ? "✅" : "❌"} | total=${total} | items=${hasItems}`
+  );
 }
+
+// 🧾 Final sale submission button
+document.getElementById("submit-sale")?.addEventListener("click", submitSale);
 
 // ===========================================================
 // 🧾 SUBMIT SALE — POST TO BACKEND (CORS-SAFE, AUTO-SYNC)
@@ -859,15 +1076,13 @@ async function submitSale() {
     const emailEl = document.getElementById("customer-email");
     const discountInput = document.getElementById("discount-input");
     const originalInvoiceInput = document.getElementById("original-invoice");
-    const returnCondition = document.getElementById("return-condition")?.value || "";
-
-    const discountPercent = parseFloat(discountInput?.value || 0);
-    const originalInvoice = (originalInvoiceInput?.value || "").trim();
-    const emailToggle = document.getElementById("email-toggle");
     const tableBody = document.getElementById("receipt-details");
 
     const email = (emailEl?.value || "").trim();
-    const subscribe = emailToggle?.checked ? "Yes" : "No";
+    const subscribe = document.getElementById("email-toggle")?.checked ? "Yes" : "No";
+    const discountPercent = parseFloat(discountInput?.value || 0);
+    const originalInvoice = (originalInvoiceInput?.value || "").trim();
+
     const cashPaid = window.cashMemory || 0;
     const cardPaid = window.cardMemory || 0;
     const totalPaid = cashPaid + cardPaid;
@@ -883,112 +1098,128 @@ async function submitSale() {
       paymentType = `${cardPaid.toFixed(2)} Card`;
     }
 
+    // ---------- Map table rows ----------
     const rows = Array.from(tableBody.querySelectorAll("tr"))
-  // only send new or return lines, not old dimmed originals
-  .filter(row => !row.classList.contains("original-item"))
-  .map((row) => {
-      const name = row.children[0]?.textContent || "";
-      const qty = parseFloat(row.children[1]?.textContent || "0");
-      const price = parseFloat(row.children[2]?.textContent.replace(/[^0-9.]/g, "") || "0");
-      const subtotal = +(qty * price).toFixed(2);
-      const tax = +(subtotal * 0.07).toFixed(2);
-      const total = +(subtotal + tax).toFixed(2);
-      const sku = row.dataset?.sku || "";
+      // only send new or return lines, not old dimmed originals
+      .filter(row => !row.classList.contains("original-item"))
+      .map(row => {
+        const name = row.children[0]?.textContent || "";
+        const qty = parseFloat(row.children[1]?.textContent || "0");
+        const price = parseFloat(row.children[2]?.textContent.replace(/[^0-9.]/g, "") || "0");
+        const subtotal = +(qty * price).toFixed(2);
+        const tax = +(subtotal * 0.07).toFixed(2);
+        const total = +(subtotal + tax).toFixed(2);
+        const sku = row.dataset?.sku || "";
 
-      return {
-        Date: date,
-        Sku: sku,
-        "Product Title": name,
-        Quantity: qty,
-        Price: price,
-        Subtotal: subtotal,
-        Tax: tax,
-        Total: window.returnMode ? -Math.abs(total) : total, // Negative for returns
-        Discount: discountPercent,
-        "Sale Price": +(price * (1 - discountPercent / 100)).toFixed(2),
-        "Stable Sku": sku.split("-")[0],
-        "Invoice #": window.nextInvoiceNumber || "TEMP",
-        Email: email,
-        Subscribe: subscribe,
-        Payment: paymentType,
-        CashPaid: cashPaid,
-        CardPaid: cardPaid,
-        Paid: totalPaid.toFixed(2),
-        ReturnMode: !!window.returnMode,
-        ReturnCondition: returnCondition,
-        OriginalInvoice: originalInvoice,
-      };
-    });
+        return {
+          Date: date,
+          Sku: sku,
+          "Stable Sku": sku.split("-")[0],
+          "Product Title": name,
+          Quantity: qty,
+          Price: price,                        // single clean price field
+          Subtotal: subtotal,
+          Tax: tax,
+          Total: window.returnMode ? -Math.abs(total) : total,
+          Discount: discountPercent,
+          "Invoice #": window.nextInvoiceNumber || "TEMP",
+          Email: email,
+          Subscribe: subscribe,
+          Payment: paymentType,
+          CashPaid: cashPaid,
+          CardPaid: cardPaid,
+          Paid: totalPaid.toFixed(2),
+          ReturnMode: !!window.returnMode,
+          ReturnCondition:
+            row.querySelector(".return-condition-row")?.value ||
+            document.getElementById("return-condition")?.value ||
+            "",
+          OriginalInvoice: originalInvoice || "",
+          "Transaction Type": window.returnMode ? "Return" : "Sale",
+          Mode: "saleEntry"
+        };
+      });
 
     if (!rows.length) {
       alert("🧾 Add at least one product before submitting!");
       return;
     }
-    
-    // 🔹 Tell backend what operation this is
-rows.forEach(r => r.Mode = "saleEntry");
-console.log("POST →", SHEET_API, rows);
 
-const res = await fetch(SHEET_API, {
-  method: "POST",
-  mode: "cors",
-  headers: { "Content-Type": "text/plain" },
-  body: JSON.stringify(rows),
-});
+    console.log("POST →", SHEET_API, rows);
 
-const text = await res.text();
-let json;
-try {
-  json = JSON.parse(text);
-} catch {
-  json = { raw: text };
-}
+    // ---------- Send to backend ----------
+    const res = await fetch(SHEET_API, {
+      method: "POST",
+      mode: "cors",
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify(rows),
+    });
 
-if (!res.ok || !json.success) {
-  console.error("POST failed:", res.status, json);
-  alert(`⚠️ Sync failed (${json.error || res.status}). Check console.`);
-  return;
-}
+    const text = await res.text();
+    const json = (() => { try { return JSON.parse(text); } catch { return { raw: text }; } })();
 
-console.log("✅ Backend response:", json);
-alert(json.message || "✅ Sale recorded successfully!");
-updateInvoiceNumber();
+    if (!res.ok || !json.success) {
+      console.error("POST failed:", res.status, json);
+      alert(`⚠️ Sync failed (${json.error || res.status}). Check console.`);
+      return;
+    }
 
-// ✅ Reset UI after success
-document.getElementById("receipt-details").innerHTML = "";
-document.getElementById("submit-row")?.classList.add("hidden");
-if (emailEl) emailEl.value = "";
-document.getElementById("amount-paid-display").textContent = "$0.00";
-document.getElementById("change-amount").textContent = "$0.00";
-document.getElementById("split-info").textContent = "None";
-document.getElementById("return-condition").value = "";
-document.getElementById("return-condition-row").classList.add("hidden");
+    console.log("✅ Backend response:", json);
+    alert(json.message || "✅ Sale recorded successfully!");
+    updateInvoiceNumber();
 
-if (typeof setReturnMode === "function") setReturnMode(false);
-if (typeof updateTotals === "function") updateTotals();
+    // ---------- Reset UI ----------
+    document.getElementById("receipt-details").innerHTML = "";
+    document.getElementById("submit-row")?.classList.add("hidden");
+    document.getElementById("amount-paid-display").textContent = "$0.00";
+    document.getElementById("change-amount").textContent = "$0.00";
+    document.getElementById("split-info").textContent = "None";
+    if (emailEl) emailEl.value = "";
+    if (discountInput) discountInput.value = "";
+    if (originalInvoiceInput) originalInvoiceInput.value = "";
+    document.getElementById("return-condition-row")?.classList.add("hidden");
 
-window.cashMemory = 0;
-window.cardMemory = 0;
-if (discountInput) discountInput.value = "";
-if (originalInvoiceInput) originalInvoiceInput.value = "";
+    if (typeof setReturnMode === "function") setReturnMode(false);
+    if (typeof updateTotals === "function") updateTotals();
 
-console.log("✅ Sale complete, UI cleared for next entry.");
+    window.cashMemory = 0;
+    window.cardMemory = 0;
 
-// 🔁 Auto-refresh page (same as reset button)
-setTimeout(() => location.reload(), 800);
+    resetOrder(false);
+    await loadProductCatalog();
 
-} catch (err) {
+    console.log("✅ Sale complete, UI cleared for next entry.");
+  } catch (err) {
     console.error("❌ Error posting sale:", err);
     alert("⚠️ Could not sync sale. Check console for details.");
   }
-} // ✅ closes submitSale()
+}
 
 // Bind event
 document.getElementById("submit-sale")?.addEventListener("click", submitSale);
 
+// ===========================================================
+// 🧹 TOOLBAR TRASH → FULL RESET
+// ===========================================================
+const trashBtn = document.getElementById("reset-order-btn");
+if (trashBtn) {
+  trashBtn.addEventListener("click", () => {
+    console.log("🗑️ Trash clicked — attempting reset...");
+    if (typeof resetOrder === "function") {
+      resetOrder(true);
+      toggleSubmitButton?.();
+      console.log("✅ POS cleared successfully.");
+    } else {
+      console.error("❌ resetOrder() missing or not global.");
+    }
+  });
+} else {
+  console.warn("⚠️ Trash button not found in DOM");
+}
+
 
 // ===========================================================
-// 🧹 FULL RESET (Safe After Invoice Lookup or Trash)
+// 🧹 FULL RESET (Safe After Invoice Lookup or Sale Completion)
 // ===========================================================
 function resetOrder(full = true) {
   console.log("🧹 Performing full POS reset...");
@@ -1000,49 +1231,57 @@ function resetOrder(full = true) {
   // 💸 Reset payment memory
   window.cashMemory = 0;
   window.cardMemory = 0;
+  window.cashDraft = "0";
+  window.cardDraft = "0";
 
   // 💬 Reset text displays
   const resetText = (id, val = "$0.00") => {
     const el = document.getElementById(id);
     if (el) el.textContent = val;
   };
-  ["subtotal-summary", "tax-summary", "grandtotal-summary", "amount-paid-display", "change-amount"]
-    .forEach(id => resetText(id));
+  [
+    "subtotal-summary",
+    "tax-summary",
+    "grandtotal-summary",
+    "amount-paid-display",
+    "change-amount",
+    "return-total",
+    "original-total",
+  ].forEach(id => resetText(id));
 
-  // 🧮 Reset split info and condition
+  // 🧮 Reset labels + split info
   const splitInfo = document.getElementById("split-info");
   if (splitInfo) splitInfo.textContent = "None";
 
-  const returnCondition = document.getElementById("return-condition");
-  if (returnCondition) returnCondition.value = "";
+  const balanceLabel = document.getElementById("balance-label");
+  const balanceAmount = document.getElementById("balance-amount");
+  if (balanceLabel) balanceLabel.textContent = "Even Exchange:";
+  if (balanceAmount) balanceAmount.textContent = "$0.00";
 
-  // 💬 Reset email and toggle
+  // 💬 Reset discount, return condition, and email
+  const discountInput = document.getElementById("discount-input");
+  const returnCondition = document.getElementById("return-condition");
   const emailInput = document.getElementById("customer-email");
   const emailToggle = document.getElementById("email-toggle");
+  if (discountInput) discountInput.value = "";
+  if (returnCondition) returnCondition.value = "";
   if (emailInput) emailInput.value = "";
   if (emailToggle) emailToggle.checked = true;
 
-  // 💸 Reset discount & difference fields
-  const discountInput = document.getElementById("discount-input");
-  const extraCharge = document.getElementById("extra-charge");
-  if (discountInput) discountInput.value = "";
-  if (extraCharge) extraCharge.value = "";
-
-  // 💬 Hide submit button and return-specific rows
-  const submitRow = document.getElementById("submit-row");
-  if (submitRow) submitRow.classList.add("hidden");
-  const returnConditionRow = document.getElementById("return-condition-row");
-  if (returnConditionRow) returnConditionRow.classList.add("hidden");
-
-  // 🔍 NEW — Clear invoice search & original invoice data
+  // 🔍 Reset invoice-related data
   const invoiceSearchInput = document.getElementById("invoice-search-input");
   const invoiceResult = document.getElementById("invoice-result");
   const invoiceNumber = document.getElementById("invoice-number");
   const originalInvoiceInput = document.getElementById("original-invoice");
+  const linkedInvoice = document.getElementById("linked-invoice-number");
+  const returnSummaryRow = document.getElementById("return-summary-row");
+
   if (invoiceSearchInput) invoiceSearchInput.value = "";
   if (invoiceResult) invoiceResult.innerHTML = "";
-  if (invoiceNumber) invoiceNumber.textContent = "Invoice #Loading...";
   if (originalInvoiceInput) originalInvoiceInput.value = "";
+  if (linkedInvoice) linkedInvoice.textContent = "";
+  if (returnSummaryRow) returnSummaryRow.classList.add("hidden");
+  if (invoiceNumber) invoiceNumber.textContent = "Invoice #Loading...";
 
   // 🔁 Disable Return Mode
   if (typeof setReturnMode === "function") setReturnMode(false);
@@ -1051,19 +1290,18 @@ function resetOrder(full = true) {
   if (typeof updateInvoiceNumber === "function") updateInvoiceNumber();
   if (typeof updateTotals === "function") updateTotals();
 
+  // 🔘 Hide submit button
+  const submitRow = document.getElementById("submit-row");
+  if (submitRow) submitRow.classList.add("hidden");
+
   console.log("✅ POS reset complete — ready for next order.");
 
-  // 🟦 Optional: focus cursor back to search bar for speed
+  // 🟦 Optional: focus back to search
   setTimeout(() => {
     document.getElementById("invoice-search-input")?.focus();
   }, 200);
 }
-const resetBtn = document.getElementById("reset-order-btn");
-const invoiceResult = document.getElementById("invoice-result");
-const invoiceSearchInput = document.getElementById("invoice-search-input");
-const receiptDetails = document.getElementById("receipt-details");
-
-resetBtn.addEventListener("click", () => location.reload());
+window.resetOrder = resetOrder; // ✅ make it global
 
 // ===========================================================
 // 🚀 INIT
