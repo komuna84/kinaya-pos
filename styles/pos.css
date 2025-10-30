@@ -387,6 +387,42 @@ body.return-active .menu-item {
 }
 
 /* ============================================================
+🌿 CONFIRM SALE BUTTON — KINAYA GLOW STANDALONE
+============================================================ */
+.submit-sale-btn {
+  background: linear-gradient(90deg, #00c6ff, #0072ff);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 30px;
+  font-size: 1rem;
+  font-family: "Audiowide", sans-serif;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  box-shadow: 0 0 20px rgba(0, 198, 255, 0.25);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.submit-sale-btn:hover {
+  box-shadow: 0 0 30px rgba(0, 198, 255, 0.6);
+  transform: translateY(-2px);
+}
+
+.submit-sale-btn:active {
+  transform: scale(0.97);
+}
+
+.submit-sale-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ============================================================
 🪩 MODALS (Product Menu + Gallery)
 ============================================================ */
 .modal-overlay {
@@ -472,10 +508,10 @@ body.return-active .menu-item {
 }
 
 /* ============================================================
-   🌿 STICKY TOOLBAR INSIDE RECEIPT (Inventory Page)
-   ============================================================ */
-
-.receipt .toolbar.flex-row {
+🌿 GLOBAL TOOLBAR FIX (Sales Page)
+Ensures toolbar always visible + clickable
+============================================================ */
+.toolbar.flex-row {
   position: sticky;
   bottom: 0;
   left: 0;
@@ -487,29 +523,14 @@ body.return-active .menu-item {
   backdrop-filter: blur(10px);
   padding: 1rem 0;
   box-shadow: 0 -4px 20px rgba(0,198,255,0.12);
-  z-index: 10;
+  z-index: 500 !important; /* higher than receipt so it's clickable */
 }
 
-/* Matching Kinaya glow buttons */
-.receipt .toolbar button {
-  border: 1px solid rgba(0,198,255,0.3);
-  background: rgba(255,255,255,0.05);
-  color: #A7E1EE;
-  font-weight: 600;
-  padding: 0.75rem 1.6rem;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.25s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  box-shadow: 0 0 8px rgba(0,198,255,0.15);
-}
-
-.receipt .toolbar button:hover {
-  background: #00c6ff;
-  color: #000;
-  box-shadow: 0 0 25px #00c6ff;
-  transform: scale(1.05);
+/* ensure toolbar never hidden by submit-row or overlays */
+.toolbar {
+  display: flex !important;
+  opacity: 1 !important;
+  pointer-events: all !important;
 }
 
 /* Primary glowing Save button */
@@ -539,3 +560,54 @@ tr.return-line td {
   color: #ff8080;
 }
 
+.return-condition-row {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 82, 82, 0.25);
+  color: #ffcccc;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  padding: 2px 4px;
+  width: 50px;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.return-condition-row:hover,
+.return-condition-row:focus {
+  color: #bffcff;
+  border-color: rgba(0, 198, 255, 0.5);
+  outline: none;
+}
+
+
+/* ============================================================
+   🧾 FOOTER CONFIRM SALE BUTTON (centered)
+   ============================================================ */
+#submit-row {
+  display: flex;
+  justify-content: center; /* 👈 horizontally center */
+  align-items: center;     /* 👈 vertically center */
+  padding: 1rem 0;
+  background: rgba(10, 20, 25, 0.85);
+  border-top: 1px solid rgba(0,198,255,0.25);
+  box-shadow: 0 -4px 15px rgba(0,198,255,0.12);
+}
+
+#submit-sale {
+  background: linear-gradient(90deg, #00c6ff, #5fc7d9);
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  padding: 0.8rem 1.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 0 25px rgba(0,198,255,0.3);
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+#submit-sale:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 35px #00c6ff;
+}
