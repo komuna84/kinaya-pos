@@ -534,63 +534,61 @@ main, .container {
   justify-content: center;
 }
 
+/* ---------- UNIFIED PRODUCT CARD ---------- */
 .menu-item {
-  background: rgba(10,20,25,0.85);
-  border: 1px solid rgba(0,198,255,0.25);
-  border-radius: 12px;
-  padding: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
   text-align: center;
-  transition: all 0.3s ease;
+  padding: 0.8rem;
+  border-radius: 12px;
+  background: rgba(10, 20, 25, 0.85);
+  border: 1px solid rgba(0,198,255,0.25);
   box-shadow: 0 0 10px rgba(0,198,255,0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  width: 180px;
+  min-height: 260px;
+  overflow: hidden;
+  cursor: pointer;
 }
+
 .menu-item:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 25px rgba(0,198,255,0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 0 25px rgba(0,198,255,0.3);
 }
+
+/* ---------- PRODUCT IMAGE ---------- */
 .menu-item img {
-  width: 100%;
-  height: 150px;
-  object-fit: cover;
-  border-radius: 10px;
-  margin-bottom: 0.5rem;
+  display: block;
+  width: 140px;
+  height: 140px;
+  object-fit: contain;
+  border-radius: 8px;
+  margin: 0 auto 0.5rem;
+  transition: opacity 0.15s ease;
 }
+
+.menu-item img:hover {
+  opacity: 0.9;
+}
+
+/* ---------- CAPTIONS ---------- */
 .menu-item figcaption {
+  margin: 0.15rem 0;
+  line-height: 1.2;
   color: #bffcff;
   font-size: 0.9rem;
 }
+
 .menu-item figcaption:last-child {
   color: #00c6ff;
   font-weight: 600;
 }
 
-/* ---------- PRODUCT IMAGE POLISH ---------- */
+/* ---------- SAFETY CAP ---------- */
 .menu-item img {
-  width: 100%;
-  height: 160px;
-  object-fit: cover;
-  border-radius: 10px;
-  border: 1px solid rgba(0,198,255,0.25);
-  box-shadow:
-    0 0 10px rgba(0,198,255,0.15),
-    inset 0 0 8px rgba(0,198,255,0.05);
-  transition: all 0.35s ease;
-  opacity: 0.95;
+  max-width: 160px;
+  max-height: 160px;
 }
-.menu-item:hover img {
-  transform: scale(1.04);
-  box-shadow:
-    0 0 25px rgba(0,198,255,0.5),
-    inset 0 0 10px rgba(0,198,255,0.2);
-  opacity: 1;
-}
-#return-condition {
-  background: rgba(10,25,35,0.8);
-  border: 1px solid rgba(0,198,255,0.4);
-  color: #A7E1EE;
-  border-radius: 6px;
-  padding: 4px 6px;
-  width: 100%;
-}
-body.return-active #return-condition-row td {
-  color: #ffb3b3;
-}
+
