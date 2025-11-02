@@ -1,6 +1,6 @@
 /* ============================================================
    🌿 KINAYA RISING — BUSINESS DASHBOARD (2025 FINAL CLEAN)
-   Extends kinaya-base.css aesthetic
+   Unified "Kinaya Glow" System | Extends kinaya-base.css
    ============================================================ */
 
 /* ---------- HEADER ---------- */
@@ -48,7 +48,11 @@ header {
   width: 46px;
   height: 24px;
 }
-.switch input { opacity: 0; width: 0; height: 0; }
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
 .slider {
   position: absolute;
   inset: 0;
@@ -57,7 +61,7 @@ header {
   border-radius: 20px;
   transition: 0.3s;
 }
-.slider:before {
+.slider::before {
   content: "";
   position: absolute;
   height: 18px;
@@ -71,59 +75,118 @@ header {
 input:checked + .slider {
   background-color: rgba(167,225,238,0.2);
 }
-input:checked + .slider:before {
+input:checked + .slider::before {
   transform: translateX(22px);
 }
 
-/* ---------- GRID LAYOUT ---------- */
+/* ============================================================
+   🌿 KINAYA RISING DASHBOARD — FUTURISTIC GLOW EDITION
+   ============================================================ */
+
+/* ---------- LAYOUT & SCROLL ---------- */
+html, body {
+  height: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: radial-gradient(circle at top, #031318 0%, #020a0f 100%);
+}
+
 main.dashboard {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
-  grid-auto-rows: auto;
-  gap: 1.25rem;
-  padding: 1.25rem 2rem;
-  align-items: start;
+  grid-auto-rows: minmax(420px, auto);
+  gap: 1.75rem;
+  padding: 2.5rem 3rem 8rem 3rem; /* extra bottom padding for sticky bar */
+  align-items: stretch;
+  justify-content: center;
+  perspective: 1000px;
+  animation: fadeInUp 0.8s ease forwards;
 }
 
-/* Top Row — 3 Panels */
-main.dashboard .panel:nth-child(1),
-main.dashboard .panel:nth-child(2),
-main.dashboard .panel:nth-child(3) {
-  grid-column: span 4;
-  min-height: 360px;
-}
-
-/* Bottom Row — 2 Panels */
-main.dashboard .panel:nth-child(4),
-main.dashboard .panel:nth-child(5) {
-  grid-column: span 6;
-  min-height: 280px;
-}
-
-/* ---------- PANEL BASE ---------- */
+/* ---------- PANELS ---------- */
 .panel {
-  background: rgba(5,25,35,0.4);
-  border: 1px solid rgba(0,198,255,0.25);
-  border-radius: var(--radius-lg);
-  box-shadow: inset 0 0 12px rgba(0,198,255,0.08);
-  padding: 1rem 1.2rem;
-  backdrop-filter: blur(10px);
-  text-align: left;
+  grid-column: span 4;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  transition: transform 0.2s ease, box-shadow 0.3s ease;
+  justify-content: space-between;
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: linear-gradient(
+    145deg,
+    rgba(0,198,255,0.05) 0%,
+    rgba(10,30,45,0.35) 100%
+  );
+  border: 1px solid rgba(0,198,255,0.15);
+  box-shadow:
+    inset 0 0 20px rgba(0,198,255,0.05),
+    0 0 18px rgba(0,198,255,0.1);
+  backdrop-filter: blur(12px);
+  transition: all 0.4s ease;
+  transform-style: preserve-3d;
+  padding: 1.5rem 1.8rem;
 }
 .panel:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 25px rgba(0,198,255,0.25);
+  transform: translateY(-6px) scale(1.02);
+  box-shadow:
+    0 0 28px rgba(0,198,255,0.3),
+    0 0 12px rgba(0,198,255,0.15) inset;
+  border-color: rgba(0,198,255,0.35);
 }
+.panel.wide {
+  grid-column: span 12;
+  min-height: 520px;
+  background: linear-gradient(
+    160deg,
+    rgba(0,198,255,0.05) 0%,
+    rgba(10,30,45,0.4) 100%
+  );
+  border: 1px solid rgba(0,198,255,0.2);
+  box-shadow:
+    inset 0 0 25px rgba(0,198,255,0.08),
+    0 0 35px rgba(0,198,255,0.2);
+}
+
+/* ---------- RESPONSIVE BREAKPOINTS ---------- */
+@media (max-width: 1024px) {
+  main.dashboard {
+    grid-template-columns: repeat(6, 1fr);
+    grid-auto-rows: minmax(400px, auto);
+  }
+  .panel { grid-column: span 6; }
+  .panel.wide { grid-column: span 12; }
+}
+
+@media (max-width: 768px) {
+  main.dashboard {
+    grid-template-columns: 1fr;
+    grid-auto-rows: auto;
+    padding: 1.5rem;
+  }
+  .panel, .panel.wide {
+    grid-column: span 12;
+    min-height: auto;
+  }
+}
+
+/* ---------- PANEL HEADERS ---------- */
 .panel h2 {
   font-family: var(--font-display);
-  font-size: 1.1rem;
-  margin-bottom: 0.8rem;
+  font-size: 1.2rem;
+  letter-spacing: 0.03em;
   color: var(--color-accent-light);
-  text-shadow: 0 0 10px rgba(0,198,255,0.6);
+  text-shadow: 0 0 14px rgba(0,198,255,0.7);
+  margin-bottom: 0.75rem;
+  position: relative;
+}
+.panel h2::after {
+  content: "";
+  display: block;
+  height: 2px;
+  width: 40%;
+  background: linear-gradient(90deg, rgba(0,198,255,0.8), rgba(0,198,255,0));
+  margin-top: 0.3rem;
+  border-radius: 2px;
 }
 
 /* ---------- METRICS ---------- */
@@ -133,6 +196,7 @@ main.dashboard .panel:nth-child(5) {
   justify-content: space-between;
   align-items: center;
   margin: 0.4rem 0;
+  padding: 0 0.3rem;
   font-size: 0.95rem;
   color: var(--color-accent);
 }
@@ -140,60 +204,103 @@ main.dashboard .panel:nth-child(5) {
   color: var(--color-accent-light);
   font-weight: 700;
   font-size: 1rem;
+  text-shadow: 0 0 8px rgba(0,198,255,0.4);
 }
 
-/* ---------- CANVAS ---------- */
-canvas {
-  margin-top: 0.6rem;
-  margin-bottom: auto;
+/* ---------- CHART AREA ---------- */
+.panel canvas {
+  margin: 1rem 0;
+  background: rgba(0,198,255,0.03);
+  border-radius: var(--radius-md);
+  box-shadow: inset 0 0 12px rgba(0,198,255,0.05);
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+.panel canvas:hover {
+  box-shadow:
+    0 0 12px rgba(0,198,255,0.25),
+    inset 0 0 10px rgba(0,198,255,0.15);
 }
 
-/* ---------- BUTTONS ---------- */
+/* ---------- GLOW BUTTONS ---------- */
 .glow-button {
-  margin-top: 1rem;
+  margin-top: auto;
   width: 100%;
-  border: 1px solid var(--color-accent);
-  color: var(--color-accent);
+  border: 1px solid rgba(0,198,255,0.6);
+  color: var(--color-accent-light);
   border-radius: var(--radius-md);
   text-align: center;
   font-weight: 600;
-  background: transparent;
+  background: rgba(0,198,255,0.05);
   padding: 0.6rem 1rem;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 .glow-button:hover {
   background: var(--color-accent);
   color: #0b0b0b;
-  box-shadow: var(--glow-accent);
+  box-shadow:
+    0 0 20px rgba(0,198,255,0.5),
+    0 0 40px rgba(0,198,255,0.3);
+  transform: translateY(-1px);
 }
 
-/* ---------- POLISH ---------- */
+/* ---------- REPORT ACTION BAR ---------- */
+.report-actions {
+  position: sticky;
+  bottom: 0;
+  background: rgba(0,10,20,0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.8rem 1.5rem;
+  border-top: 1px solid rgba(0,198,255,0.25);
+  z-index: 99;
+  animation: fadeInUp 0.6s ease forwards;
+}
+.report-actions .glow-button {
+  width: auto;
+  min-width: 160px;
+  font-size: 0.85rem;
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+@media (max-width: 768px) {
+  .report-actions {
+    flex-direction: column;
+    gap: 0.6rem;
+    align-items: stretch;
+  }
+}
+
+/* ---------- ANIMATIONS ---------- */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.panel.summary {
-  border-color: rgba(0,198,255,0.15);
-  box-shadow: inset 0 0 8px rgba(0,198,255,0.05);
+
+.inventory-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
 }
 
-/* ---------- RESPONSIVE ---------- */
-@media (max-width: 1024px) {
-  main.dashboard { grid-template-columns: repeat(6, 1fr); }
-  main.dashboard .panel { grid-column: span 6; min-height: auto; }
-}
-@media (max-width: 640px) {
-  main.dashboard { grid-template-columns: 1fr; padding: 1rem; }
-  .panel { min-height: auto; }
-  header { font-size: 1.4rem; }
-}
-
-/* Only affect the Product Analytics section */
-.panel:nth-child(3) .metric {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
-  gap: 0.25rem;
+.inventory-card {
+  background: rgba(10, 20, 25, 0.6);
+  border: 1px solid rgba(0, 198, 255, 0.25);
+  border-radius: 12px;
+  padding: 0.75rem;
+  font-size: 0.85rem;
+  color: #a7e1ee;
+  box-shadow: inset 0 0 10px rgba(0,198,255,0.1);
 }
 
+@media (max-width: 600px) {
+  .inventory-summary {
+    grid-template-columns: 1fr;
+  }
+}
