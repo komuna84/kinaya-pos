@@ -1416,29 +1416,40 @@ function toggleSubmitButton() {
   const hasPayment = (cash + card) > 0;
   const email = (emailInput?.value || "").trim();
   const validEmail = email === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  const isReturnOrExchange = !!window.returnMode || total <= 0;
+  const isReturnMode = !!window.returnMode;
 
-  const readyToSubmit = hasItems && (hasPayment || isReturnOrExchange) && validEmail;
+  // ===========================================================
+  // 🧭 Logic: Sales vs Returns
+  // ===========================================================
+  let readyToSubmit = false;
 
-  // 💳 Show calculator button when items exist
-  if (calcBtn) calcBtn.style.display = hasItems ? "inline-flex" : "none";
+  if (isReturnMode) {
+    // 🔴 RETURN MODE → allow submission without payment
+    readyToSubmit = hasItems && validEmail;
+  } else {
+    // 🟢 SALE MODE → require both items + payment
+    readyToSubmit = hasItems && hasPayment && total > 0 && validEmail;
+  }
 
-  // 🧾 Footer confirm button — visible when ready
+  // ===========================================================
+  // 💳 Show / Hide Buttons
+  // ===========================================================
+  if (calcBtn) {
+    // show Paypad if items exist and sale mode
+    calcBtn.style.display = (!isReturnMode && hasItems) ? "inline-flex" : "none";
+  }
+
   if (footerBtn) {
     footerBtn.style.display = readyToSubmit ? "inline-flex" : "none";
     footerBtn.disabled = !readyToSubmit;
   }
 
-  // 🌿 Footer bar visibility
   submitRow.style.display = hasItems ? "flex" : "none";
 
   console.log(
-    `🧾 Button state: footer=${readyToSubmit ? "✅" : "❌"} | total=${total} | items=${hasItems}`
+    `🧾 Button state: ${isReturnMode ? "Return" : "Sale"} | ready=${readyToSubmit ? "✅" : "❌"} | total=${total} | items=${hasItems} | payment=${cash + card}`
   );
 }
-
-// 🧾 Final sale submission button
-document.getElementById("submit-sale")?.addEventListener("click", submitSale);
 
 // ===========================================================
 // 🧾 SUBMIT SALE — POST TO BACKEND (CORS-SAFE, AUTO-SYNC)
