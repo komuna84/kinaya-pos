@@ -825,15 +825,17 @@ body.return-active .receipt {
     justify-items: center;
   }
 
-  .product-card {
-    width: 100%;
-    max-width: 100%;
-    background: rgba(10, 20, 25, 0.85);
-    border: 1px solid rgba(0,198,255,0.25);
-    border-radius: 12px;
-    padding: 0.8rem;
-    box-shadow: 0 0 10px rgba(0,198,255,0.15);
-  }
+  .product-card img {
+  width: 100%;
+  height: auto;                 /* maintain proportions */
+  max-height: 140px;            /* keeps grid balanced */
+  object-fit: contain;          /* shows full image */
+  border-radius: 6px;
+  display: block;
+  margin: 0 auto;
+  background: rgba(255,255,255,0.03); /* subtle glow background */
+}
+
 
   /* Optional: reduce image height for better mobile fit */
   .product-card img {
@@ -864,13 +866,3 @@ body.return-active .receipt {
   }
 }
 
-.inventory-item img {
-  width: 100%;
-  height: auto;
-  max-height: 180px; /* adjust as needed */
-  object-fit: contain;
-  border-radius: 8px;
-  display: block;
-  margin: 0 auto;
-  background: rgba(255,255,255,0.03); /* optional glow background */
-}
