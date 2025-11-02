@@ -23,6 +23,34 @@ header.pos-header .subtitle {
   font-size: 0.9rem;
   opacity: 0.8;
 }
+
+/* ============================================================
+🌿 FIX: MAIN CONTAINER OFFSET FOR FIXED HEADER + FOOTER
+Applies dynamic spacing without breaking glow layout
+============================================================ */
+
+/* Base adjustment for all pages that use .pos-header + bottom nav */
+main.pos-container {
+  padding-top: 8.0rem !important;   /* pushes below fixed header */
+  padding-bottom: 6.5rem !important; /* leaves space above fixed footer */
+}
+
+/* Tighten spacing for smaller devices */
+@media (max-width: 768px) {
+  main.pos-container {
+    padding-top: calc(5.5rem + env(safe-area-inset-top)) !important;
+    padding-bottom: calc(6.5rem + env(safe-area-inset-bottom)) !important;
+  }
+}
+
+/* Give logs a bit more breathing room on desktop */
+@media (min-width: 1024px) {
+  main.inventory-log.pos-container,
+  main.expense-log.pos-container {
+    padding-bottom: 8rem !important;
+  }
+}
+
 /* ---------- CONTROL PANEL ---------- */
 .dashboard-controls {
   display: flex;
@@ -307,3 +335,46 @@ main.dashboard {
     grid-template-columns: 1fr;
   }
 }
+
+/* ============================================================
+🌿 DASHBOARD CONTROLS SPACING TWEAK
+Adds breathing room below fixed header
+============================================================ */
+
+.dashboard-controls {
+  margin-top: 20px !important; /* ≈ 1.25rem — clears header glow */
+}
+
+
+/* ============================================================
+🌿 DASHBOARD SPACING — Balanced for Both Mobile & Desktop
+Keeps header/controls visible and bottom buttons reachable
+============================================================ */
+
+/* 🔹 MOBILE & TABLET */
+@media only screen and (max-width: 768px) {
+  main.dashboard {
+    padding-top: calc(6rem + env(safe-area-inset-top)) !important;   /* push below fixed header */
+    padding-bottom: calc(7rem + env(safe-area-inset-bottom)) !important; /* keep above bottom nav */
+  }
+
+  /* Ensure the controls bar isn’t hidden behind the header */
+  .dashboard-controls {
+    margin-top: 1rem !important;
+  }
+
+  /* Make sure the bottom sticky bar stays fully visible */
+  .report-actions {
+    position: sticky;
+    bottom: calc(env(safe-area-inset-bottom) + 0px);
+  }
+}
+
+/* 🔹 DESKTOP — dial back the spacing to normal */
+@media only screen and (min-width: 769px) {
+  main.dashboard {
+    padding-top: 1rem !important;   /* just enough to clear header */
+    padding-bottom: 4rem !important; /* consistent with other pages */
+  }
+}
+
