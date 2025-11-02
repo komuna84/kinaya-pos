@@ -187,6 +187,30 @@ document
       });
 
       // =======================================================
+      // 🌿 Dim images + hide trash can for loaded (locked) items
+      // =======================================================
+      tableBody.querySelectorAll("tr").forEach((row) => {
+        // Add a "dimmed" class for CSS control
+        row.classList.add("dimmed");
+
+        // Find the image and trash button if they exist
+        const img = row.querySelector("img");
+        const trash = row.querySelector(".del-btn, .trash-icon, .fa-trash");
+
+        // Dim the product image only
+        if (img) {
+          img.style.opacity = "0.4";
+          img.style.filter = "grayscale(60%)";
+        }
+
+        // Hide the trash can completely
+        if (trash) {
+          trash.style.display = "none";
+        }
+      });
+
+
+      // =======================================================
       // 💰 UPDATE MAIN SUMMARY (Dynamic Recalculation)
       // =======================================================
       const records = Array.isArray(data) ? data : [];
