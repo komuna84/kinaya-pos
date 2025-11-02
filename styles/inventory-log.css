@@ -1,5 +1,5 @@
 /* ============================================================
-   🌿 KINAYA RISING — EXPENSE LOG PAGE (2025)
+   🌿 KINAYA RISING — INVENORY LOG PAGE (2025)
    Unified Layout + Glow System (Inventory/Expense Harmony)
    ============================================================ */
 
@@ -23,6 +23,34 @@ header.pos-header .subtitle {
   font-size: 0.9rem;
   opacity: 0.8;
 }
+
+/* ============================================================
+🌿 FIX: MAIN CONTAINER OFFSET FOR FIXED HEADER + FOOTER
+Applies dynamic spacing without breaking glow layout
+============================================================ */
+
+/* Base adjustment for all pages that use .pos-header + bottom nav */
+main.pos-container {
+  padding-top: 8.0rem !important;   /* pushes below fixed header */
+  padding-bottom: 6.5rem !important; /* leaves space above fixed footer */
+}
+
+/* Tighten spacing for smaller devices */
+@media (max-width: 768px) {
+  main.pos-container {
+    padding-top: calc(5.5rem + env(safe-area-inset-top)) !important;
+    padding-bottom: calc(6.5rem + env(safe-area-inset-bottom)) !important;
+  }
+}
+
+/* Give logs a bit more breathing room on desktop */
+@media (min-width: 1024px) {
+  main.inventory-log.pos-container,
+  main.expense-log.pos-container {
+    padding-bottom: 8rem !important;
+  }
+}
+
 
    /* ===== Layout ===== */
 main.pos-container {
@@ -431,3 +459,41 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator {
   background-color: rgba(0, 255, 180, 0.05);
   transition: background-color 0.3s;
 }
+
+/* ============================================================
+🌿 PAGE SPACING — Inventory, Inventory Log, Expense Log
+Keeps headers/forms off the edges across mobile + desktop
+============================================================ */
+
+/* 🔹 MOBILE & TABLET */
+@media only screen and (max-width: 768px) {
+  main.inventory,
+  main.inventory-log,
+  main.expense-log {
+    padding-top: calc(4.5rem + env(safe-area-inset-top)) !important;
+    padding-bottom: calc(6.5rem + env(safe-area-inset-bottom)) !important;
+  }
+}
+
+/* 🔹 DESKTOP */
+@media only screen and (min-width: 769px) {
+  main.inventory-log,
+  main.expense-log {
+    padding-bottom: 5rem !important;  /* adds space below forms/tables */
+  }
+
+  main.inventory {
+    padding-top: 5rem !important;
+    padding-bottom: 4rem !important;
+  }
+}
+
+/* Optional: small screens (<400px) — add extra cushion */
+@media only screen and (max-width: 400px) {
+  main.inventory,
+  main.inventory-log,
+  main.expense-log {
+    padding-bottom: calc(7rem + env(safe-area-inset-bottom)) !important;
+  }
+}
+
