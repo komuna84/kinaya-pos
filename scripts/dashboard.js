@@ -1,38 +1,68 @@
 // ===========================================================
-// 🌿 Kinaya Rising — Unified Business Dashboard (2025 Final)
+// 🌿 KINAYA RISING — UNIFIED BUSINESS DASHBOARD (2025 FINAL)
+// ===========================================================
+// Purpose: Fetches data from your Google Apps Script backend,
+// aggregates metrics, renders charts, and updates your HTML dashboard.
 // ===========================================================
 
 document.addEventListener("DOMContentLoaded", () => {
   console.log("🌿 Kinaya Dashboard initializing...");
 
-  // ---------- CONFIG ----------
+  // ===========================================================
+  // 🔗 CONFIGURATION
+  // ===========================================================
   const API_URL =
-    "https://script.google.com/macros/s/AKfycbw2tVFsnIuZdorUrUJShEZjP2uRcuz1VwHiz2KpdlrHj9q04qyIvYJT1nAMobPYzFa9RQ/exec"; // 🔹 Replace if redeployed
+    "https://script.google.com/macros/s/AKfycbwz-wPTgjvFiEK29o5DMGhYnQ_2VslqdYOX0frsIESr_XXPrUD2Rj6Nco9py57dL6b-tQ/exec"; // 🔹 Replace if redeployed
 
-  // ---------- ELEMENTS ----------
+  // Dashboard control elements
   const startInput = document.getElementById("start-date");
   const endInput = document.getElementById("end-date");
   const refreshBtn = document.getElementById("refresh-btn");
   const compareToggle = document.getElementById("compare-toggle");
 
   // ===========================================================
-  // 🧩 HELPER — Assign Values to DOM
+  // 🧩 HELPER FUNCTIONS
   // ===========================================================
+
+  // 🔹 Assign text content to an element by ID (safe)
   function assign(id, val) {
-    const el = document.getElementById(id);
-    if (el) el.textContent = val;
+  const el = document.getElementById(id);
+  if (el) {
+    el.textContent = val;
+  } else {
+    console.warn(`⚠️ Missing element for ID: ${id}`);
+  }
+}
+
+  // 🔹 Temporary on-screen message
+  function showToast(msg) {
+    const toast = document.createElement("div");
+    toast.textContent = msg;
+    toast.style.cssText = `
+      position:fixed;bottom:3rem;left:50%;transform:translateX(-50%);
+      background:rgba(0,198,255,0.15);border:1px solid #00c6ff;
+      color:#bffcff;font-family:'Audiowide',sans-serif;
+      padding:0.6rem 1.4rem;border-radius:10px;
+      box-shadow:0 0 15px rgba(0,198,255,0.3);
+      z-index:9999;opacity:1;transition:opacity 0.6s ease;`;
+    document.body.appendChild(toast);
+    setTimeout(() => (toast.style.opacity = 0), 1500);
+    setTimeout(() => toast.remove(), 2100);
   }
 
   // ===========================================================
-  // 🧠 FETCH DASHBOARD DATA
+  // 📡 API FETCHERS
   // ===========================================================
+
+  // 🔹 Core: Load dashboard JSON from backend
   async function fetchDashboardData(start, end) {
     try {
-      const url = `${API_URL}?mode=dashboard&start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`;
-      const res = await fetch(url);
+      const res = await fetch(
+        `${API_URL}?mode=dashboard&start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`
+      );
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      if (!data.success) throw new Error(data.message || "No data");
+      if (!data.success) throw new Error(data.message || "No data returned");
       return data;
     } catch (err) {
       console.error("❌ Dashboard fetch failed:", err);
@@ -40,197 +70,481 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // ===========================================================
-  // 💾 UPDATE SALES METRICS
-  // ===========================================================
-  function updateMetrics(m) {
-    assign("total-revenue", `$${m.totalRevenue.toFixed(2)}`);
-    assign("gross-profit", `$${m.grossProfit.toFixed(2)}`);
-    assign("avg-transaction", `$${m.avgTransactionValue.toFixed(2)}`);
-    assign("units-sold", m.unitsSold.toString());
-    assign("top-product", m.topProduct);
-    assign("tax-collected", `$${m.taxCollected.toFixed(2)}`);
-    assign("gross-revenue", `$${m.totalRevenue.toFixed(2)}`);
+// ===========================================================
+// 📦 INVENTORY BAR CHART — Retail vs Unit Price (Labeled)
+// ===========================================================
+async function drawInventoryMetrics() {
+  try {
+    const res = await fetch(`${API_URL}?mode=pos`);
+    const json = await res.json();
+    const products = json.data || [];
+    if (!Array.isArray(products) || products.length === 0) return;
 
-    const expenses = 1200; // Placeholder
-    const netProfit = m.grossProfit - expenses;
-    assign("net-profit", `$${netProfit.toFixed(2)}`);
-    assign("account-net-profit", `$${netProfit.toFixed(2)}`);
-    assign("expenses", `$${expenses.toFixed(2)}`);
-  }
+    // --- Summary metrics ---
+    const totalUnits = products.reduce((s, p) => s + (parseFloat(p["In Stock"]) || 0), 0);
+    const totalValue = products.reduce((s, p) => {
+      const stock = parseFloat(p["In Stock"]) || 0;
+      const unit = parseFloat(p["Unit Price"]) || 0;
+      return s + stock * unit;
+    }, 0);
+    const avgCost = totalUnits ? totalValue / totalUnits : 0;
+    const lowStock = products.filter(p => (parseFloat(p["In Stock"]) || 0) <= 5).length;
 
-  // ===========================================================
-  // 📈 SALES TREND CHART
-  // ===========================================================
-  function drawSalesTrend(records) {
-    const ctx = document.getElementById("sales-trend");
+    assign("inv-total-units", totalUnits);
+    assign("inv-stock-value", `$${totalValue.toFixed(2)}`);
+    assign("inv-avg-cost", `$${avgCost.toFixed(2)}`);
+    assign("inv-low-stock", lowStock);
+
+    // --- Chart context ---
+    const ctx = document.getElementById("inventory-bar-chart");
     if (!ctx) return;
 
-    const dailyTotals = {};
-    records.forEach(r => {
-      const d = new Date(r["Date"]);
-      if (!isNaN(d)) {
-        const label = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-        dailyTotals[label] = (dailyTotals[label] || 0) + (parseFloat(r["Total"]) || 0);
-      }
+    // --- Chart.js with dual price labels ---
+    new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: products.map(p => p["Product Title"] || p["Sku"]),
+        datasets: [
+          {
+            label: "Retail Value (In Stock × Retail Price)",
+            data: products.map(p =>
+              (parseFloat(p["In Stock"]) || 0) * (parseFloat(p["Retail Price"]) || 0)
+            ),
+            backgroundColor: "rgba(0,198,255,0.6)"
+          },
+          {
+            label: "Unit Value (In Stock × Unit Price)",
+            data: products.map(p =>
+              (parseFloat(p["In Stock"]) || 0) * (parseFloat(p["Unit Price"]) || 0)
+            ),
+            backgroundColor: "rgba(255,180,80,0.6)"
+          }
+        ]
+      },
+      options: {
+        plugins: {
+          legend: {
+            labels: { color: "#A7E1EE", font: { family: "Audiowide" } }
+          },
+          tooltip: {
+            callbacks: {
+              title: (context) => context[0].label,
+              label: (context) => {
+                const p = products[context.dataIndex];
+                const stock = parseFloat(p["In Stock"]) || 0;
+                const retail = parseFloat(p["Retail Price"]) || 0;
+                const unit = parseFloat(p["Unit Price"]) || 0;
+                return [
+                  `In Stock: ${stock}`,
+                  `Retail Price: $${retail.toFixed(2)}`,
+                  `Unit Price: $${unit.toFixed(2)}`,
+                  `Retail Value: $${(stock * retail).toFixed(2)}`,
+                  `Unit Value: $${(stock * unit).toFixed(2)}`
+                ];
+              }
+            }
+          },
+          // 🧩 Label each bar with both prices
+          datalabels: {
+            color: "#A7E1EE",
+            anchor: "end",
+            align: "end",
+            font: { family: "Audiowide", size: 9 },
+            formatter: (value, ctx) => {
+              const p = products[ctx.dataIndex];
+              const retail = parseFloat(p["Retail Price"]) || 0;
+              const unit = parseFloat(p["Unit Price"]) || 0;
+              return `Retail: $${retail.toFixed(2)}\nUnit: $${unit.toFixed(2)}`;
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              color: "#A7E1EE",
+              autoSkip: false,
+              maxRotation: 60,
+              minRotation: 45,
+              font: { size: 10 }
+            }
+          },
+          y: { beginAtZero: true, ticks: { color: "#A7E1EE" } }
+        }
+      },
+      plugins: [ChartDataLabels]
     });
+  } catch (err) {
+    console.error("❌ Inventory metrics failed:", err);
+  }
+}
+
+// ===========================================================
+// 🧾 RENDER INVENTORY SUMMARY CARDS (for mobile + desktop)
+// ===========================================================
+function renderInventorySummary(products) {
+  const container = document.getElementById("inventory-summary");
+  if (!container) return;
+
+  container.innerHTML = products
+    .map(p => {
+      const title = p["Product Title"] || p["Sku"];
+      const stock = parseFloat(p["In Stock"]) || 0;
+      const unit = parseFloat(p["Unit Price"]) || 0;
+      const retail = parseFloat(p["Retail Price"]) || 0;
+      const costValue = stock * unit;
+      const retailValue = stock * retail;
+      return `
+        <div class="inventory-card">
+          <strong>${title}</strong><br>
+          <small>In Stock: ${stock}</small><br>
+          <small>Cost Value: $${costValue.toFixed(2)}</small><br>
+          <small>Retail Value: $${retailValue.toFixed(2)}</small>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+
+// ===========================================================
+// 📦 INVENTORY BAR CHART — Direct read from POS
+// Shows current stock vs low stock thresholds
+// ===========================================================
+async function drawInventoryMetrics() {
+  try {
+    const res = await fetch(`${API_URL}?mode=pos`);
+    const json = await res.json();
+    const products = json.data || [];
+    if (!Array.isArray(products) || products.length === 0) return;
+
+    // ---------- SUMMARY METRICS ----------
+    const totalUnits = products.reduce((s, p) => s + (parseFloat(p["In Stock"]) || 0), 0);
+    const totalValue = products.reduce((s, p) => {
+      const stock = parseFloat(p["In Stock"]) || 0;
+      const cost =
+        parseFloat(p[" Bulk Cost ($) "]) ||
+        parseFloat(p["Unit Price"]) ||
+        parseFloat(p[" Retail Price "]) ||
+        0;
+      return s + stock * cost;
+    }, 0);
+    const avgCost = totalUnits ? totalValue / totalUnits : 0;
+    const lowStock = products.filter((p) => (parseFloat(p["In Stock"]) || 0) <= 5).length;
+
+    assign("inv-total-units", totalUnits);
+    assign("inv-stock-value", `$${totalValue.toFixed(2)}`);
+    assign("inv-avg-cost", `$${avgCost.toFixed(2)}`);
+    assign("inv-low-stock", lowStock);
+
+    // ---------- VISUALIZATION ----------
+    const ctx = document.getElementById("inventory-bar-chart");
+    if (!ctx) return;
 
     new Chart(ctx, {
-      type: "line",
+      type: "bar",
       data: {
-        labels: Object.keys(dailyTotals),
-        datasets: [{
-          label: "Revenue",
-          data: Object.values(dailyTotals),
-          borderColor: "#00c6ff",
-          fill: false,
-          tension: 0.3,
-        }],
+        labels: products.map((p) => p["Product Title"] || p["Sku"]),
+        datasets: [
+          {
+            data: products.map((p) => parseFloat(p["In Stock"]) || 0),
+            backgroundColor: products.map((p) =>
+              (parseFloat(p["In Stock"]) || 0) <= 5
+                ? "rgba(255,80,80,0.7)" // alert color for low stock
+                : "rgba(0,198,255,0.6)" // calm cyan for healthy stock
+            ),
+            borderRadius: 4,
+          },
+        ],
       },
       options: {
         plugins: { legend: { display: false } },
         scales: {
-          x: { ticks: { color: "#A7E1EE" } },
-          y: { ticks: { color: "#A7E1EE" } },
+          x: {
+            ticks: {
+              color: "#A7E1EE",
+              autoSkip: false,
+              maxRotation: 60,
+              minRotation: 45,
+              font: { size: 9 },
+            },
+            grid: { display: false },
+          },
+          y: {
+            beginAtZero: true,
+            ticks: { color: "#A7E1EE" },
+            grid: { color: "rgba(0,198,255,0.05)" },
+          },
         },
       },
     });
+  } catch (err) {
+    console.error("❌ Inventory metrics failed:", err);
   }
+}
+
+// ===========================================================
+// 🧮 PRODUCT ANALYTICS SNAPSHOT — Top/Low Stock + Avg Margin
+// ===========================================================
+async function drawProductAnalytics() {
+  try {
+    const res = await fetch(`${API_URL}?mode=productAnalytics`);
+    const json = await res.json();
+    const info = json.data || {};
+
+    assign("top-products", (info.topSelling || []).join(", ") || "–");
+    assign("low-stock-products", (info.lowStock || []).join(", ") || "–");
+    assign("profit-margin", info.avgMargin ? `${info.avgMargin.toFixed(1)}%` : "–");
+    assign("total-skus", info.totalSkus || "–");
+  } catch (err) {
+    console.error("❌ Product Analytics failed:", err);
+  }
+}
+
+// ===========================================================
+// 💹 METRIC ASSIGNER — Feeds live numbers to UI boxes
+// Maps backend metrics to dashboard panels
+// ===========================================================
+function updateMetrics(m = {}) {
+  // --- Structured sections for clarity ---
+  const inv  = m.inventoryOverview || {};
+  const log  = inv.logSummary       || {};
+  const rec  = m.reconciliation     || {};
+  const cust = m.customerInsights   || {};
 
   // ===========================================================
-  // 📦 INVENTORY METRICS + CHART
+  // 🧾 SALES & PRODUCT PERFORMANCE
   // ===========================================================
-  async function drawInventoryMetrics() {
-    try {
-      const res = await fetch(`${API_URL}?mode=pos`);
-      const products = await res.json();
-      if (!Array.isArray(products)) return;
+  assign("total-revenue", `$${(m.totalRevenue || 0).toFixed(2)}`);
+  assign("gross-profit", `$${(m.grossProfit || 0).toFixed(2)}`);
+  assign("net-profit", `$${(m.netProfit || 0).toFixed(2)}`);
+  assign("account-net-profit", `$${(m.netProfit || 0).toFixed(2)}`);
+  assign("avg-transaction", `$${(m.avgTransactionValue || 0).toFixed(2)}`);
+  assign("units-sold", m.unitsSold || 0);
+  assign("tax-collected", `$${(m.taxCollected || 0).toFixed(2)}`);
+  assign("expenses", `$${(m.totalExpenses || 0).toFixed(2)}`);
+  assign("profit-margin", `${(m.profitMargin || 0).toFixed(1)}%`);
 
-      const totalUnits = products.reduce((sum, p) => sum + (parseFloat(p["In Stock"]) || 0), 0);
-      const totalValue = products.reduce((sum, p) => {
-        const stock = parseFloat(p["In Stock"]) || 0;
-        const cost = parseFloat(p["Unit Cost"]) || 0;
-        return sum + stock * cost;
-      }, 0);
-      const avgCost = totalUnits ? totalValue / totalUnits : 0;
-      const lowStockCount = products.filter(p => (parseFloat(p["In Stock"]) || 0) <= 5).length;
-      const activeSkus = products.filter(p => (p.Status || "").toLowerCase() === "active").length;
+  // ===========================================================
+  // 🧭 CUSTOMER INSIGHTS & BEHAVIOR
+  // ===========================================================
+  assign("num-transactions", m.totalTransactions || 0);             // total completed sales
+  assign("unique-customers", cust.uniqueCustomers || 0);            // distinct buyers
+  assign("repeat-customers", cust.repeatCustomers || 0);            // returning buyers
+  assign("retention-rate", `${(cust.retentionRate || 0).toFixed(1)}%`);
+  assign("refund-rate", `${(cust.refundCount || 0)} returns`);
+  assign("emails-collected", cust.customerEmailsCollected || 0);
+  assign("avg-items-sale", m.avgItemsPerSale || 0);
+  assign("avg-frequency", `${(cust.purchaseFrequency || 0)}x / month`);
+  assign("customer-ltv", `$${(cust.lifetimeValue || 0).toFixed(2)}`);
 
-      assign("inv-total-units", totalUnits.toString());
-      assign("inv-stock-value", `$${totalValue.toFixed(2)}`);
-      assign("inv-avg-cost", `$${avgCost.toFixed(2)}`);
-      assign("inv-low-stock", lowStockCount.toString());
-      assign("inv-active-skus", activeSkus.toString());
+  // ===========================================================
+  // 💌 SUBSCRIPTION RATE — Derived from sales log or customer data
+  // ===========================================================
+  try {
+    const records = m.records || []; // fallback if your backend returns all sales
+    let subscribedCount = 0;
+    let totalEmails = 0;
 
-      const invCtx = document.getElementById("inventory-chart");
-      if (invCtx) {
-        const labels = products.map(p => p["Product Title"]);
-        const stock = products.map(p => parseFloat(p["In Stock"]) || 0);
+    const uniqueEmails = new Set();
+    const uniqueSubs = new Set();
 
-        new Chart(invCtx, {
-          type: "bar",
-          data: {
-            labels,
-            datasets: [{
-              data: stock,
-              backgroundColor: "#00c6ff",
-              borderWidth: 0,
-            }],
-          },
-          options: {
-            plugins: { legend: { display: false } },
-            scales: {
-              x: { ticks: { color: "#A7E1EE", autoSkip: true, maxRotation: 45, minRotation: 45 } },
-              y: { ticks: { color: "#A7E1EE" } },
-            },
-          },
-        });
+    // Some backends store customer info inside m.customerInsights.customers or m.sales
+    const allSales = m.sales || m.records || [];
+    allSales.forEach(r => {
+      const email = (r.Email || "").trim();
+      const subscribe = (r.Subscribe || "").toLowerCase();
+      if (email) {
+        uniqueEmails.add(email);
+        if (subscribe === "yes" || subscribe === "true") uniqueSubs.add(email);
       }
-    } catch (err) {
-      console.error("❌ Failed to load inventory data:", err);
-    }
+    });
+
+    totalEmails = uniqueEmails.size;
+    subscribedCount = uniqueSubs.size;
+
+    const subscriptionRate = totalEmails > 0 ? (subscribedCount / totalEmails) * 100 : 0;
+    assign("subscription-rate", `${subscriptionRate.toFixed(0)}%`);
+  } catch (err) {
+    console.warn("⚠️ Could not compute subscription rate:", err);
+    assign("subscription-rate", "0%");
   }
 
   // ===========================================================
-  // 🧩 PRODUCT ANALYTICS METRICS
+  // 📦 INVENTORY OVERVIEW
   // ===========================================================
-  async function drawProductAnalytics() {
-    try {
-      const res = await fetch(`${API_URL}?mode=productAnalytics`);
-      const data = await res.json();
-      if (!data) return;
+  assign("inv-total-units", inv.totalUnitsInStock || 0);
+  assign("inv-stock-value", `$${(inv.totalStockValue || 0).toFixed(2)}`);
+  assign("inv-avg-cost", `$${(inv.avgCost || 0).toFixed(2)}`);
+  assign("inv-low-stock", inv.lowStockItems || 0);
 
-      assign("top-products", (data.topSelling || []).join(", ") || "–");
-      assign("low-stock-products", (data.lowStock || []).join(", ") || "–");
-      assign("profit-margin", `${data.avgMargin.toFixed(1)}%`);
-      assign("total-skus", data.totalSkus.toString());
-    } catch (err) {
-      console.error("❌ Product Analytics failed:", err);
-    }
+  // ===========================================================
+  // 📊 INVENTORY LOG ACTIVITY
+  // ===========================================================
+  assign("log-received", log.received || 0);
+  assign("log-damaged", log.damaged || 0);
+  assign("log-manual-count", log["manual count"] || 0);
+
+  // ===========================================================
+  // 💰 FINANCIAL HEALTH
+  // ===========================================================
+  assign("tax-deductible", `${(m.taxDeductibleRatio || 0).toFixed(1)}%`);
+  assign("outstanding-invoices", m.outstandingInvoices || 0);
+  assign("avg-expense-month", `$${(m.avgExpensePerMonth || 0).toFixed(2)}`);
+
+  // ===========================================================
+  // 🏷️ VENDOR & RECONCILIATION
+  // ===========================================================
+  assign("top-vendor", m.topVendor || "–");
+  assign("mismatch-count", rec.mismatchCount || 0);
+
+  // ===========================================================
+  // 🧠 DEBUG MODE (optional)
+  // Uncomment while testing to inspect returned metrics
+  // ===========================================================
+  console.table({
+     totalRevenue: m.totalRevenue,
+     uniqueCustomers: cust.uniqueCustomers,
+     totalUnitsInStock: inv.totalUnitsInStock,
+     topVendor: m.topVendor,
+     stockMismatchCount: rec.mismatchCount
+   });
+}
+
+// ===========================================================
+// 📈 SALES TREND CHART (fix for undefined error)
+// ===========================================================
+function drawSalesTrend(records = []) {
+  const ctx = document.getElementById("sales-trend");
+  if (!ctx) return;
+  if (window.salesTrendChart) {
+    window.salesTrendChart.destroy();
   }
 
-  // ===========================================================
-  // 🔄 LOAD DASHBOARD (ALL PANELS)
-  // ===========================================================
-  async function loadDashboard() {
-    const start = startInput.value;
-    const end = endInput.value;
-
-    console.log(`📊 Loading dashboard data from ${start} to ${end}...`);
-    const data = await fetchDashboardData(start, end);
-    if (!data || !data.metrics) return;
-
-    // ---------- SALES ----------
-    updateMetrics(data.metrics);
-
-    // ---------- CUSTOMER INSIGHTS ----------
-    assign("num-transactions", data.metrics.totalTransactions || 0);
-    assign("repeat-customers", `${(data.metrics.repeatCustomers || 0).toFixed(1)}%`);
-    assign("avg-items-sale", data.metrics.avgItemsPerSale || 0);
-    assign("emails-collected", data.metrics.customerEmailsCollected || 0);
-    assign("refund-rate", `${(data.metrics.refundRate || 0).toFixed(1)}%`);
-
-    // ---------- INVENTORY ----------
-    if (data.metrics.inventoryOverview) {
-      const inv = data.metrics.inventoryOverview;
-      assign("inv-total-units", inv.totalUnitsInStock.toString());
-      assign("inv-stock-value", `$${inv.totalStockValue.toFixed(2)}`);
-      assign("inv-avg-cost", `$${inv.avgCost.toFixed(2)}`);
-      assign("inv-low-stock", inv.lowStockItems.toString());
-      assign("inv-active-skus", inv.activeSKUs.toString());
+  const totals = {};
+  records.forEach(r => {
+    const d = new Date(r["Date"]);
+    if (!isNaN(d)) {
+      const label = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      totals[label] = (totals[label] || 0) + (parseFloat(r["Grand Total"]) || 0);
     }
+  });
 
-    // ---------- CHARTS ----------
-    drawSalesTrend(data.records);
-    await drawInventoryMetrics();
-    await drawProductAnalytics();
+  const labels = Object.keys(totals);
+  const values = Object.values(totals);
+
+  if (!labels.length) return;
+
+  const chartCtx = ctx.getContext("2d");
+  window.salesTrendChart = new Chart(chartCtx, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: "Revenue",
+          data: values,
+          borderColor: "#00c6ff",
+          backgroundColor: "rgba(0,198,255,0.2)",
+          fill: true,
+          tension: 0.3
+        }
+      ]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: "#A7E1EE" } },
+        y: { ticks: { color: "#A7E1EE" } }
+      }
+    }
+  });
+}
+
+// ===========================================================
+// 🚀 MAIN DASHBOARD LOADER — Pulls fresh data from backend
+// ===========================================================
+async function loadDashboard() {
+  const start = startInput.value;
+  const end = endInput.value;
+  console.log(`📊 Loading dashboard data from ${start} to ${end}...`);
+
+  const data = await fetchDashboardData(start, end);
+  if (!data || !data.metrics) return;
+
+  // ✅ Feed metrics as before
+  updateMetrics(data.metrics);
+
+  // ✅ Now compute Subscription Rate from full records
+  computeSubscriptionRate(data.records || []);
+
+  // ✅ Continue with charts
+  drawSalesTrend(data.records);
+  await drawInventoryMetrics();
+  await drawProductAnalytics();
+
+
+  showToast("📈 Dashboard refreshed");
+}
+
+// ===========================================================
+// 💌 SUBSCRIPTION RATE CALCULATOR — Uses raw sales records
+// ===========================================================
+function computeSubscriptionRate(records = []) {
+  if (!records.length) {
+    assign("subscription-rate", "—");
+    console.warn("⚠️ No sales records found for subscription rate.");
+    return;
   }
 
+  const uniqueEmails = new Set();
+  const uniqueSubs = new Set();
+
+  records.forEach(r => {
+    const email = (r.Email || "").trim();
+    const sub = (r.Subscribe || "").toLowerCase();
+    if (email) {
+      uniqueEmails.add(email);
+      if (sub === "yes" || sub === "true") uniqueSubs.add(email);
+    }
+  });
+
+  const total = uniqueEmails.size;
+  const subs = uniqueSubs.size;
+  const rate = total > 0 ? (subs / total) * 100 : 0;
+
+  assign("subscription-rate", `${rate.toFixed(0)}%`);
+
+  console.log(`💌 Subscription Rate: ${subs}/${total} (${rate.toFixed(0)}%)`);
+}
+
   // ===========================================================
-  // ⚙️ EVENTS
+  // 🧭 EVENT LISTENERS
   // ===========================================================
   refreshBtn.addEventListener("click", loadDashboard);
 
+  // 🔹 Compare Period Toggle — compares previous date range
   compareToggle.addEventListener("change", async () => {
-    if (compareToggle.checked) {
-      const start = new Date(startInput.value);
-      const end = new Date(endInput.value);
-      const rangeDays = (end - start) / (1000 * 60 * 60 * 24);
-      const prevStart = new Date(start);
-      const prevEnd = new Date(end);
-      prevStart.setDate(start.getDate() - rangeDays - 1);
-      prevEnd.setDate(end.getDate() - rangeDays - 1);
+    if (!compareToggle.checked) return;
+    const start = new Date(startInput.value);
+    const end = new Date(endInput.value);
+    const days = (end - start) / (1000 * 60 * 60 * 24);
+    const prevStart = new Date(start);
+    prevStart.setDate(start.getDate() - days - 1);
+    const prevEnd = new Date(end);
+    prevEnd.setDate(end.getDate() - days - 1);
 
-      console.log(`📊 Comparing ${prevStart.toISOString().split("T")[0]} to ${prevEnd.toISOString().split("T")[0]}`);
-      const prevData = await fetchDashboardData(prevStart.toISOString().split("T")[0], prevEnd.toISOString().split("T")[0]);
-      if (prevData && prevData.metrics) {
-        alert(`Compare period loaded.\nPrevious Total Revenue: $${prevData.metrics.totalRevenue.toFixed(2)}`);
-      }
+    const prevData = await fetchDashboardData(
+      prevStart.toISOString().split("T")[0],
+      prevEnd.toISOString().split("T")[0]
+    );
+
+    if (prevData?.metrics) {
+      alert(`Previous Total Revenue: $${prevData.metrics.totalRevenue.toFixed(2)}`);
     }
   });
 
   // ===========================================================
-  // 🚀 INIT
+  // ✅ INITIALIZE DASHBOARD
   // ===========================================================
   loadDashboard();
   console.log("✅ Kinaya Dashboard live sync ready.");
