@@ -52,62 +52,142 @@
   <main class="pos-container">
     <!-- 🌿 EXPENSE ENTRY PANEL -->
     <section class="receipt">
-      <h2 class="glow-title">💰 Add or Edit Expense</h2>
+  <h2 class="glow-title">💰 Add Expense</h2>
 
-      <div class="input-grid">
-        <div><label>Date</label><input id="date" type="date" /></div>
-        <div><label>Category</label><input id="category" type="text" placeholder="Event Fee, Order, etc." /></div>
-        <div><label>Description</label><input id="description" type="text" placeholder="Booth rental, journal order..." /></div>
-        <div><label>Vendor</label><input id="vendor" type="text" placeholder="Printify, UPrinting, etc." /></div>
-        <div><label>SKU (optional)</label><input id="sku" type="text" placeholder="If linked to inventory" /></div>
-        <div><label>Amount ($)</label><input id="amount" type="number" step="0.01" placeholder="0.00" /></div>
-        <div><label>Quantity</label><input id="quantity" type="number" placeholder="0" /></div>
-        <div><label>Unit Cost ($)</label><input id="unit-cost" type="number" step="0.01" placeholder="0.00" /></div>
-        <div><label>Total ($)</label><input id="total" type="number" step="0.01" placeholder="Auto" readonly /></div>
-        <div><label>Payment Method</label><input id="payment" type="text" placeholder="Card, PayPal, CashApp..." /></div>
-        <div><label>Tax Deductible</label>
-          <select id="tax">
-            <option value="Y">Yes</option>
-            <option value="N">No</option>
-          </select>
-        </div>
-      </div>
+  <div class="input-grid">
+    <div>
+      <label for="date">Date</label>
+      <input type="date" id="date" name="date" />
+    </div>
 
-      <div class="submit-row">
-        <button id="save-expense-btn" class="save-btn">💾 SAVE</button>
-        <button id="clear-expense-btn" class="clear-btn">🧹 CLEAR</button>
-      </div>
-    </section>
+    <div>
+      <label for="category">Category</label>
+      <select id="category">
+        <option value="">Select...</option>
+        <option value="Fees">Fees</option>
+        <option value="Purchasing">Purchasing</option>
+        <option value="Shipping">Shipping</option>
+        <option value="Overhead">Overhead</option>
+        <option value="Taxes">Taxes</option>
+        <option value="Misc">Misc</option>
+        <option value="__add_new__">+ Add New Category</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="description">Description</label>
+      <input id="description" type="text" placeholder="Booth rental, journal order..." />
+    </div>
+
+    <div>
+      <label for="vendor">Vendor</label>
+      <input id="vendor" type="text" placeholder="Printify, UPrinting, etc." />
+    </div>
+
+    <div>
+      <label for="invoice-amount">Invoice Amount ($)</label>
+      <input id="invoice-amount" type="number" step="0.01" placeholder="0.00" />
+    </div>
+
+    <div>
+      <label for="tax-amount">Tax ($)</label>
+      <input id="tax-amount" type="number" step="0.01" placeholder="0.00" />
+    </div>
+
+    <div>
+      <label for="shipping">Shipping ($)</label>
+      <input id="shipping" type="number" step="0.01" placeholder="0.00" />
+    </div>
+
+    <div>
+      <label for="total">Total ($)</label>
+      <input id="total" type="number" step="0.01" placeholder="Auto" readonly />
+    </div>
+
+    <div>
+      <label for="invoice-po">Invoice/PO #</label>
+      <input id="invoice-po" type="text" placeholder="PO1234 or INV-5678" />
+    </div>
+
+    <div>
+      <label for="tax">Tax Deductible</label>
+      <select id="tax">
+        <option value="Y">Yes</option>
+        <option value="N">No</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="paid">Paid</label>
+      <select id="paid">
+        <option value="">Select...</option>
+        <option value="Y">Yes</option>
+        <option value="N">No</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="payment">Payment Method</label>
+      <input id="payment" type="text" placeholder="Card, PayPal, CashApp..." />
+    </div>
+
+    <div>
+      <label for="received">Received</label>
+      <select id="received">
+        <option value="">Select...</option>
+        <option value="Y">Yes</option>
+        <option value="N">No</option>
+      </select>
+    </div>
+  </div>
+  <div class="button-row">
+  <button id="save-expense-btn" class="btn-save">💾 SAVE</button>
+  <button id="clear-expense-btn" class="btn-clear">🧹 CLEAR</button>
+</div>
+</section>
+
+
+
+
 
     <!-- 🌿 EXPENSE TABLE OVERVIEW -->
     <section class="receipt">
-      <h2 class="glow-title">📊 Current Expense Overview</h2>
-      <p class="glow-subtext">Review your recent purchases, event fees, and vendor payments below.</p>
+  <h2 class="glow-title">📊 Current Expense Overview</h2>
+  <p class="glow-subtext">Review your recent purchases, event fees, and vendor payments below.</p>
 
-      <div class="table-wrapper">
-        <table id="expense-table" class="glow-table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Category</th>
-              <th>Description</th>
-              <th>Vendor</th>
-              <th>SKU</th>
-              <th>Amount</th>
-              <th>Quantity</th>
-              <th>Unit Cost</th>
-              <th>Total</th>
-              <th>Payment</th>
-              <th>Tax</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td colspan="11" style="text-align:center; opacity:0.7;">Loading expense data...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-  </main>
+  <div class="table-wrapper">
+    <div class="table-controls">
+      <input type="text" id="expense-search" placeholder="🔍 Search by vendor, category, or description..." />
+      <button id="clear-search" class="btn-clear-small">✖</button>
+    </div>
+
+    <table id="expense-table" class="glow-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Date</th>
+          <th>Category</th>
+          <th>Description</th>
+          <th>Vendor</th>
+          <th>Invoice Amount ($)</th>
+          <th>Tax ($)</th>
+          <th>Shipping ($)</th>
+          <th>Total ($)</th>
+          <th>Invoice/PO #</th>
+          <th>Tax Deductible</th>
+          <th>Paid</th>
+          <th>Payment</th>
+          <th>Received</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td colspan="14" style="text-align:center; opacity:0.7;">Loading expense data...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+</main>
 
   <!-- ===== FOOTER NAVIGATION ===== -->
   <nav class="kinaya-nav" aria-label="Main navigation">
@@ -118,6 +198,20 @@
   </nav>
 
   <!-- ===== JS MODULE ===== -->
-  <script src="scripts/expense-log.js" defer></script>
+<script src="scripts/expense-log.js" defer></script>
+
+<!-- Flatpickr calendar -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr" defer></script>
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => {
+    flatpickr("#date", {
+      dateFormat: "Y-m-d",
+      altInput: true,
+      altFormat: "F j, Y",
+      allowInput: true
+    });
+  });
+</script>
 </body>
 </html>
