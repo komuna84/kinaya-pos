@@ -18,20 +18,11 @@ header.pos-header {
   z-index: 1000;
   padding: 1rem 0;
 }
-
 header.pos-header .subtitle {
   color: #78dfff;
   font-size: 0.9rem;
   opacity: 0.8;
 }
-
-.subtitle {
-  color: var(--color-accent);
-  font-size: 0.95rem;
-  letter-spacing: 0.5px;
-  margin-top: 0.25rem;
-}
-
 /* ---------- CONTROL PANEL ---------- */
 .dashboard-controls {
   display: flex;
