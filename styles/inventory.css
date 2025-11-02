@@ -35,12 +35,6 @@ header.pos-header .subtitle {
   opacity: 0.8;
 }
 
-header.pos-header .subtitle {
-  color: #78dfff;
-  font-size: 0.9rem;
-  opacity: 0.8;
-}
-
 /* ============================================================
    🔥 RETURN MODE — Animated Red Overlay Banner
    ============================================================ */
@@ -675,74 +669,60 @@ body.return-active .receipt {
 }
 
 /* ============================================================
-🛍️ PRODUCT GRID (Responsive Glow Layout)
-============================================================ */
-.menu-payment {
-  flex: 2;
-  background: rgba(5,25,35,0.5);
+   🌿 INVENTORY CONTROL GRID — Final Kinaya Glow Layout
+   ============================================================ */
+.input-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(140px, 1fr));
+  gap: 1rem;
+  background: rgba(5, 25, 35, 0.7);
   border: 1px solid rgba(0,198,255,0.25);
   border-radius: 16px;
-  padding: 1rem;
+  padding: 1.2rem 1.4rem;
+  margin: 0 auto 1.2rem;
+  width: 90%;
+  box-shadow:
+    0 0 25px rgba(0,198,255,0.08),
+    inset 0 0 20px rgba(0,198,255,0.05);
   backdrop-filter: blur(10px);
-  overflow-y: auto;
 }
 
-.menu {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 1rem;
-  justify-items: center;
-  align-items: start;
+.input-grid div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
 }
 
-/* 🌿 Each product card */
-.menu-item {
-  background: rgba(10,20,25,0.85);
-  border: 1px solid rgba(0,198,255,0.25);
-  border-radius: 12px;
-  padding: 0.8rem;
+.input-grid label {
+  font-size: 0.82rem;
+  color: #9ae8ff;
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  text-shadow: 0 0 6px rgba(0,198,255,0.4);
+}
+
+.input-grid input {
+  width: 100%;
   text-align: center;
-  color: #A7E1EE;
-  box-shadow: 0 0 10px rgba(0,198,255,0.15);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  cursor: pointer;
-  width: 100%;
-  max-width: 220px;
-}
-
-.menu-item:hover {
-  transform: scale(1.04);
-  box-shadow: 0 0 20px rgba(0,198,255,0.4);
-}
-
-.menu-item img {
-  width: 100%;
-  height: 130px;
-  object-fit: cover;
-  border-radius: 10px;
-  margin-bottom: 0.6rem;
-}
-
-.menu-item figcaption {
+  padding: 0.5rem;
   font-size: 0.9rem;
   color: #bffcff;
-  margin-bottom: 0.25rem;
+  background: rgba(10, 25, 35, 0.9);
+  border: 1px solid rgba(0,198,255,0.25);
+  border-radius: 10px;
+  font-weight: 600;
+  transition: all 0.25s ease;
+  box-shadow: inset 0 0 10px rgba(0,198,255,0.05);
 }
 
-/* ============================================================
-📱 MOBILE FIX — Force 2-per-row on mobile browsers
-============================================================ */
-@media only screen and (max-width: 768px) {
-  .menu {
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(140px, 1fr)) !important;
-    gap: 0.8rem !important;
-    justify-items: center;
-  }
-
-  .menu-item {
-    max-width: 100%;
-  }
+.input-grid input:focus {
+  outline: none;
+  border-color: #00c6ff;
+  box-shadow:
+    0 0 12px rgba(0,198,255,0.4),
+    inset 0 0 8px rgba(0,198,255,0.25);
 }
 
 /* ------------------------------------------------------------
@@ -826,4 +806,38 @@ body.return-active .receipt {
 
 .status-tag[data-status="discontinued"] {
   color: #ff6b6b;
+}
+
+/* ============================================================
+📱 INVENTORY PRODUCT GRID — Match Sales Mobile Behavior
+============================================================ */
+@media only screen and (max-width: 768px) {
+  .menu {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(140px, 1fr)) !important;
+    gap: 0.8rem !important;
+    justify-items: center;
+  }
+
+  .product-card {
+    width: 100%;
+    max-width: 100%;
+    background: rgba(10, 20, 25, 0.85);
+    border: 1px solid rgba(0,198,255,0.25);
+    border-radius: 12px;
+    padding: 0.8rem;
+    box-shadow: 0 0 10px rgba(0,198,255,0.15);
+  }
+
+  /* Optional: reduce image height for better mobile fit */
+  .product-card img {
+    height: 110px;
+  }
+}
+
+/* Optional: for extra-small devices (<400px) use 1-per-row for readability */
+@media only screen and (max-width: 400px) {
+  .menu {
+    grid-template-columns: repeat(1, 1fr) !important;
+  }
 }
