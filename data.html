@@ -10,14 +10,12 @@
   <meta name="description"
         content="Kinaya Rising Business Dashboard — track revenue, profit, customer insights, and inventory analytics with unified Kinaya design." />
 
-       
-
   <!-- ===== GLOBAL FONTS & ICONS ===== -->
-   <!-- 🌿 Kinaya Rising POS — Favicon + PWA -->
-<link rel="icon" href="assets/favicon.ico" type="image/x-icon">
-<link rel="apple-touch-icon" sizes="192x192" href="assets/favicon-192.png">
-<link rel="manifest" href="assets/manifest.json">
-<meta name="theme-color" content="#00c6ff">
+  <!-- 🌿 Kinaya Rising POS — Favicon + PWA -->
+  <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+  <link rel="apple-touch-icon" sizes="192x192" href="assets/favicon-192.png">
+  <link rel="manifest" href="assets/manifest.json">
+  <meta name="theme-color" content="#00c6ff">
   <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
         crossorigin="anonymous"
@@ -74,76 +72,83 @@
   <!-- ===== MAIN DASHBOARD ===== -->
   <main role="main" class="dashboard">
 
-    <!-- A. SALES PERFORMANCE -->
-    <section class="panel">
-      <h2>Sales Performance</h2>
-      <div class="metric"><span>Total Revenue</span><strong id="total-revenue">$0.00</strong></div>
-      <div class="metric"><span>Gross Profit</span><strong id="gross-profit">$0.00</strong></div>
-      <div class="metric"><span>Net Profit</span><strong id="net-profit">$0.00</strong></div>
-      <div class="metric"><span>Avg Transaction Value</span><strong id="avg-transaction">$0.00</strong></div>
-      <div class="metric"><span>Units Sold</span><strong id="units-sold">0</strong></div>
-      <canvas id="sales-trend" height="100"></canvas>
-      <button type="button" class="glow-button">Email Sales Report</button>
-    </section>
+  <!-- A. SALES & PRODUCT OVERVIEW -->
+  <section class="panel">
+    <h2>Sales & Product Overview</h2>
+  
+  
+    <div class="metric"><span>Avg Transaction Value</span><strong id="avg-transaction">$0.00</strong></div>
+    <div class="metric"><span>Profit Margin (Avg)</span><strong id="profit-margin">0%</strong></div>
+    <div class="metric"><span>Units Sold</span><strong id="units-sold">0</strong></div>
+    <div class="metric"><h4>Received</h4><p id="log-received">0</p></div>
+    <div class="metric"><h4>Damaged</h4><p id="log-damaged">0</p></div>
+    <div class="metric"><h4>Mismatch Count</h4><p id="mismatch-count">0</p></div>
+    <div class="metric"><h4>Manual Count</h4><p id="log-manual-count">0</p></div>
+    <div class="metric"><span>Refund Rate</span><strong id="refund-rate">0%</strong></div>
+    <div class="metric"><span>Sell-Through Rate</span><strong id="sell-through">0%</strong></div>
+    <button type="button" class="glow-button">Email Sales Report</button>
+  </section>
 
-    <!-- B. CUSTOMER INSIGHTS -->
-    <section class="panel">
-      <h2>Customer Insights</h2>
-      <p>Number of Transactions <span id="num-transactions">0</span></p>
-<p>Repeat Customers <span id="repeat-customers">0%</span></p>
-<p>Avg Items per Sale <span id="avg-items-sale">0</span></p>
-<p>Customer Emails Collected <span id="emails-collected">0</span></p>
-<p>Refund Rate <span id="refund-rate">0%</span></p>
-      <canvas id="customer-chart" height="100"></canvas>
-      <button type="button" class="glow-button">Email Customer Report</button>
-    </section>
+  <!-- B. CUSTOMER INSIGHTS & BEHAVIOR -->
+  <section class="panel">
+  <h2>Customer Insights & Behavior</h2>
 
-    <!-- C. PRODUCT ANALYTICS -->
-    <section class="panel">
-      <h2>Product Analytics</h2>
-      <div class="metric"><span>Top-Selling Products</span><strong id="top-products">–</strong></div>
-      <div class="metric"><span>Lowest Stocked Products</span><strong id="low-stock-products">–</strong></div>
-      <div class="metric"><span>Profit Margin (Avg)</span><strong id="profit-margin">0%</strong></div>
-      <div class="metric"><span>Total SKUs Active</span><strong id="total-skus">0</strong></div>
-      <canvas id="product-chart" height="100"></canvas>
-      <button type="button" class="glow-button">Email Product Report</button>
-    </section>
-
-    <!-- D. TAX & ACCOUNTING SUMMARY -->
-    <section class="panel">
-      <h2>Tax & Accounting Summary</h2>
-      <div class="metric"><span>Gross Revenue (Before Tax)</span><strong id="gross-revenue">$0.00</strong></div>
-      <div class="metric"><span>Tax Collected</span><strong id="tax-collected">$0.00</strong></div>
-      <div class="metric"><span>Expenses Logged</span><strong id="expenses">$0.00</strong></div>
-      <div class="metric"><span>Net Profit</span><strong id="account-net-profit">$0.00</strong></div>
-      <canvas id="accounting-chart" height="100"></canvas>
-      <button type="button" class="glow-button">Email Accounting Report</button>
-    </section>
-
-    <!-- E. INVENTORY OVERVIEW -->
-<section class="panel">
-  <h2>Inventory Overview</h2>
-
-  <div class="metric"><span>Total Units In Stock</span><strong id="inv-total-units">0</strong></div>
-  <div class="metric"><span>Total Stock Value</span><strong id="inv-stock-value">$0.00</strong></div>
-  <div class="metric"><span>Average Cost per SKU</span><strong id="inv-avg-cost">$0.00</strong></div>
-  <div class="metric"><span>Low Stock Items (≤5)</span><strong id="inv-low-stock">0</strong></div>
-  <div class="metric"><span>Active SKUs</span><strong id="inv-active-skus">0</strong></div>
-
-  <canvas id="inventory-chart" height="100"></canvas>
-  <button type="button" class="glow-button">Email Inventory Report</button>
+  <div class="metric"><span>Number of Transactions</span><strong id="num-transactions">0</strong></div>
+  <div class="metric"><span>Repeat Customers</span><strong id="repeat-customers">0%</strong></div>
+  <div class="metric"><span>Avg Items per Sale</span><strong id="avg-items-sale">0</strong></div>
+  <div class="metric"><span>Avg Purchase Frequency</span><strong id="avg-frequency">0x / month</strong></div>
+  <div class="metric"><span>Lifetime Value (Avg)</span><strong id="customer-ltv">$0.00</strong></div>
+  <div class="metric"><span>Retention Rate</span><strong id="retention-rate">0%</strong></div>
+  <div class="metric"><span>Customer Emails Collected</span><strong id="emails-collected">0</strong></div>
+  <div class="metric"><span>Unique Customers</span><strong id="unique-customers">0</strong></div>
+  <div class="metric"><span>Subscription Rate</span><strong id="subscription-rate">0%</strong></div>
+  <button type="button" class="glow-button">Email Customer Report</button>
 </section>
 
-  </main>
+
+  <!-- C. FINANCIAL OVERVIEW -->
+  <section class="panel">
+    <h2>Financial Health Overview</h2>
+  
+    <div class="metric"><span>Total Revenue</span><strong id="total-revenue">$0.00</strong></div>
+    <div class="metric"><span>Gross Profit</span><strong id="gross-profit">$0.00</strong></div>
+    <div class="metric"><span>Net Profit</span><strong id="net-profit">$0.00</strong></div>
+    <div class="metric"><span>Tax Collected</span><strong id="tax-collected">$0.00</strong></div>
+    <div class="metric"><span>Expenses Logged</span><strong id="expenses">$0.00</strong></div>
+    <div class="metric"><span>Tax Deductible Ratio</span><strong id="tax-deductible">0%</strong></div>
+    <div class="metric"><span>Outstanding Invoices</span><strong id="outstanding-invoices">0</strong></div>
+    <div class="metric"><span>Avg Exepense Month</span><strong id="avg-expense-month">$0.00</strong></div>
+    <div class="metric"><span>Top Vendor</span><strong id="top-vendor">–</strong></div>
+
+    <button type="button" class="glow-button">Email Financial Report</button>
+  </section>
+
+  <!-- D. INVENTORY OVERVIEW & MANAGEMENT (LONG BOX) -->
+  <section class="panel wide">
+    <h2>Inventory Overview & Management</h2>
+  
+    <div class="metric"><span>Total Units In Stock</span><strong id="inv-total-units">0</strong></div>
+    <div class="metric"><span>Total Stock Value</span><strong id="inv-stock-value">$0.00</strong></div>
+    <div class="metric"><span>Average Cost per SKU</span><strong id="inv-avg-cost">$0.00</strong></div>
+    <div class="metric"><span>Reorder Alerts</span><strong id="reorder-alerts">0</strong></div>
+    <div class="metric"><span>Top-Selling Products</span><strong id="top-products">–</strong></div>
+    <div class="metric"><span>Low Stock Items (≤5)</span><strong id="low-stock-products">–</strong></div>
+    <!-- <div class="metric"><span>Low Stock Skus</span><strong id="reorder-alerts">0</strong></div> -->
+
+    <div class="chart-container" style="margin-top: 1rem;">
+      <h3>Inventory by SKU</h3>
+      <canvas id="inventory-bar-chart" height="160"></canvas>
+    <button type="button" class="glow-button">Email Inventory Report</button>
+  </section>
+
+</main>
+
 
   <!-- ===== NAVIGATION ===== -->
   <nav class="kinaya-nav" aria-label="Main navigation">
     <a href="sale.html" class="nav-btn"><i class="fas fa-cash-register"></i><span>Sales</span></a>
     <a href="inventory.html" class="nav-btn"><i class="fas fa-boxes"></i><span>Inventory</span></a>
-    <a href="expense-log.html" class="nav-btn">
-      <i class="fas fa-receipt"></i><span>Expenses</span>
-    </a>
-    </a>
+    <a href="expense-log.html" class="nav-btn"><i class="fas fa-receipt"></i><span>Expenses</span></a>
     <a href="data.html" class="nav-btn active"><i class="fas fa-chart-line"></i><span>Data</span></a>
   </nav>
 
@@ -152,13 +157,8 @@
     document.addEventListener("DOMContentLoaded", () => {
       const today = new Date();
       const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-
-      const startInput = document.getElementById("start-date");
-      const endInput = document.getElementById("end-date");
-
-      // Pre-fill current month
-      startInput.value = firstDay.toISOString().split("T")[0];
-      endInput.value = today.toISOString().split("T")[0];
+      document.getElementById("start-date").value = firstDay.toISOString().split("T")[0];
+      document.getElementById("end-date").value = today.toISOString().split("T")[0];
     });
   </script>
 
