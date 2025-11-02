@@ -464,8 +464,8 @@ saveBtn?.addEventListener("click", async (e) => {
   if (isExistingProduct && !formChanged) {
     const sku = document.getElementById("sku")?.value?.trim();
     const url = sku
-      ? `/inventory-log.html?sku=${encodeURIComponent(sku)}`
-      : `/inventory-log.html`;
+      ? `./inventory-log.html?sku=${encodeURIComponent(sku)}`
+      : `./inventory-log.html`;
     window.location.href = url;
     return;
   }
