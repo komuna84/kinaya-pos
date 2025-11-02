@@ -16,10 +16,9 @@ window.productCache = {
 };
 
 
-
   // ---------- CONFIG ----------
   const SHEET_API =
-    "https://script.google.com/macros/s/AKfycbw2tVFsnIuZdorUrUJShEZjP2uRcuz1VwHiz2KpdlrHj9q04qyIvYJT1nAMobPYzFa9RQ/exec"; // 🔹 Replace if redeployed
+    "https://script.google.com/macros/s/AKfycbwz-wPTgjvFiEK29o5DMGhYnQ_2VslqdYOX0frsIESr_XXPrUD2Rj6Nco9py57dL6b-tQ/exec"; // 🔹 Replace if redeployed
 
   // ---------- CORE ELEMENTS ----------
   const menu = document.getElementById("menu");
@@ -43,6 +42,33 @@ window.productCache = {
   let paymentRecord = { cash: 0, card: 0 };
 
 // ===========================================================
+// 🔔 UNIVERSAL TOAST MESSAGE — Lightweight visual feedback
+// ===========================================================
+function showToast(message) {
+  const toast = document.createElement("div");
+  toast.textContent = message;
+  toast.style.cssText = `
+    position: fixed;
+    bottom: 3rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,198,255,0.15);
+    border: 1px solid #00c6ff;
+    color: #bffcff;
+    font-family: 'Audiowide', sans-serif;
+    padding: 0.6rem 1.4rem;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0,198,255,0.3);
+    z-index: 9999;
+    opacity: 1;
+    transition: opacity 0.6s ease;
+  `;
+  document.body.appendChild(toast);
+  setTimeout(() => (toast.style.opacity = 0), 1500);
+  setTimeout(() => toast.remove(), 2100);
+}
+
+// ===========================================================
 // 🔢 INVOICE NUMBER
 // ===========================================================
 async function updateInvoiceNumber() {
@@ -52,9 +78,8 @@ async function updateInvoiceNumber() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
     const result = await res.json();
-
-    // ✅ Directly read result.nextInvoice, not data.nextInvoice
     const nextNum = result.nextInvoice || result?.data?.nextInvoice;
+
     if (nextNum) {
       window.nextInvoiceNumber = nextNum;
       if (invoiceNumEl) invoiceNumEl.textContent = `Invoice #${nextNum}`;
@@ -62,225 +87,408 @@ async function updateInvoiceNumber() {
     } else {
       throw new Error("Missing nextInvoice in response");
     }
-
   } catch (err) {
     console.error("❌ Could not fetch invoice number:", err);
     const invoiceNumEl = document.getElementById("invoice-number");
     if (invoiceNumEl) invoiceNumEl.textContent = "Invoice #Error";
   }
-} // 👈 this final brace must exist
-
-// ===========================================================
-// 🔗 LINKED INVOICE REFERENCE — Syncs Search + Return Summary
-// ===========================================================
-function updateLinkedInvoiceReference(currentId, linkedId) {
-  const topInvoiceEl = document.getElementById("invoice-number");
-  const linkedEl = document.getElementById("linked-invoice-number");
-  const summaryRow = document.getElementById("return-summary-row");
-
-  if (!linkedEl || !summaryRow) return;
-
-  // show both invoices in relationship form (e.g. #1005 → #1006)
-  linkedEl.innerHTML = `
-    <small style="color:#66caff;cursor:pointer;text-decoration:underline;">
-      View Original Invoice #${linkedId}
-    </small>
-  `;
-
-  linkedEl.onclick = () => {
-    document.getElementById("invoice-search-input").value = linkedId;
-    document.getElementById("invoice-search-btn").click();
-  };
-
-  summaryRow.classList.remove("hidden");
-
-  // add visual cue to top
-  if (topInvoiceEl) {
-    topInvoiceEl.innerHTML = `
-      Invoice #${currentId} 
-      <span style="color:#66caff;font-size:0.85em;margin-left:8px;">
-        ← linked to #${linkedId}
-      </span>
-    `;
-  }
-
-  console.log(`🔗 Linked invoice reference set: ${currentId} ← ${linkedId}`);
 }
 
-// ✅ Add optional "Next →" navigation only if invoice element exists
+// ✅ Add optional "Next →" navigation
 if (document.getElementById("invoice-number")) {
   const topInvoiceEl = document.getElementById("invoice-number");
   const nextSpan = document.createElement("span");
   nextSpan.innerHTML = `&nbsp;<span style="color:#66caff;cursor:pointer;">→ Next</span>`;
   nextSpan.onclick = () => {
-    document.getElementById("invoice-search-input").value = window.nextInvoiceNumber || "";
+    document.getElementById("invoice-search-input").value =
+      window.nextInvoiceNumber || "";
     document.getElementById("invoice-search-btn").click();
   };
   topInvoiceEl.appendChild(nextSpan);
 }
 
-
 // ===========================================================
-// 🔎 INVOICE SEARCH (Loads Previous Sale + Updates Summary)
+// 🌿 FETCH ORIGINAL SALE DATA — Sales Log Reference
 // ===========================================================
-document.getElementById("invoice-search-btn")?.addEventListener("click", async () => {
-  const id = document.getElementById("invoice-search-input").value.trim();
-  const resultDiv = document.getElementById("invoice-result");
-  const tableBody = document.getElementById("receipt-details");
-
-  if (!id) return alert("Enter an invoice number.");
-
+async function fetchOriginalInvoiceData(invoiceId) {
   try {
-    const res = await fetch(`${SHEET_API}?mode=invoice&id=${id}`);
+    const SHEET_API =
+      "https://script.google.com/macros/s/AKfycbwz-wPTgjvFiEK29o5DMGhYnQ_2VslqdYOX0frsIESr_XXPrUD2Rj6Nco9py57dL6b-tQ/exec";
+
+    const res = await fetch(`${SHEET_API}?mode=invoice&id=${invoiceId}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
     const json = await res.json();
-    const data = Array.isArray(json.data) ? json.data : json; // ✅ ensure array
+    const records = Array.isArray(json.data) ? json.data : json;
 
+    if (!records || !records.length)
+      throw new Error("Invoice not found in Sales Log.");
 
-    if (!data || data.length === 0) {
-      resultDiv.innerHTML = `<p style="color:red;">❌ No record found for Invoice #${id}</p>`;
-      return;
-    }
+    const total = records.reduce(
+      (sum, r) => sum + (parseFloat(r.Total) || 0),
+      0
+    );
+    const paid = parseFloat(records[0]?.Paid || total) || 0;
 
-    // ✅ Build receipt rows first (original rows have NO dropdown)
-tableBody.innerHTML = data.map(r => `
-  <tr data-sku="${r.Sku || ""}">
-    <td>${r["Product Title"] || "Unknown"}</td>
-    <td class="qty">${r.Quantity || 0}</td>
-    <td>$${parseFloat(r.Price || 0).toFixed(2)}</td>
-    <td class="subtotal">$${parseFloat(r.Subtotal || 0).toFixed(2)}</td>
-    <td><button class="del-btn"><i class="fas fa-trash"></i></button></td>
-  </tr>
-`).join("");
-
-    // 🧾 Tag all loaded rows as original (after they exist)
-    tableBody.querySelectorAll("tr").forEach(row => {
-      row.classList.add("original-item");
-      row.style.opacity = "0.8";
-      row.style.borderLeft = "2px solid rgba(102,202,255,0.3)";
-    });
-
-    // ✅ Calculate and update summary
-    const subtotal = data.reduce((sum, r) => sum + (parseFloat(r.Subtotal) || 0), 0);
-    const tax = data.reduce((sum, r) => sum + (parseFloat(r.Tax) || 0), 0);
-    const total = data.reduce((sum, r) => sum + (parseFloat(r.Total) || 0), 0);
-    const paid = data[0].Paid || total;
-    const payment = data[0].Payment || "N/A";
-    const email = data[0].Email || "";
-
-    document.getElementById("subtotal-summary").textContent = `$${subtotal.toFixed(2)}`;
-    document.getElementById("tax-summary").textContent = `$${tax.toFixed(2)}`;
-    document.getElementById("grandtotal-summary").textContent = `$${total.toFixed(2)}`;
-    document.getElementById("amount-paid-display").textContent = `$${parseFloat(paid).toFixed(2)}`;
-    document.getElementById("split-info").textContent = payment;
-    document.getElementById("customer-email").value = email;
-
-    // 💾 Store paid for return math + persist to dataset
-    const amountPaidEl = document.getElementById("amount-paid-display");
-    if (amountPaidEl) amountPaidEl.dataset.originalPaid = paid;
-
-    /// 💾 Persist Original Purchase Amount in Return Summary (guaranteed timing)
-setTimeout(() => {
-  const originalEl = document.getElementById("original-total");
-  const grandEl = document.getElementById("grandtotal-summary");
-
-  if (!originalEl || !grandEl) {
-    console.warn("⚠️ Missing elements for Original Purchase Amount");
-    return;
-  }
-
-  // Get live grand total after render
-  const grand = parseFloat(grandEl.textContent.replace(/[^0-9.-]/g, "")) || 0;
-
-  if (grand > 0) {
-    originalEl.dataset.locked = "true";
-    originalEl.textContent = `$${grand.toFixed(2)}`;
-    console.log(`💾 Original Purchase Amount confirmed after render: $${grand.toFixed(2)}`);
-  } else {
-    console.warn("⚠️ Grand total still 0 — skipping original total update");
-  }
-}, 200); // small delay ensures DOM + totals are rendered
-
-    // ✅ Show success
-    resultDiv.innerHTML = `<p style="color:lightgreen;">✅ Invoice #${id} loaded successfully.</p>`;
-
-    // 💾 Save for Return Mode
-    const originalInvoiceInput = document.getElementById("original-invoice");
-    if (originalInvoiceInput) originalInvoiceInput.value = id;
-
-    // 🟦 Show linked invoice in Return Summary
-    const linkedInvoiceNum = document.getElementById("linked-invoice-number");
-    const summaryRow = document.getElementById("return-summary-row");
-
-    if (linkedInvoiceNum && summaryRow) {
-      linkedInvoiceNum.textContent = `#${id}`;
-      summaryRow.classList.remove("hidden");
-    }
-
-    // 🔗 Update linked invoice clickable row (optional)
-    const linkRow = document.getElementById("linked-invoice-row");
-    if (linkRow) {
-      linkRow.classList.remove("hidden");
-      linkRow.innerHTML = `
-        <small style="color:#66caff;cursor:pointer;text-decoration:underline;">
-          View Original Invoice #${id}
-        </small>
-      `;
-      linkRow.onclick = () => {
-        document.getElementById("invoice-search-input").value = id;
-        document.getElementById("invoice-search-btn").click();
-      };
-    }
-
-    // ✅ Enable Return Mode automatically
-    if (typeof setReturnMode === "function") setReturnMode(true);
-
-    // ✅ Refresh summaries
-    if (typeof updateTotals === "function") updateTotals();
-    if (typeof updateReturnSummary === "function") updateReturnSummary();
-
-    // ✅ Apply discount and re-check submit state
-    applyDiscount();
-    toggleSubmitButton();
-
-    // Focus on condition selector
-    document.getElementById("return-condition")?.focus();
-
+    console.log(
+      `📊 Sales Log totals: Total=$${total.toFixed(2)} | Paid=$${paid.toFixed(2)}`
+    );
+    return { total, paid };
   } catch (err) {
-    console.error("❌ Invoice lookup failed:", err);
-    resultDiv.innerHTML = `<p style="color:red;">⚠️ Error fetching invoice details. Check console.</p>`;
+    console.error("❌ Error reading Sales Log:", err);
+    return { total: 0, paid: 0 };
   }
-}); // ✅ closes the event listener properly
+}
 
 // ===========================================================
-// 🔁 LOAD PRODUCT CATALOG (Cached for speed)
+// 🔎 INVOICE SEARCH — Load & Render Invoice
 // ===========================================================
-async function loadProductCatalog(forceReload = false) {
-  // 🧠 Use cached version unless forced
-  if (window.productCache.loaded && !forceReload) {
-    console.log("⚡ Using cached product catalog");
-    renderProducts(window.productCache.products);
+document
+  .getElementById("invoice-search-btn")
+  ?.addEventListener("click", async () => {
+    const id = document.getElementById("invoice-search-input").value.trim();
+    const resultDiv = document.getElementById("invoice-result");
+    const tableBody = document.getElementById("receipt-details");
+
+    if (!id) return alert("Enter an invoice number.");
+
+    try {
+      const res = await fetch(`${SHEET_API}?mode=invoice&id=${id}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const json = await res.json();
+      const data = Array.isArray(json.data) ? json.data : json;
+
+      if (!data || data.length === 0) {
+        resultDiv.innerHTML = `<p style="color:red;">❌ No record found for Invoice #${id}</p>`;
+        return;
+      }
+
+      // =======================================================
+      // 🧾 BUILD RECEIPT TABLE
+      // =======================================================
+      tableBody.innerHTML = data
+        .map(
+          (r) => `
+        <tr data-sku="${r.Sku || ""}">
+          <td>${r["Product Title"] || "Unknown"}</td>
+          <td class="qty">${r.Quantity || 0}</td>
+          <td>$${parseFloat(r.Price || 0).toFixed(2)}</td>
+          <td class="subtotal">$${parseFloat(r.Subtotal || 0).toFixed(2)}</td>
+          <td><button class="del-btn"><i class="fas fa-trash"></i></button></td>
+        </tr>`
+        )
+        .join("");
+
+      tableBody.querySelectorAll("tr").forEach((row) => {
+        row.classList.add("original-item");
+        row.style.opacity = "0.8";
+        row.style.borderLeft = "2px solid rgba(102,202,255,0.3)";
+      });
+
+      // =======================================================
+      // 💰 UPDATE MAIN SUMMARY (Dynamic Recalculation)
+      // =======================================================
+      const records = Array.isArray(data) ? data : [];
+      const first = records[0] || {};
+
+      function parseMoney(value) {
+        if (!value) return 0;
+        const cleaned = String(value).replace(/[^\d.-]/g, "");
+        return parseFloat(cleaned) || 0;
+      }
+
+      let subtotal = 0;
+      let tax = 0;
+      let total = 0;
+
+      records.forEach((r) => {
+        subtotal += parseMoney(r["Subtotal"] || r["Sub Total"] || 0);
+        tax += parseMoney(r["Tax"] || 0);
+        total += parseMoney(r["Total"] || r["Grand Total"] || 0);
+      });
+
+      if (total === 0) total = subtotal + tax;
+
+      let paid =
+        parseMoney(first["Amount Paid"] || first["Paid"] || first["Payment"]) ||
+        0;
+      if (paid === 0) paid = total;
+      const change = Math.max(paid - total, 0);
+
+      const payment = first["Payment"] || first["Payment Method"] || "N/A";
+      const email = first["Email"] || "";
+
+      const safeSet = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+      };
+
+      safeSet("subtotal-summary", `$${subtotal.toFixed(2)}`);
+      safeSet("tax-summary", `$${tax.toFixed(2)}`);
+      safeSet("grandtotal-summary", `$${total.toFixed(2)}`);
+      safeSet("amount-paid-display", `$${paid.toFixed(2)}`);
+      safeSet("change-amount", `$${change.toFixed(2)}`);
+      safeSet("split-info", payment);
+
+      const emailEl = document.getElementById("customer-email");
+      if (emailEl) emailEl.value = email;
+
+      const amountPaidEl = document.getElementById("amount-paid-display");
+      if (amountPaidEl) amountPaidEl.dataset.originalPaid = paid;
+
+      // ===========================================================
+      // 💾 LOCK TRUE ORIGINAL GRAND TOTAL (e.g., $23.54)
+      // ===========================================================
+      const grandEl = document.getElementById("grandtotal-summary");
+      const origEl = document.getElementById("original-total");
+
+      if (grandEl && origEl) {
+        const grandValue = parseFloat(grandEl.textContent.replace(/[^0-9.]/g, "")) || 0;
+
+        // Store and visually show the original total
+        origEl.dataset.originalGrand = grandValue.toFixed(2);
+        origEl.textContent = `$${grandValue.toFixed(2)}`;
+
+        // Mark as locked
+        window.originalGrandLocked = true;
+        console.log(`💾 Locked TRUE original invoice total: $${grandValue.toFixed(2)}`);
+      }
+
+      // =======================================================
+      // 💬 FEEDBACK + LINK ROW
+      // =======================================================
+      resultDiv.innerHTML = `<p style="color:lightgreen;">✅ Invoice #${id} loaded successfully.</p>`;
+
+      const linkRow = document.getElementById("linked-invoice-row");
+      if (linkRow) {
+        linkRow.classList.remove("hidden");
+        linkRow.innerHTML = `
+          <small style="color:#66caff;cursor:pointer;text-decoration:underline;">
+            View Original Invoice #${id}
+          </small>`;
+        linkRow.onclick = () => {
+          document.getElementById("invoice-search-input").value = id;
+          document.getElementById("invoice-search-btn").click();
+        };
+      }
+
+      const originalInvoiceInput = document.getElementById("original-invoice");
+      if (originalInvoiceInput) originalInvoiceInput.value = id;
+
+      console.log(
+      `🧾 Invoice ${id} loaded in view-only mode. Ready for return toggle.`
+    );
+    showReturnSummary(id);
+
+    } catch (err) {
+      console.error("❌ Invoice lookup failed:", err);
+      resultDiv.innerHTML = `<p style="color:red;">⚠️ Error fetching invoice details. Check console.</p>`;
+    }
+  });
+
+// ===========================================================
+// 🧾 SUMMARY VISIBILITY CONTROLLER (independent of Return Mode)
+// ===========================================================
+function showReturnSummary(invoiceId) {
+  const summaryRow = document.getElementById("return-summary-row");
+  const linkedEl   = document.getElementById("linked-invoice-number");
+  const originalEl = document.getElementById("original-total");
+  const grandEl    = document.getElementById("grandtotal-summary");
+
+  if (!summaryRow || !linkedEl || !originalEl || !grandEl) return;
+
+  // Always show summary immediately after invoice loads
+  summaryRow.classList.remove("hidden");
+  summaryRow.style.display = "table-row";
+  summaryRow.style.opacity = "1";
+
+  // Fill in current info
+  linkedEl.textContent = `#${invoiceId || "—"}`;
+  const grand = parseFloat((grandEl.textContent || "").replace(/[^0-9.]/g, "")) || 0;
+  originalEl.textContent = `$${grand.toFixed(2)}`;
+
+  console.log(`💾 Summary shown independently for invoice #${invoiceId}, total $${grand.toFixed(2)}`);
+}
+
+
+// ===========================================================
+// 🔁 RETURN MODE TOGGLE — Show Summary + Move Totals
+// ===========================================================
+document.getElementById("return-toggle-btn")?.addEventListener("click", () => {
+  console.log("🔁 Return Mode ENABLED");
+
+  // ----- Core Elements -----
+  const summaryRow = document.getElementById("return-summary-row");
+  const origTotalEl = document.getElementById("original-total");
+  const linkedNum = document.getElementById("linked-invoice-number");
+  const returnTotalEl = document.getElementById("return-total");
+  const refundInput = document.getElementById("refund-amount");
+
+  // ----- Active Totals -----
+  const subEl = document.getElementById("subtotal-summary");
+  const taxEl = document.getElementById("tax-summary");
+  const grandEl = document.getElementById("grandtotal-summary");
+  const paidEl = document.getElementById("amount-paid-display");
+  const changeEl = document.getElementById("change-amount");
+
+  // ✅ Parse the visible Grand Total from DOM
+  const oldTotal = parseFloat(
+    (grandEl?.textContent || "").replace(/[^0-9.-]/g, "")
+  ) || 0;
+
+  if (oldTotal === 0) {
+    console.warn("⚠️ No grand total detected; cannot start return mode.");
     return;
   }
 
+  // ✅ Reveal the Return Summary section
+  if (summaryRow) {
+    summaryRow.classList.remove("hidden");
+    summaryRow.style.opacity = "1";
+    summaryRow.style.display = "table-row";
+  }
+
+  // ✅ Move the old total into Return Summary
+  if (origTotalEl) {
+    origTotalEl.textContent = `$${oldTotal.toFixed(2)}`;
+    origTotalEl.dataset.sourceGrand = oldTotal.toFixed(2);
+    origTotalEl.style.color = "#A7E1EE";
+    origTotalEl.style.opacity = "1";
+  }
+
+  // ✅ Copy the invoice number into summary
+  const id = document.getElementById("invoice-search-input")?.value.trim();
+  if (linkedNum) linkedNum.textContent = `#${id || "—"}`;
+
+  // ✅ Reset all current totals for clean return input
+  [subEl, taxEl, grandEl, paidEl, changeEl].forEach((el) => {
+    if (el) {
+      el.textContent = "$0.00";
+      el.style.opacity = "0.6";
+      el.style.fontStyle = "italic";
+    }
+  });
+
+  // ✅ Initialize return tracking
+  if (returnTotalEl) returnTotalEl.textContent = "$0.00";
+  if (refundInput) refundInput.value = "0";
+
+  // ✅ Add red visual cue for active return mode
+  const panel = document.querySelector(".receipt");
+  if (panel) {
+    panel.style.boxShadow = "0 0 25px rgba(255, 90, 90, 0.35)";
+    panel.style.borderColor = "rgba(255, 90, 90, 0.35)";
+  }
+
+  console.log(
+    `🔁 Return Mode Active | Original Total: $${oldTotal.toFixed(2)}`
+  );
+
+  // Store that we’re in return mode
+  window.returnMode = true;
+});
+
+// ===========================================================
+// 🔄 AUTO-CALCULATE RETURN TOTALS (Live Updates)
+// ===========================================================
+function updateReturnTotal() {
+  if (!window.returnMode) return;
+
+  const rows = document.querySelectorAll(".receipt-table tr.return-item");
+  const returnTotalEl = document.getElementById("return-total");
+  const refundInput = document.getElementById("refund-amount");
+
+  let returnTotal = 0;
+  rows.forEach((row) => {
+    const amount = parseFloat(
+      (row.querySelector(".subtotal")?.textContent || "").replace(/[^0-9.-]/g, "")
+    ) || 0;
+    returnTotal += amount;
+  });
+
+  if (returnTotalEl) returnTotalEl.textContent = `$${returnTotal.toFixed(2)}`;
+  if (refundInput) refundInput.value = returnTotal.toFixed(2);
+
+  console.log(`↩️ Return total recalculated: $${returnTotal.toFixed(2)}`);
+}
+
+// 🔁 Example trigger: whenever you add or remove return rows
+document.addEventListener("click", (e) => {
+  if (e.target.closest(".del-btn") && window.returnMode) {
+    setTimeout(updateReturnTotal, 200);
+  }
+
+// ===========================================================
+// 🧊 KEEP ORIGINAL GRAND TOTAL FROZEN
+// ===========================================================
+const origTotalEl = document.getElementById("original-total");
+if (origTotalEl && window.originalGrandLocked) {
+  const lockedGrand = parseFloat(origTotalEl.dataset.originalGrand || 0);
+  origTotalEl.textContent = `$${lockedGrand.toFixed(2)}`;
+}
+});
+
+// You can also call `updateReturnTotal()` manually after adding each return SKU
+
+// ===========================================================
+// 🔁 LOAD PRODUCT CATALOG (deduplicates to newest version)
+// ===========================================================
+async function loadProductCatalog() {
   try {
     const res = await fetch(`${SHEET_API}?mode=pos`);
-    if (!res.ok) throw new Error(`Network error: ${res.status}`);
-    const data = await res.json();
+    const json = await res.json();
 
-    // 🧠 Cache the result
-    window.productCache.products = data;
-    window.productCache.loaded = true;
+    const raw =
+      json.data || json.records || json.values || json.products || json.items || json;
 
-    renderProducts(data);
-    console.log(`✅ Loaded and cached ${data.length} products from sheet.`);
+    // 🧩 Normalize sheet headers → consistent JS keys
+    const normalized = raw.map((r) => {
+      const clean = {};
+      for (const k in r) clean[k.trim().toLowerCase()] = r[k];
+      return {
+        sku: clean["sku"] || "",
+        name: clean["product title"] || "Unnamed Product",
+        image:
+          clean["image link"] ||
+          clean["image"] ||
+          clean["image url"] ||
+          "https://raw.githubusercontent.com/komuna84/kinaya-pos-assets/main/default.png",
+        retailPrice: parseFloat(clean["retail price"] || 0),
+        discountPrice: parseFloat(clean["sale price"] || 0),
+        cost: parseFloat(clean["unit cost"] || 0),
+        stock: parseFloat(clean["in stock"] || 0),
+        timestamp: new Date(clean["timestamp"] || 0).getTime() || 0,
+        vendor: clean["vendor"] || "",
+        description: clean["description"] || "",
+        status: clean["status"] || "Active",
+      };
+    });
+
+    // 🌿 Keep only the most recent entry per SKU
+    const latestOnly = Object.values(
+      normalized.reduce((acc, item) => {
+        const existing = acc[item.sku];
+        if (!existing || item.timestamp > existing.timestamp) {
+          acc[item.sku] = item;
+        }
+        return acc;
+      }, {})
+    );
+
+    console.log(
+      `✅ Found ${latestOnly.length} latest products (deduplicated from ${normalized.length})`
+    );
+
+    // ✅ Render the deduped product list
+    renderProducts(latestOnly);
   } catch (err) {
-    console.error("❌ Could not load POS data:", err);
+    console.error("❌ Failed to load or deduplicate catalog:", err);
     renderProducts(fallbackProducts);
   }
 }
 
-  // ===========================================================
+// ===========================================================
   //  RETURN MODEE HELPERR
   // ===========================================================
   function getActiveUnitPrice(sale, retail) {
@@ -289,36 +497,36 @@ async function loadProductCatalog(forceReload = false) {
   return (Number(sale) > 0 && Number(sale) < Number(retail)) ? Number(sale) : Number(retail) || 0;
 }
 
-
 // ===========================================================
-// 🛍️ RENDER PRODUCTS — Reads Sale Price + Retail Price
+// 🛍️ RENDER PRODUCTS — Grid + Click to Add to Receipt
 // ===========================================================
 function renderProducts(products) {
+  const menu = document.getElementById("menu");
   if (!menu) return;
 
+  // 🔹 Normalize product data
   const normalized = products.map((p) => {
-    const sale = parseFloat(
-      (p["Sale Price"] || "").toString().replace(/[^0-9.]/g, "")
-    ) || 0;
-    const retail = parseFloat(
-      (p["Retail Price"] || "").toString().replace(/[^0-9.]/g, "")
-    ) || 0;
-    const final = sale > 0 ? sale : retail;
+    const sale =
+      parseFloat(p.discountPrice || p["Sale Price"] || 0) || 0;
+    const retail =
+      parseFloat(p.retailPrice || p["Retail Price"] || 0) || 0;
+    const final = sale > 0 && sale < retail ? sale : retail;
 
     return {
-      sku: p.Sku || p.sku || "",
-      name: p["Product Title"] || p.name || "Unnamed Product",
+      sku: p.sku || p.Sku || "",
+      name: p.name || p["Product Title"] || "Unnamed Product",
       salePrice: sale,
       retailPrice: retail,
       price: final,
       image:
+        p.image ||
         p["Image Link"] ||
         p.Image ||
         "https://raw.githubusercontent.com/komuna84/kinaya-pos-assets/main/default.png",
     };
   });
 
-  // 🔹 Build catalog grid
+  // 🔹 Build product grid
   menu.innerHTML = normalized
     .map(
       (p) => `
@@ -335,38 +543,49 @@ function renderProducts(products) {
           <figcaption style="font-size:0.8em; color:#66caff;">${p.sku}</figcaption>
           <figcaption>
             ${
-              p.salePrice > 0
+              p.salePrice > 0 && p.salePrice < p.retailPrice
                 ? `<span style="color:#bffcff;">$${p.salePrice.toFixed(2)}</span>
                    <span style="text-decoration:line-through; color:#888; margin-left:4px;">$${p.retailPrice.toFixed(2)}</span>`
-                : `<span>$${p.retailPrice.toFixed(2)}</span>`
+                : `<span style="color:#bffcff;">$${p.retailPrice.toFixed(2)}</span>`
             }
           </figcaption>
         </figure>`
     )
     .join("");
 
-  // 🔹 Attach product click handler (forces retail in Return Mode)
-document.querySelectorAll(".menu-item").forEach((item) => {
-  item.addEventListener("click", () => {
-    const name   = item.dataset.name;
-    const sku    = item.dataset.sku;
-    const retail = parseFloat(item.dataset.retail || "0");
-    const sale   = parseFloat(item.dataset.sale   || "0");
+  // inside renderProducts(), replace the existing .menu-item click binding:
+  document.querySelectorAll(".menu-item").forEach((item) => {
+    item.addEventListener("click", (ev) => {
+      const name   = item.dataset.name;
+      const sku    = item.dataset.sku;
+      const retail = parseFloat(item.dataset.retail || "0");
+      const sale   = parseFloat(item.dataset.sale   || "0");
 
-    // 👇 KEY LINE: retail in return mode, sale-if-valid otherwise
-    const unitPrice = getActiveUnitPrice(sale, retail);
+      // unit price helper you already have:
+      const unitPrice = getActiveUnitPrice(sale, retail);
 
-    // Return mode adds a negative line; normal mode increments/creates positive line
-    const qtyChange = window.returnMode ? -1 : 1;
+      // Default in Return Mode = RETURN (-1). Hold Shift to ADD (+1).
+      const isReturnMode = !!window.returnMode;
+      const wantsAdd = isReturnMode && ev.shiftKey;   // Shift = add/exchange
+      const qtyChange = isReturnMode
+        ? (wantsAdd ? +1 : -1)
+        : +1;
 
-    updateReceipt({ name, sku, price: unitPrice, qtyChange });
+      if (typeof updateReceipt === "function") {
+        updateReceipt({ name, sku, price: unitPrice, qtyChange });
+        showToast(
+          `${name} ${qtyChange > 0 ? (isReturnMode ? "added (exchange)" : "added") : "returned"}.`
+        );
+      } else {
+        console.warn("⚠️ updateReceipt() missing — cannot modify receipt.");
+      }
+    });
   });
-});
-}  // ✅ closes renderProducts()
 
+  console.log(`✅ Rendered ${normalized.length} products.`);
+}
 
-
-  // ===========================================================
+// ===========================================================
   // 🌱 FALLBACK PRODUCTS (Offline Backup)
   // ===========================================================
   const fallbackProducts = [
@@ -406,35 +625,103 @@ function setReturnMode(state) {
   if (returnConditionRow) returnConditionRow.classList.toggle("hidden", !state);
   if (differenceRow) differenceRow.classList.toggle("hidden", !state);
   if (changeRow) changeRow.classList.toggle("hidden", !!state);
-  if (discountRow) discountRow.classList.toggle("hidden", state); // hide discounts in return mode
+  if (discountRow) discountRow.classList.toggle("hidden", state);
 
-    // ---------- 4️⃣ KEEP ORIGINAL RECEIPT IN VIEW ----------
-if (tableBody) {
-  if (state) {
-    // Entering Return Mode → mark all existing rows as original (dimmed)
-    tableBody.querySelectorAll("tr").forEach(row => {
-      row.classList.add("original-item");
-      row.style.opacity = "0.6";
-      row.style.borderLeft = "2px solid rgba(102,202,255,0.3)";
-    });
-  } else {
-    // Exiting Return Mode → keep originals dimmed, but DO NOT mark new ones
-    tableBody.querySelectorAll("tr").forEach(row => {
-      if (row.classList.contains("return-line")) {
-        // Keep returns red
-        row.style.color = "#ff8080";
-      } else if (row.classList.contains("original-item")) {
-        // Originals stay dimmed (read-only)
+  // ---------- 4️⃣ KEEP ORIGINAL RECEIPT IN VIEW + RESET TOTALS ----------
+  if (tableBody) {
+    if (state) {
+      // 🟥 ENTERING RETURN MODE
+      console.log("↩️ Entering Return Mode — dim originals and reset totals");
+
+      // 1️⃣ Dim existing rows
+      tableBody.querySelectorAll("tr").forEach(row => {
+        row.classList.add("original-item");
         row.style.opacity = "0.6";
         row.style.color = "#A7E1EE";
-      } else {
-        // New items = full brightness
-        row.style.opacity = "1";
-        row.style.color = "#bffcff";
+        row.style.borderLeft = "2px solid rgba(102,202,255,0.3)";
+      });
+
+      // 2️⃣ Reset live totals
+      const subEl = document.getElementById("subtotal-summary");
+      const taxEl = document.getElementById("tax-summary");
+      const grandEl = document.getElementById("grandtotal-summary");
+      const paidEl = document.getElementById("amount-paid-display");
+      const changeEl = document.getElementById("change-amount");
+
+      [subEl, taxEl, grandEl, paidEl, changeEl].forEach(el => {
+        if (el) {
+          el.textContent = "$0.00";
+          el.style.opacity = "0.6";
+          el.style.fontStyle = "italic";
+        }
+      });
+
+      // ✅ Freeze the Original Total (always show locked grand total)
+      const origTotalEl = document.getElementById("original-total");
+      if (origTotalEl) {
+        let locked = parseFloat(origTotalEl.dataset.originalGrand || 0);
+
+        // 🧊 Fallback: if not already locked, use the last grandtotal-summary
+        if (!locked || locked === 0) {
+          const grandDisplay = document.getElementById("grandtotal-summary");
+          if (grandDisplay) {
+            locked = parseFloat(
+              grandDisplay.textContent.replace(/[^0-9.]/g, "")
+            ) || 0;
+            origTotalEl.dataset.originalGrand = locked.toFixed(2);
+            window.originalGrandLocked = true;
+          }
+        }
+
+        origTotalEl.textContent = `$${locked.toFixed(2)}`;
+        origTotalEl.style.opacity = "0.9";
+        console.log(`🔒 Preserved original grand total: $${locked.toFixed(2)}`);
       }
-    });
+
+      // 3️⃣ Visual cue
+      const panel = document.querySelector(".receipt");
+      if (panel) {
+        panel.style.boxShadow = "0 0 25px rgba(255,90,90,0.25)";
+        panel.style.borderColor = "rgba(255,90,90,0.25)";
+      }
+
+      // 4️⃣ Small helper tip
+      const banner = document.getElementById("return-mode-banner");
+      if (banner && !banner.querySelector(".exchange-tip")) {
+        const tip = document.createElement("div");
+        tip.className = "exchange-tip";
+        tip.textContent = "Click items to return, Shift+Click to add new ones.";
+        tip.style.color = "#A7E1EE";
+        tip.style.fontSize = "0.85em";
+        tip.style.marginTop = "0.25rem";
+        banner.appendChild(tip);
+      }
+
+    } else {
+      // 🟩 EXITING RETURN MODE
+      console.log("↩️ Exiting Return Mode — restore colors");
+
+      tableBody.querySelectorAll("tr").forEach(row => {
+        if (row.classList.contains("return-line")) {
+          row.style.color = "#ff8080";
+        } else if (row.classList.contains("original-item")) {
+          row.style.opacity = "0.6";
+          row.style.color = "#A7E1EE";
+        } else {
+          row.style.opacity = "1";
+          row.style.color = "#bffcff";
+        }
+      });
+
+      const panel = document.querySelector(".receipt");
+      if (panel) {
+        panel.style.boxShadow = "";
+        panel.style.borderColor = "";
+      }
+
+      document.querySelector(".exchange-tip")?.remove();
+    }
   }
-}
 
   // ---------- 5️⃣ Price display toggle ----------
   productCards.forEach(card => {
@@ -445,10 +732,8 @@ if (tableBody) {
     const priceLine = priceLines[priceLines.length - 1];
 
     if (state) {
-      // In Return Mode → show RETAIL ONLY
       priceLine.innerHTML = `<span style="color:#bffcff;">$${retailPrice.toFixed(2)}</span>`;
     } else {
-      // Exit Return Mode → restore SALE + struck RETAIL (if sale is lower)
       if (salePrice > 0 && salePrice < retailPrice) {
         priceLine.innerHTML = `
           <span style="color:#bffcff;">$${salePrice.toFixed(2)}</span>
@@ -484,20 +769,28 @@ toggleReturnMain?.addEventListener("click", () => {
 });
 
 
-  // ===========================================================
-// 🧾 RECEIPT HANDLER — Fixed so R/D only shows for returns
+// ===========================================================
+// 🧾 RECEIPT HANDLER — Handles Sale, Return, and Exchange lines
 // ===========================================================
 function updateReceipt(product) {
   const tableBody = document.getElementById("receipt-details");
   if (!tableBody) return;
 
-  // Always find existing (non-return) line
-  const existing = Array.from(tableBody.children).find(
-    (row) => row.dataset.sku === product.sku && !row.classList.contains("return-line")
-  );
+  // 🧮 Detect mode & direction
+  const isReturnMode = !!window.returnMode;
+  const qtyChange = product.qtyChange ?? (isReturnMode ? -1 : 1);
 
-  // 🔹 Normal Sale Mode
-  if (!window.returnMode) {
+  // 🧩 Helper to find existing non-return rows
+  const findExistingRow = (sku) =>
+    Array.from(tableBody.children).find(
+      (row) => row.dataset.sku === sku && !row.classList.contains("return-line")
+    );
+
+  // ===========================================================
+  // 🌿 1️⃣ NORMAL SALE MODE
+  // ===========================================================
+  if (!isReturnMode) {
+    const existing = findExistingRow(product.sku);
     if (existing) {
       const qtyCell = existing.querySelector(".qty");
       const subCell = existing.querySelector(".subtotal");
@@ -518,18 +811,21 @@ function updateReceipt(product) {
     }
   }
 
-  // 🔁 Return Mode — red line + R/D condition
-  else {
+  // ===========================================================
+  // 🟥 2️⃣ RETURN MODE — RETURN (qtyChange < 0)
+  // ===========================================================
+  else if (isReturnMode && qtyChange < 0) {
     const newRow = document.createElement("tr");
     newRow.dataset.sku = product.sku;
     newRow.classList.add("return-line");
+
     const negPrice = -Math.abs(product.price);
 
     newRow.innerHTML = `
       <td style="color:#ff5252;">${product.name}</td>
-      <td class="qty" style="color:#ff5252;">-1</td>
+      <td class="qty" style="color:#ff5252;">${qtyChange}</td>
       <td style="color:#ff5252;">$${product.price.toFixed(2)}</td>
-      <td class="subtotal" style="color:#ff5252;">$${negPrice.toFixed(2)}</td>
+      <td class="subtotal" style="color:#ff5252;">$${(negPrice * Math.abs(qtyChange)).toFixed(2)}</td>
       <td style="display:flex;align-items:center;gap:6px;">
         <select class="return-condition-row" title="R = Restock, D = Damaged">
           <option value="Restock (sellable)">R</option>
@@ -544,13 +840,12 @@ function updateReceipt(product) {
     select.addEventListener("change", (e) => {
       const value = e.target.value;
       const sku = newRow.dataset.sku;
-
       switch (value) {
         case "Restock (sellable)":
-          console.log(`Item ${sku}: restocked to inventory.`);
+          console.log(`♻️ Item ${sku}: restocked to inventory.`);
           break;
         case "Damaged (unsellable)":
-          console.log(`Item ${sku}: marked damaged.`);
+          console.log(`💔 Item ${sku}: marked damaged.`);
           break;
       }
     });
@@ -558,7 +853,38 @@ function updateReceipt(product) {
     tableBody.appendChild(newRow);
   }
 
-  // ✅ Always recalc after add
+  // ===========================================================
+  // 🟦 3️⃣ RETURN MODE — ADDING NEW ITEM (qtyChange > 0)
+  // ===========================================================
+  else if (isReturnMode && qtyChange > 0) {
+    const existing = findExistingRow(product.sku);
+    if (existing) {
+      const qtyCell = existing.querySelector(".qty");
+      const subCell = existing.querySelector(".subtotal");
+      const qty = parseInt(qtyCell.textContent) + qtyChange;
+      qtyCell.textContent = qty;
+      subCell.textContent = `$${(qty * product.price).toFixed(2)}`;
+      existing.style.opacity = "1";
+      existing.style.color = "#bffcff";
+    } else {
+      const newRow = document.createElement("tr");
+      newRow.dataset.sku = product.sku;
+      newRow.innerHTML = `
+        <td style="color:#bffcff;">${product.name}</td>
+        <td class="qty" style="color:#bffcff;">${qtyChange}</td>
+        <td style="color:#bffcff;">$${product.price.toFixed(2)}</td>
+        <td class="subtotal" style="color:#bffcff;">$${(product.price * qtyChange).toFixed(2)}</td>
+        <td><button class="del-btn"><i class="fas fa-trash"></i></button></td>
+      `;
+      newRow.style.opacity = "1";
+      newRow.style.color = "#bffcff";
+      tableBody.appendChild(newRow);
+    }
+  }
+
+  // ===========================================================
+  // ♻️ FINALIZE — UPDATE TOTALS + BUTTON STATES
+  // ===========================================================
   updateTotals();
   applyDiscount();
   toggleSubmitButton();
@@ -578,45 +904,80 @@ function ensureOriginalAmountDisplay() {
   originalEl.textContent = `$${originalPaidValue.toFixed(2)}`;
 }
 
+// ===========================================================
+// 🛡️ Preserve Original Grand Total — never overwrite after lock
+// ===========================================================
+const origTotalEl = document.getElementById("original-total");
+if (origTotalEl && origTotalEl.dataset.originalGrand && window.originalGrandLocked) {
+  // Do nothing — keep the locked total
+} else if (origTotalEl && !origTotalEl.dataset.originalGrand) {
+  // Fallback: if somehow unlocked, reinitialize it using current grand total
+  const currentGrand = document.getElementById("grandtotal-summary");
+  if (currentGrand) {
+    const value = parseFloat(currentGrand.textContent.replace(/[^0-9.]/g, "")) || 0;
+    origTotalEl.dataset.originalGrand = value.toFixed(2);
+    origTotalEl.textContent = `$${value.toFixed(2)}`;
+    window.originalGrandLocked = true;
+    console.log(`🧊 Re-locked original total at $${value.toFixed(2)}`);
+  }
+}
 
 // ===========================================================
-// 💸 UNIVERSAL TOTAL CALCULATION — Works for Sales + Returns
+// 💸 UNIVERSAL TOTAL CALCULATION — Bulletproof Lock for Original Grand
 // ===========================================================
 function updateTotals() {
   const tableBody = document.getElementById("receipt-details");
   if (!tableBody) return;
 
-  // ---------- Base Setup ----------
-  const taxRate = window.taxEnabled ? window.taxRate || 0.07 : 0;
+  // ===========================================================
+  // 🛡️ STEP 1: Preserve Locked Original Grand Total
+  // ===========================================================
+  const origTotalEl = document.getElementById("original-total");
+  let lockedGrand = 0;
+  if (origTotalEl) {
+    lockedGrand = parseFloat(origTotalEl.dataset.originalGrand || 0);
+    if (window.originalGrandLocked && lockedGrand > 0) {
+      // Freeze visual + data immediately before recalculation
+      origTotalEl.textContent = `$${lockedGrand.toFixed(2)}`;
+      origTotalEl.dataset.locked = "true";
+      console.log(`🧊 Original total preserved at $${lockedGrand.toFixed(2)}`);
+    }
+  }
+
+  // ===========================================================
+  // 🧮 STEP 2: Standard Totals Calculation
+  // ===========================================================
+  const taxRate = window.taxEnabled ? (window.taxRate || 0.07) : 0;
   const discountPercent = parseFloat(document.getElementById("discount-input")?.value || 0);
   const amountPaidDisplay = document.getElementById("amount-paid-display");
   const originalPaidValue = parseFloat(amountPaidDisplay?.dataset.originalPaid || 0) || 0;
 
-  // ---------- Subtotals ----------
   let saleSubtotal = 0;
   let returnSubtotal = 0;
 
   tableBody.querySelectorAll("tr").forEach(row => {
-    const sub = parseFloat(row.querySelector(".subtotal")?.textContent.replace(/[^0-9.-]/g, "") || 0);
+    if (row.classList.contains("original-item")) return;
+
+    const sub = parseFloat(
+      row.querySelector(".subtotal")?.textContent.replace(/[^0-9.-]/g, "") || 0
+    );
+
     if (sub >= 0) saleSubtotal += sub;
     else returnSubtotal += Math.abs(sub);
   });
 
-  // ---------- Discounts ----------
   const discountAmount = saleSubtotal * (discountPercent / 100);
   const discountedSubtotal = saleSubtotal - discountAmount;
-
-  // ---------- Tax ----------
   const saleTax = discountedSubtotal * taxRate;
   const returnTax = returnSubtotal * taxRate;
-  const totalTax = saleTax + returnTax;
-
-  // ---------- Totals ----------
   const newPurchases = discountedSubtotal + saleTax;
   const returns = returnSubtotal + returnTax;
-  const grandTotal = (newPurchases - returns) - originalPaidValue;
+  const netSessionTotal = newPurchases - returns;
+  const grandTotal = netSessionTotal - originalPaidValue;
 
-  // ---------- UI Summary ----------
+  // ===========================================================
+  // 💬 STEP 3: Update UI Elements
+  // ===========================================================
   const subtotalEl = document.getElementById("subtotal-summary");
   const taxEl = document.getElementById("tax-summary");
   const returnEl = document.getElementById("return-total");
@@ -627,22 +988,23 @@ function updateTotals() {
   if (subtotalEl) subtotalEl.textContent = `$${discountedSubtotal.toFixed(2)}`;
   if (taxEl) taxEl.textContent = `$${saleTax.toFixed(2)}`;
   if (returnEl) returnEl.textContent = `$${returns.toFixed(2)}`;
-  if (grandEl) grandEl.textContent = `$${(newPurchases - returns).toFixed(2)}`;
+  if (grandEl) grandEl.textContent = `$${netSessionTotal.toFixed(2)}`;
 
-  // ---------- Payment + Change ----------
   const totalPaid = (window.cashMemory + window.cardMemory) || 0;
-  const change = Math.max(totalPaid - (newPurchases - returns), 0);
-  document.getElementById("amount-paid-display").textContent = `$${totalPaid.toFixed(2)}`;
+  const change = Math.max(totalPaid - netSessionTotal, 0);
+  if (amountPaidDisplay) amountPaidDisplay.textContent = `$${totalPaid.toFixed(2)}`;
   document.getElementById("change-amount").textContent = `$${change.toFixed(2)}`;
 
-  // ---------- Refund / Balance Logic ----------
+  // ===========================================================
+  // ♻️ STEP 4: Refund / Balance Logic
+  // ===========================================================
   let label = "Even Exchange:";
   let color = "#A7E1EE";
 
-  if (grandTotal > 0) {
+  if (grandTotal > 0.01) {
     label = "Balance Due:";
     color = "#4FD9FF";
-  } else if (grandTotal < 0) {
+  } else if (grandTotal < -0.01) {
     label = "Refund Due:";
     color = "#ff8080";
   }
@@ -651,6 +1013,14 @@ function updateTotals() {
   if (balanceAmount) {
     balanceAmount.style.color = color;
     balanceAmount.textContent = `$${Math.abs(grandTotal).toFixed(2)}`;
+  }
+
+  // ===========================================================
+  // 🧊 STEP 5: Reapply Frozen Original Total After All Updates
+  // ===========================================================
+  if (origTotalEl && window.originalGrandLocked && lockedGrand > 0) {
+    origTotalEl.textContent = `$${lockedGrand.toFixed(2)}`;
+    origTotalEl.dataset.originalGrand = lockedGrand.toFixed(2);
   }
 
   ensureOriginalAmountDisplay();
@@ -664,7 +1034,9 @@ function updateTotals() {
     newPurchases,
     returns,
     originalPaidValue,
-    grandTotal
+    netSessionTotal,
+    grandTotal,
+    lockedGrand
   });
 }
 
@@ -820,7 +1192,7 @@ document.addEventListener("click", (e) => {
     console.log(`💰 Paypad opened for ${type}`);
   }
 
-  // ===========================================================
+// ===========================================================
 // 💰 CLOSE PAYPAD — commits or drafts entered amount
 // ===========================================================
 function closePaypad(save = false) {
@@ -1179,7 +1551,7 @@ async function submitSale() {
     if (originalInvoiceInput) originalInvoiceInput.value = "";
     document.getElementById("return-condition-row")?.classList.add("hidden");
 
-    if (typeof setReturnMode === "function") setReturnMode(false);
+    if (typeof setReturnMode === "function") showReturnSummary(id);
     if (typeof updateTotals === "function") updateTotals();
 
     window.cashMemory = 0;
@@ -1310,5 +1682,3 @@ await updateInvoiceNumber(); // 🧾 show invoice number on load
 await loadProductCatalog();
 console.log("✅ Kinaya POS ready.");
 }); // ✅ closes document.addEventListener("DOMContentLoaded", async () => {
-
-
