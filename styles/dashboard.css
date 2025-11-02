@@ -3,16 +3,28 @@
    Unified "Kinaya Glow" System | Extends kinaya-base.css
    ============================================================ */
 
-/* ---------- HEADER ---------- */
-header {
+/* ============================================================
+🔹 HEADER
+============================================================ */
+header.pos-header {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%;
   text-align: center;
-  padding: 1.2rem 0;
-  font-family: var(--font-display);
-  color: var(--color-accent-light);
-  text-shadow: 0 0 18px rgba(0,198,255,0.8);
-  font-size: 1.8rem;
-  letter-spacing: 1px;
+  background: rgba(5, 25, 35, 0.6);
+  border-bottom: 1px solid rgba(0,198,255,0.25);
+  box-shadow: 0 2px 12px rgba(0,198,255,0.15);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  padding: 1rem 0;
 }
+
+header.pos-header .subtitle {
+  color: #78dfff;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
 .subtitle {
   color: var(--color-accent);
   font-size: 0.95rem;
