@@ -112,7 +112,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // ===========================================================
 
   document.getElementById("view-inventory-btn")?.addEventListener("click", () => {
-  window.location.href = "/inventory.html"; // or adjust if your path differs
+  window.location.href = "./inventory.html"; // or adjust if your path differs
     });
 
 
