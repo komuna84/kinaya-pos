@@ -863,5 +863,3 @@ body.return-active .receipt {
     max-width: 100%;
   }
 }
-
-
