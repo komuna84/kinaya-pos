@@ -602,6 +602,38 @@ function renderProducts(products) {
 // 🔁 RETURN MODE TOGGLER — Unified (Sale ↔ Return Mode)
 // ===========================================================
 function setReturnMode(state) {
+  // Detect whether the receipt already has items
+  const hasActiveItems =
+    (Array.isArray(window.cartItems) && window.cartItems.length > 0) ||
+    document.querySelectorAll("#receipt-details tr:not(.original-item)").length > 0;
+
+  // 1️⃣ If we’ve already *left* return mode once, don’t allow re-entry
+  if (window.leftReturnMode && state === true) {
+    alert("⚠️ You can’t re-enter Return Mode after leaving it. Please complete or clear this transaction first.");
+    return;
+  }
+
+  // 2️⃣ If we’re trying to switch mid-session (with items already present)
+  //     — but this is the *first* time leaving Return Mode — allow it.
+  if (hasActiveItems && window.returnMode !== state) {
+    if (window.returnMode && !window.leftReturnMode && state === false) {
+      // 👇 This is the *one allowed* exit from Return Mode
+      window.leftReturnMode = true;
+      console.log("🟩 Exiting Return Mode once — allowed for exchange/sale items.");
+    } else {
+      alert("⚠️ You already have an active transaction. Please complete or clear it before switching modes.");
+      return;
+    }
+  }
+
+  // 3️⃣ Once items exist, lock session mode so it can’t reset
+  if (hasActiveItems) window.activeSessionLocked = true;
+
+  // ✅ Proceed with your existing UI + logic
+  window.returnMode = state;
+  sessionStorage.setItem("returnMode", state ? "true" : "false");
+  document.body.classList.toggle("return-active", state);
+
   const banner = document.getElementById("return-mode-banner");
   const returnConditionRow = document.getElementById("return-condition-row");
   const differenceRow = document.getElementById("difference-row");
@@ -690,7 +722,6 @@ function setReturnMode(state) {
       if (banner && !banner.querySelector(".exchange-tip")) {
         const tip = document.createElement("div");
         tip.className = "exchange-tip";
-        tip.textContent = "Click items to return, Shift+Click to add new ones.";
         tip.style.color = "#A7E1EE";
         tip.style.fontSize = "0.85em";
         tip.style.marginTop = "0.25rem";
@@ -1692,4 +1723,80 @@ window.resetOrder = resetOrder; // ✅ make it global
 await updateInvoiceNumber(); // 🧾 show invoice number on load
 await loadProductCatalog();
 console.log("✅ Kinaya POS ready.");
+
+// // ===========================================================
+// // 🪟 PRODUCT MODAL (MOBILE + DESKTOP SAFE)
+// // ===========================================================
+// document.addEventListener("DOMContentLoaded", () => {
+//   const openMenuBtn = document.getElementById("open-menu-modal");
+//   const closeMenuBtn = document.getElementById("close-menu-modal");
+//   const menuModal = document.getElementById("menu-modal");
+//   const modalMenuGrid = document.getElementById("modal-menu-grid");
+
+//   if (!openMenuBtn || !menuModal || !modalMenuGrid) {
+//     console.warn("🪟 Modal elements not found — skipping setup.");
+//     return;
+//   }
+
+//   console.log("openMenuBtn found?", !!openMenuBtn);
+
+//   // ===========================================================
+//   // 📲 OPEN MODAL
+//   // ===========================================================
+//   openMenuBtn.addEventListener("click", () => {
+//     console.log("🪟 View Products button clicked!");
+//     menuModal.classList.add("active");
+//     document.body.style.overflow = "hidden";
+
+//     // 🔁 Copy existing product cards
+//     const menu = document.getElementById("menu");
+//     if (menu && modalMenuGrid) {
+//       modalMenuGrid.innerHTML = menu.innerHTML;
+//       modalMenuGrid.querySelectorAll(".menu-item").forEach((item) => {
+//         item.addEventListener("click", () => {
+//           const name = item.dataset.name || "Unknown";
+//           const sku = item.dataset.sku || "";
+//           const retail = parseFloat(item.dataset.retail || "0");
+//           const sale = parseFloat(item.dataset.sale || "0");
+//           const price = (sale > 0 && sale < retail) ? sale : retail;
+//           if (typeof updateReceipt === "function") updateReceipt({ name, sku, price, qtyChange: 1 });
+//         });
+//       });
+//     }
+//   });
+
+//   // ===========================================================
+//   // ❌ CLOSE MODAL
+//   // ===========================================================
+//   closeMenuBtn.addEventListener("click", () => {
+//     menuModal.classList.remove("active");
+//     document.body.style.overflow = "";
+//   });
+
+//   document.addEventListener("DOMContentLoaded", () => {
+//   const openMenuBtn = document.getElementById("open-menu-modal");
+//   const menuModal = document.getElementById("menu-modal");
+//   const closeMenuBtn = document.getElementById("close-menu-modal");
+
+//   if (!openMenuBtn || !menuModal) {
+//     console.warn("Modal elements not found");
+//     return;
+//   }
+
+//   openMenuBtn.addEventListener("click", () => {
+//     console.log("🪟 Opening modal...");
+//     menuModal.classList.add("active");
+//     document.body.style.overflow = "hidden";
+//   });
+
+//   closeMenuBtn?.addEventListener("click", () => {
+//     menuModal.classList.remove("active");
+//     document.body.style.overflow = "";
+//   });
+// });
+
+// });
+
 }); // ✅ closes document.addEventListener("DOMContentLoaded", async () => {
+
+ 
