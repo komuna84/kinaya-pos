@@ -3,7 +3,29 @@
    Unified Layout + Glow System (Inventory/Expense Harmony)
    ============================================================ */
 
-/* ===== Layout ===== */
+/* ============================================================
+🔹 HEADER
+============================================================ */
+header.pos-header {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%;
+  text-align: center;
+  background: rgba(5, 25, 35, 0.6);
+  border-bottom: 1px solid rgba(0,198,255,0.25);
+  box-shadow: 0 2px 12px rgba(0,198,255,0.15);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  padding: 1rem 0;
+}
+
+header.pos-header .subtitle {
+  color: #78dfff;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+   /* ===== Layout ===== */
 main.pos-container {
   display: flex;
   flex-direction: column;
