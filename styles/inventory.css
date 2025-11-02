@@ -847,3 +847,19 @@ body.return-active .receipt {
     grid-template-columns: repeat(1, 1fr) !important;
   }
 }
+
+/* ============================================================
+📱 MOBILE FIX — Force 2-per-row on mobile browsers
+============================================================ */
+@media only screen and (max-width: 768px) {
+  .menu {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(140px, 1fr)) !important;
+    gap: 0.8rem !important;
+    justify-items: center;
+  }
+
+  .menu-item {
+    max-width: 100%;
+  }
+}
