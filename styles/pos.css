@@ -254,6 +254,32 @@ header.pos-header .subtitle {
   margin-top: 1rem;
 }
 
+/* ============================================================
+🌿 DIMMED ITEMS — Hide Trash Can, Keep Image Dimmed
+============================================================ */
+
+/* Dimmed state for product/receipt items */
+.menu-item.dimmed img,
+.receipt-details tr.dimmed img {
+  opacity: 0.4;          /* soft dim */
+  filter: grayscale(60%);
+  transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+/* Hide the trash icon completely in dimmed state */
+.menu-item.dimmed .trash-icon,
+.receipt-details tr.dimmed .trash-icon {
+  display: none !important;
+}
+
+/* Restore normal state */
+.menu-item:not(.dimmed) img,
+.receipt-details tr:not(.dimmed) img {
+  opacity: 1;
+  filter: none;
+}
+
+
 
 /* ============================================================
 🔁 RETURN MODE STYLE
