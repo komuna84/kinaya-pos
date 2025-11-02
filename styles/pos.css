@@ -326,13 +326,16 @@ body.return-active .menu-item {
 }
 
 /* ============================================================
-📱 MOBILE VIEW — Force 2 per row
+📱 MOBILE FIX — Force 2-per-row on mobile browsers
 ============================================================ */
-@media (max-width: 768px) {
+@media only screen and (max-width: 768px) {
   .menu {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.8rem;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(140px, 1fr)) !important;
+    gap: 0.8rem !important;
+    justify-items: center;
   }
+
   .menu-item {
     max-width: 100%;
   }
