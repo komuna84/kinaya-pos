@@ -51,9 +51,11 @@
   <!-- ===== MAIN CONTENT ===== -->
   <main class="main-container flex-row" role="main">
 
-    <!-- ===== RECEIPT / ORDER SECTION ===== -->
+  <!-- ===== RECEIPT / ORDER SECTION ===== -->
 <section class="order flex-column glass-panel">
   <article class="receipt flex-column">
+
+    <!-- 🏷️ Company Info -->
     <div class="company-info flex-column">
       <p id="company-name">Kinaya Rising</p>
       <p id="company-website">KinayaRising.com</p>
@@ -62,22 +64,22 @@
       <p id="current-date"></p>
     </div>
 
+    <!-- 🔍 Invoice Search -->
     <div class="invoice-search" id="search-container">
-  <div class="search-row">
-    <input id="invoice-search-input" placeholder="Enter invoice number" />
-    <button id="invoice-search-btn">Search</button>
-  </div>
-  <div id="invoice-result"></div>
-</div>
+      <div class="search-row">
+        <input id="invoice-search-input" placeholder="Enter invoice number" />
+        <button id="invoice-search-btn">Search</button>
+      </div>
+      <div id="invoice-result"></div>
+    </div>
 
-
-    <!-- ✅ RETURN INPUT (for return mode) -->
+    <!-- 🔗 Return Input (optional) -->
     <div class="return-link-section hidden" id="return-container">
       <label for="original-invoice">Original Invoice # (for returns):</label>
       <input type="text" id="original-invoice" placeholder="If returning items" />
     </div>
 
-    <!-- ✅ UNIFIED RECEIPT DETAILS -->
+    <!-- 🧾 Unified Receipt -->
     <div class="receipt-details">
       <table class="details-table">
         <thead>
@@ -94,72 +96,64 @@
         <tbody id="receipt-details"></tbody>
       </table>
 
+      <!-- 💵 Summary Section -->
       <div class="receipt-summary">
         <table class="summary-table">
-          <tbody id="summary-section"
+          <tbody id="summary-section">
 
             <!-- 🎁 Discount -->
             <tr>
-              <tr>
-  <td>Discount:</td>
-  <td>
-    <input type="text" id="discount-input" placeholder="0 or 10%" />
-  </td>
-</tr>
-<tr id="discount-row">
-  <td>Discount Value:</td>
-  <td id="discount-display">$0.00</td>
-</tr>
+              <td>Discount:</td>
+              <td><input type="text" id="discount-input" placeholder="0 or 10%" /></td>
+            </tr>
+            <tr id="discount-row">
+              <td>Discount Value:</td>
+              <td id="discount-display">$0.00</td>
+            </tr>
 
+            <!-- 💰 Totals -->
+            <tr><td>Subtotal:</td><td id="subtotal-summary">$0.00</td></tr>
+            <tr><td>Tax:</td><td id="tax-summary">$0.00</td></tr>
+            <tr><td>Grand Total:</td><td id="grandtotal-summary">$0.00</td></tr>
+            <tr><td>Amount Paid:</td><td id="amount-paid-display" class="glow-text">$0.00</td></tr>
+            <tr id="change-row"><td>Change:</td><td id="change-amount">$0.00</td></tr>
 
-            <!-- 💵 Totals -->
-<tr><td>Subtotal:</td><td id="subtotal-summary">$0.00</td></tr>
-<tr><td>Tax:</td><td id="tax-summary">$0.00</td></tr>
-<tr><td>Grand Total:</td><td id="grandtotal-summary">$0.00</td></tr>
-<tr><td>Amount Paid:</td><td id="amount-paid-display" class="glow-text">$0.00</td></tr>
-<tr id="change-row">
-  <td>Change:</td><td id="change-amount">$0.00</td>
-</tr>
+            <!-- 🌿 Divider -->
+            <tr class="summary-divider">
+              <td colspan="2"><hr style="border:1px dashed rgba(0,198,255,0.3);"></td>
+            </tr>
 
-<!-- 🌿 Divider -->
-<tr class="summary-divider">
-  <td colspan="2"><hr style="border:1px dashed rgba(0,198,255,0.3);"></td>
-</tr>
+            <!-- 🔁 RETURN SUMMARY -->
+            <tr id="return-summary-row" class="hidden">
+              <td colspan="2" style="padding-top: 0.75rem;">
+                <div style="text-align:center; font-size:1.05em; color:#66caff; margin-bottom:4px;">
+                  Return Summary
+                </div>
+                <div style="text-align:center; color:#66caff; margin-bottom:8px;">
+                  Invoice <span id="linked-invoice-number" style="color:#66caff;">#—</span>
+                </div>
 
-<!-- 🌿 RETURN SUMMARY — Header + Right Aligned -->
-<tr id="return-summary-row" class="hidden">
-  <td colspan="2" style="
-    padding-top: 0.75rem;
-    font-size: 0.95em;
-    line-height: 1.6;
-    letter-spacing: 0.3px;
-    color: #A7E1EE;
-  ">
-    <div style="text-align:center; font-size:1.05em; color:#66caff; margin-bottom:4px;">
-      Return Summary
-    </div>
-    <div style="text-align:center; color:#66caff; margin-bottom:8px;">
-      Invoice <span id="linked-invoice-number" style="color:#66caff;">#—</span>
-    </div>
-    <table style="width:100%; border-collapse:collapse;">
-      <tr>
-        <td style="text-align:left;">Original Purchase Amount:</td>
-        <td style="text-align:right;"><span id="original-total" style="color:#A7E1EE;">$0.00</span></td>
-      </tr>
-      <tr>
-        <td style="text-align:left;">Returned Items Total:</td>
-        <td style="text-align:right;"><span id="return-total" style="color:#ff8080;">$0.00</span></td>
-      </tr>
-    </table>
-  </td>
-</tr>
+                <table style="width:100%; border-collapse:collapse;">
+                  <tr>
+                    <td style="text-align:left;">Original Purchase Amount:</td>
+                    <td style="text-align:right;">
+                      <span id="original-total" style="color:#A7E1EE;">$0.00</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="text-align:left;">Returned Items Total:</td>
+                    <td style="text-align:right;">
+                      <span id="return-total" style="color:#ff8080;">$0.00</span>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
 
-<input type="hidden" id="refund-amount" value="0">
+            <!-- Hidden numeric reference for refund logic -->
+            <tr><td colspan="2"><input type="hidden" id="refund-amount" value="0" /></td></tr>
 
-
-
-
-
+            <!-- 💳 Payment Info -->
             <tr><td>Payment Type:</td><td id="split-info">None</td></tr>
 
             <!-- 📧 Email -->
@@ -180,34 +174,33 @@
         </table>
       </div>
 
+      <!-- ✅ Submit Button -->
       <div id="submit-row" class="submit-row">
-  <button id="submit-sale" class="submit-sale-btn">Confirm Sale</button>
-</div>
-
+        <button id="submit-sale" class="submit-sale-btn">Confirm Sale</button>
+      </div>
     </div>
 
     <div class="receipt-footer">Thank You For Your Support!</div>
- 
 
+    <!-- ===== TOOLBAR ===== -->
+    <div class="toolbar flex-row">
+      <button id="cash-btn" class="toolbar-btn" title="Cash Payment">
+        <i class="fa-solid fa-money-bill-wave"></i>
+      </button>
+      <button id="card-btn" class="toolbar-btn" title="Card Payment">
+        <i class="fa-solid fa-credit-card"></i>
+      </button>
+      <button id="reset-order-btn" class="toolbar-btn" title="Clear Order">
+        <i class="fa-solid fa-trash"></i>
+      </button>
+      <button id="toggle-return-main" class="toolbar-btn" title="Toggle Return Mode">
+        <i class="fa-solid fa-rotate-left"></i>
+      </button>
+    </div>
 
-        <!-- ===== TOOLBAR ===== -->
-        <div class="toolbar flex-row">
-          <button id="cash-btn" class="toolbar-btn" title="Cash Payment">
-            <i class="fa-solid fa-money-bill-wave"></i>
-          </button>
-          <button id="card-btn" class="toolbar-btn" title="Card Payment">
-            <i class="fa-solid fa-credit-card"></i>
-          </button>
-          <button id="reset-order-btn" class="toolbar-btn" title="Clear Order">
-  <i class="fa-solid fa-trash"></i>
-</button>
+  </article>
+</section>
 
-          <button id="toggle-return-main" class="toolbar-btn" title="Toggle Return Mode">
-            <i class="fa-solid fa-rotate-left"></i>
-          </button>
-        </div>
-      </article>
-    </section>
 
 <!-- ============================================================
 🌿 KINAYA RISING POS — PRODUCT GRID + MODALS
