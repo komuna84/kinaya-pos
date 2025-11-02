@@ -271,7 +271,7 @@ body.return-active .menu-item {
 }
 
 /* ============================================================
-🛍️ PRODUCT GRID
+🛍️ PRODUCT GRID (Responsive Glow Layout)
 ============================================================ */
 .menu-payment {
   flex: 2;
@@ -282,11 +282,16 @@ body.return-active .menu-item {
   backdrop-filter: blur(10px);
   overflow-y: auto;
 }
+
 .menu {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 1rem;
+  justify-items: center;
+  align-items: start;
 }
+
+/* 🌿 Each product card */
 .menu-item {
   background: rgba(10,20,25,0.85);
   border: 1px solid rgba(0,198,255,0.25);
@@ -294,23 +299,43 @@ body.return-active .menu-item {
   padding: 0.8rem;
   text-align: center;
   color: #A7E1EE;
-  box-shadow: 0 0 10px rgba(0,198,255,0.1);
-  transition: transform 0.2s ease;
+  box-shadow: 0 0 10px rgba(0,198,255,0.15);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
+  width: 100%;
+  max-width: 220px;
 }
+
 .menu-item:hover {
-  transform: scale(1.05);
+  transform: scale(1.04);
   box-shadow: 0 0 20px rgba(0,198,255,0.4);
 }
+
 .menu-item img {
-  width: 100%; height: 120px;
+  width: 100%;
+  height: 130px;
   object-fit: cover;
   border-radius: 10px;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.6rem;
 }
+
 .menu-item figcaption {
   font-size: 0.9rem;
   color: #bffcff;
+  margin-bottom: 0.25rem;
+}
+
+/* ============================================================
+📱 MOBILE VIEW — Force 2 per row
+============================================================ */
+@media (max-width: 768px) {
+  .menu {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.8rem;
+  }
+  .menu-item {
+    max-width: 100%;
+  }
 }
 
 /* ============================================================
