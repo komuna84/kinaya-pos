@@ -787,3 +787,29 @@ body.return-active .receipt {
   text-shadow: 0 0 15px rgba(0,198,255,0.5);
   margin-bottom: 1rem;
 }
+
+.status-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.8em;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-tag[data-status="active"] {
+  color: #00ffcc;
+}
+
+.status-tag[data-status="out of stock"] {
+  color: #ffd166;
+}
+
+.status-tag[data-status="inactive"] {
+  color: #bbbbbb;
+}
+
+.status-tag[data-status="discontinued"] {
+  color: #ff6b6b;
+}
