@@ -44,27 +44,18 @@
   <!-- ===== MAIN CONTENT ===== -->
 <main class="main-container flex-row" role="main">
 
-  <!-- ADD / EDIT INVENTORY FORM -->
+  <!-- 🧾 ADD / EDIT INVENTORY FORM -->
   <section class="order flex-column glass-panel">
     <article class="receipt flex-column">
-
-      <h2><i class="fa-solid fa-box-open"></i> Add or Edit Inventory</h2>
+      <h2><i class="fa-solid fa-box-open"></i> View Inventory Details</h2>
 
       <form id="add-inventory-form" class="inventory-card" novalidate>
         <div class="inventory-fields">
 
-          <!-- 🌿 Inventory Control Panel -->
-          <div class="inventory-panel hidden">
-            <h3>Adjust Inventory</h3>
-
-            <div class="input-grid">
-              <div><label>📊 In Stock</label><input id="in-stock"/></div>
-              <div><label>🔢 Running</label><input id="running" type="number" value="0" /></div>
-              <div><label>📦 Received</label><input id="received" type="number" value="0" /></div>
-              <div><label>🔢 Counted</label><input id="counted" type="number" value="0" /></div>
-              <div><label>💥 Damaged</label><input id="damaged" type="number" value="0" /></div>
-              <div><label>💰 Sale Price ($)</label><input id="sale-price" type="number" step="0.01" value="0" /></div>
-            </div>
+          <!-- 🔹 STOCK -->
+          <div class="field-group">
+            <label>📊 Stock</label>
+            <input id="in-stock" type="number" min="0" />
           </div>
 
           <!-- 🔹 SKU -->
@@ -76,7 +67,9 @@
           <!-- 🔹 STABLE SKU -->
           <div class="field-group">
             <label>Stable SKU</label>
-            <input type="text" id="stable-sku" placeholder="e.g. BKM-001 (shared code)">
+            <select id="stable-sku">
+              <option value="">— None —</option>
+            </select>
           </div>
 
           <!-- 🔹 PRODUCT TITLE -->
@@ -92,22 +85,32 @@
           </div>
 
           <!-- 🔹 UNIT COST -->
-<div class="field-group">
-  <label>Unit Cost ($)</label>
-  <input type="text" id="unit-cost" inputmode="decimal" placeholder="0.00">
-</div>
+          <div class="field-group">
+            <label>Unit Cost ($)</label>
+            <input type="text" id="unit-cost" inputmode="decimal" placeholder="0.00">
+          </div>
 
-<!-- 🔹 RETAIL PRICE -->
-<div class="field-group">
-  <label>Retail Price ($)</label>
-  <input type="text" id="price" inputmode="decimal" placeholder="0.00">
-</div>
+          <div class="field-group">
+          <label>Bulk Quantity Purchased</label>
+          <input type="number" id="bulk-quantity" placeholder="e.g. 100" min="0">
+        </div>
 
-<!-- 🔹 PROFIT MARGIN -->
-<div class="field-group">
-  <label>Profit Margin ($)</label>
-  <input type="text" id="profit-margin" placeholder="0.00" readonly>
-</div>
+        <div class="field-group">
+          <label>Total Bulk Cost ($)</label>
+          <input type="text" id="bulk-cost" placeholder="e.g. 50.00" inputmode="decimal">
+        </div>
+
+          <!-- 🔹 RETAIL PRICE -->
+          <div class="field-group">
+            <label>Retail Price ($)</label>
+            <input type="text" id="price" inputmode="decimal" placeholder="0.00">
+          </div>
+
+          <!-- 🔹 PROFIT MARGIN -->
+          <div class="field-group">
+            <label>Profit Margin ($)</label>
+            <input type="text" id="profit-margin" placeholder="0.00" readonly>
+          </div>
 
           <!-- 🔹 UNITS IN SET -->
           <div class="field-group">
@@ -117,10 +120,13 @@
 
           <!-- 🔹 STATUS -->
           <div class="field-group">
-            <label>Status</label>
+            <label for="status">Status</label>
             <select id="status">
-              <option value="active" selected>Active (show in POS)</option>
-              <option value="inactive">Inactive (hide from POS)</option>
+              <option value="">Select...</option>
+              <option value="Active">Active</option>
+              <option value="Out of Stock">Out of Stock</option>
+              <option value="Inactive">Inactive</option>
+              <option value="Discontinued">Discontinued</option>
             </select>
           </div>
 
@@ -132,8 +138,10 @@
 
           <!-- 🔹 VENDOR -->
           <div class="field-group">
-            <label>Vendor</label>
-            <input type="text" id="vendor" placeholder="Vendor name">
+            <label for="vendor">Vendor</label>
+            <select id="vendor">
+              <option value="">— Select or Add Vendor —</option>
+            </select>
           </div>
 
           <!-- 🔹 DESCRIPTION -->
@@ -149,30 +157,27 @@
           </div>
 
         </div> <!-- end inventory-fields -->
+      </form>
 
-        <!-- 🔹 ACTION BUTTONS -->
-        <div class="toolbar flex-row">
-          <button type="submit" id="save-item-btn">
-            <i class="fa-solid fa-floppy-disk"></i> Save
-          </button>
-          <button type="button" id="update-item-btn" class="secondary-btn hidden">
-            <i class="fa-solid fa-pen"></i> Update
-          </button>
-          <button type="reset" id="clear-form-btn" class="secondary-btn">
-            <i class="fa-solid fa-eraser"></i> Clear
-          </button>
-        </div>
+      <!-- 🔹 ACTION BUTTONS -->
+      <div class="toolbar flex-row">
+        <button type="button" id="save-item-btn" class="primary-btn">
+          <i class="fa-solid fa-floppy-disk"></i> Submit Changes
+        </button>
+        <button type="button" id="clear-form-btn" class="secondary-btn">
+          <i class="fa-solid fa-eraser"></i> Clear
+        </button>
+      </div>
 
-            </form>
     </article>
-  </section> <!-- ✅ close .order here -->
+  </section> <!-- ✅ close .order -->
 
-  <!-- ✅ PRODUCT GRID / MODAL SECTION -->
+  <!-- ✅ PRODUCT GRID -->
   <section class="menu-payment grid">
     <div class="menu flex-row" id="menu"></div>
   </section>
-</main>
 
+</main>
 
     <!-- ===== PRODUCT GRID ===== -->
     <div id="product-modal" class="modal-overlay hidden">
