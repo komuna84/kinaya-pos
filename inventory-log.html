@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>Kinaya Rising — Inventory Log</title>
+
+  <!-- ===== META ===== -->
+  <meta name="description"
+        content="Kinaya Rising Inventory Log — Record incoming stock, damage, manual counts, or adjustments per SKU." />
+
+  <!-- ===== GLOBAL FONTS & ICONS ===== -->
+  <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+  <link rel="apple-touch-icon" sizes="192x192" href="assets/favicon-192.png">
+  <link rel="manifest" href="assets/manifest.json">
+  <meta name="theme-color" content="#00c6ff">
+
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Roboto:wght@300;400;700&display=swap"
+        rel="stylesheet" />
+
+  <!-- ===== UNIFIED KINAYA STYLES ===== -->
+  <link rel="stylesheet" href="styles/kinaya-base.css?v=7" />
+  <link rel="stylesheet" href="styles/dashboard.css?v=7" />
+  <link rel="stylesheet" href="styles/inventory-log.css?v=1" />
+
+  <!-- ===== ACCESS LOCK ===== -->
+  <script>
+    if (sessionStorage.getItem("posUnlocked") !== "true") {
+      window.location.href = "index.html";
+    }
+  </script>
+</head>
+
+<body>
+  <!-- ===== HEADER ===== -->
+  <header class="pos-header">
+    <h1>Inventory Log</h1>
+    <p class="subtitle">Record incoming stock, damage, manual counts, or adjustments per SKU.</p>
+  </header>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="pos-container">
+
+    <!-- 🌿 INVENTORY ENTRY PANEL -->
+    <section class="receipt">
+      <h2 class="glow-title">📦 Add Inventory Adjustment</h2>
+
+      <form id="inventory-log-form" class="inventory-card">
+        <!-- ITEM GROUP 1 -->
+        <div class="item-group">
+          <div class="item">
+            <label>SKU</label>
+            <select class="sku">
+              <option value="">Select SKU...</option>
+            </select>
+          </div>
+
+          <div class="item">
+            <label>Product Title</label>
+            <input class="product-title" type="text" placeholder="Auto-filled" disabled>
+          </div>
+
+          <div class="item">
+            <label>Type</label>
+            <select class="type">
+              <option value="">Select...</option>
+              <option value="Received">Received</option>
+              <option value="Damaged">Damaged</option>
+              <option value="Missing">Missing</option>
+              <option value="Manual Count">Manual Count</option>
+            </select>
+          </div>
+
+          <div class="item">
+            <label>Quantity</label>
+            <input class="quantity" type="number" value="0">
+          </div>
+
+          <div class="item">
+            <label>Vendor</label>
+            <select class="vendor">
+              <option value="">Select Vendor...</option>
+            </select>
+          </div>
+
+          <div class="item">
+            <label>Date</label>
+            <input class="date" type="date">
+          </div>
+        </div>
+
+        <!-- 🌿 BUTTONS UNDER THE ROW -->
+        <div class="button-row">
+          <button type="button" class="save-btn" id="add-line-btn">+ Add Item</button>
+          <button type="button" class="save-btn" id="submit-log-btn">Submit to Log</button>
+          <button type="button" class="clear-btn" id="clear-log-btn">Clear</button>
+        </div>
+      </form>
+      <div class="view-inventory-row">
+  <button id="view-inventory-btn" class="glow-btn">View Inventory</button>
+</div>
+
+    </section>
+
+    <!-- 🌿 INVENTORY LOG OVERVIEW -->
+    <section class="receipt">
+      <h2 class="glow-title">📊 Inventory Log Overview</h2>
+      <p class="glow-subtext">Review your recent stock changes below.</p>
+
+      <div class="table-wrapper">
+        <table id="inventory-log-table" class="glow-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>SKU</th>
+              <th>Product Title</th>
+              <th>Type</th>
+              <th>Quantity</th>
+              <th>Vendor</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="6" style="text-align:center; opacity:0.7;">
+                Loading log data...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== NAVIGATION ===== -->
+  <nav class="kinaya-nav">
+    <a href="sale.html" class="nav-btn">
+      <i class="fas fa-cash-register"></i><span>Sales</span>
+    </a>
+    <a href="inventory.html" class="nav-btn active">
+      <i class="fas fa-boxes"></i><span>Inventory</span>
+    </a>
+    <a href="expense-log.html" class="nav-btn">
+      <i class="fas fa-receipt"></i><span>Expenses</span>
+    </a>
+    <a href="data.html" class="nav-btn">
+      <i class="fas fa-chart-line"></i><span>Data</span>
+    </a>
+  </nav>
+
+  <!-- ===== JS MODULE ===== -->
+  <script src="scripts/inventory-log.js" defer></script>
+
+  <!-- Flatpickr (optional pretty date picker) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr" defer></script>
+  <script defer>
+    document.addEventListener("DOMContentLoaded", () => {
+      // Auto-fill all .date inputs with today's date
+      document.querySelectorAll(".date").forEach(input => {
+        input.valueAsDate = new Date();
+      });
+
+      // Optional pretty picker (if you still want it)
+      flatpickr(".date", {
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "F j, Y",
+        allowInput: true
+      });
+    });
+  </script>
+</body>
+</html>
