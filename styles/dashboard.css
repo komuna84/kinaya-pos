@@ -1,654 +1,406 @@
-// ===========================================================
-// 🌿 KINAYA RISING — UNIFIED BUSINESS DASHBOARD (2025 FINAL)
-// ===========================================================
-// Purpose: Fetches data from your Google Apps Script backend,
-// aggregates metrics, renders charts, and updates your HTML dashboard.
-// ===========================================================
+/* ============================================================
+   🌿 KINAYA RISING — BUSINESS DASHBOARD (2025 FINAL CLEAN)
+   Unified "Kinaya Glow" System | Extends kinaya-base.css
+   ============================================================ */
 
-document.addEventListener("DOMContentLoaded", () => {
-  console.log("🌿 Kinaya Dashboard initializing...");
+/* ============================================================
+🔹 HEADER
+============================================================ */
+header.pos-header {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%;
+  text-align: center;
+  background: rgba(5, 25, 35, 0.6);
+  border-bottom: 1px solid rgba(0,198,255,0.25);
+  box-shadow: 0 2px 12px rgba(0,198,255,0.15);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  padding: 1rem 0;
+}
+header.pos-header .subtitle {
+  color: #78dfff;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
 
-  // ===========================================================
-  // 🔗 CONFIGURATION
-  // ===========================================================
-  const API_URL =
-    "https://script.google.com/macros/s/AKfycbw3lgHk_DldA6zdUYsek6FTO64qtSEnE86nOdW5xNxWZbhiDHAvS53jtk6zuuf5tjJOkw/exec"; // 🔹 Replace if redeployed
+/* ============================================================
+🌿 FIX: MAIN CONTAINER OFFSET FOR FIXED HEADER + FOOTER
+Applies dynamic spacing without breaking glow layout
+============================================================ */
 
-  // Dashboard control elements
-  const startInput = document.getElementById("start-date");
-  const endInput = document.getElementById("end-date");
-  const refreshBtn = document.getElementById("refresh-btn");
-  const compareToggle = document.getElementById("compare-toggle");
+/* Base adjustment for all pages that use .pos-header + bottom nav */
+main.pos-container {
+  padding-top: 8.0rem !important;   /* pushes below fixed header */
+  padding-bottom: 6.5rem !important; /* leaves space above fixed footer */
+}
 
-  // ===========================================================
-  // 🧩 HELPER FUNCTIONS
-  // ===========================================================
-
-  // 🔹 Assign text content to an element by ID (safe)
-  function assign(id, val) {
-  const el = document.getElementById(id);
-  if (el) {
-    el.textContent = val;
-  } else {
-    console.warn(`⚠️ Missing element for ID: ${id}`);
+/* Tighten spacing for smaller devices */
+@media (max-width: 768px) {
+  main.pos-container {
+    padding-top: calc(5.5rem + env(safe-area-inset-top)) !important;
+    padding-bottom: calc(6.5rem + env(safe-area-inset-bottom)) !important;
   }
 }
 
-  // 🔹 Temporary on-screen message
-  function showToast(msg) {
-    const toast = document.createElement("div");
-    toast.textContent = msg;
-    toast.style.cssText = `
-      position:fixed;bottom:3rem;left:50%;transform:translateX(-50%);
-      background:rgba(0,198,255,0.15);border:1px solid #00c6ff;
-      color:#bffcff;font-family:'Audiowide',sans-serif;
-      padding:0.6rem 1.4rem;border-radius:10px;
-      box-shadow:0 0 15px rgba(0,198,255,0.3);
-      z-index:9999;opacity:1;transition:opacity 0.6s ease;`;
-    document.body.appendChild(toast);
-    setTimeout(() => (toast.style.opacity = 0), 1500);
-    setTimeout(() => toast.remove(), 2100);
-  }
-
-  // ===========================================================
-  // 📡 API FETCHERS
-  // ===========================================================
-
-  // 🔹 Core: Load dashboard JSON from backend
-  async function fetchDashboardData(start, end) {
-    try {
-      const res = await fetch(
-        `${API_URL}?mode=dashboard&start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`
-      );
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      if (!data.success) throw new Error(data.message || "No data returned");
-      return data;
-    } catch (err) {
-      console.error("❌ Dashboard fetch failed:", err);
-      return null;
-    }
-  }
-
-// ===========================================================
-// 📦 INVENTORY BAR CHART — Retail vs Unit Price (Labeled)
-// ===========================================================
-async function drawInventoryMetrics() {
-  try {
-    const res = await fetch(`${API_URL}?mode=pos`);
-    const json = await res.json();
-    const products = json.data || [];
-    if (!Array.isArray(products) || products.length === 0) return;
-
-    // --- Summary metrics ---
-    const totalUnits = products.reduce(
-      (s, p) => s + (parseFloat(p["In Stock"]) || 0),
-      0
-    );
-
-    const totalValue = products.reduce((s, p) => {
-      const stock = parseFloat(p["In Stock"]) || 0;
-      const unit = parseFloat(p["Unit Price"]) || 0;
-      return s + stock * unit;
-    }, 0);
-
-    const avgCost = totalUnits ? totalValue / totalUnits : 0;
-    const lowStock = products.filter(
-      (p) => (parseFloat(p["In Stock"]) || 0) <= 5
-    ).length;
-
-    // --- Assign summary numbers to dashboard cards ---
-    assign("inv-total-units", totalUnits);
-    assign("inv-stock-value", `$${totalValue.toFixed(2)}`);
-    assign("inv-avg-cost", `$${avgCost.toFixed(2)}`);
-    assign("inv-low-stock", lowStock);
-
-    // ===========================================================
-    // 🌿 SELL-THROUGH RATE (NEW)
-    // ===========================================================
-    // Attempt to calculate using available product fields
-    const unitsReceived = products.reduce(
-      (sum, p) => sum + (parseFloat(p["Received"]) || 0),
-      0
-    );
-    const unitsSold = products.reduce(
-      (sum, p) => sum + (parseFloat(p["Units Sold"]) || 0),
-      0
-    );
-
-    const sellThroughRate =
-      unitsReceived > 0
-        ? ((unitsSold / unitsReceived) * 100).toFixed(1) + "%"
-        : "0%";
-
-    assign("sell-through-rate", sellThroughRate);
-
-    console.log(
-      `📊 Sell-Through Rate: ${sellThroughRate} (${unitsSold} sold / ${unitsReceived} received)`
-    );
-
-    // ===========================================================
-    // 🎨 CHART RENDERING — Retail vs Unit Price
-    // ===========================================================
-    const ctx = document.getElementById("inventory-bar-chart");
-    if (!ctx) return;
-
-    new Chart(ctx, {
-      type: "bar",
-      data: {
-        labels: products.map((p) => p["Product Title"] || p["Sku"]),
-        datasets: [
-          {
-            label: "Retail Value (In Stock × Retail Price)",
-            data: products.map(
-              (p) =>
-                (parseFloat(p["In Stock"]) || 0) *
-                (parseFloat(p["Retail Price"]) || 0)
-            ),
-            backgroundColor: "rgba(0,198,255,0.6)",
-          },
-          {
-            label: "Unit Value (In Stock × Unit Price)",
-            data: products.map(
-              (p) =>
-                (parseFloat(p["In Stock"]) || 0) *
-                (parseFloat(p["Unit Price"]) || 0)
-            ),
-            backgroundColor: "rgba(255,180,80,0.6)",
-          },
-        ],
-      },
-      options: {
-        plugins: {
-          legend: {
-            labels: { color: "#A7E1EE", font: { family: "Audiowide" } },
-          },
-          tooltip: {
-            callbacks: {
-              title: (context) => context[0].label,
-              label: (context) => {
-                const p = products[context.dataIndex];
-                const stock = parseFloat(p["In Stock"]) || 0;
-                const retail = parseFloat(p["Retail Price"]) || 0;
-                const unit = parseFloat(p["Unit Price"]) || 0;
-                return [
-                  `In Stock: ${stock}`,
-                  `Retail Price: $${retail.toFixed(2)}`,
-                  `Unit Price: $${unit.toFixed(2)}`,
-                  `Retail Value: $${(stock * retail).toFixed(2)}`,
-                  `Unit Value: $${(stock * unit).toFixed(2)}`,
-                ];
-              },
-            },
-          },
-          datalabels: {
-            color: "#A7E1EE",
-            anchor: "end",
-            align: "end",
-            font: { family: "Audiowide", size: 9 },
-            formatter: (value, ctx) => {
-              const p = products[ctx.dataIndex];
-              const retail = parseFloat(p["Retail Price"]) || 0;
-              const unit = parseFloat(p["Unit Price"]) || 0;
-              return `Retail: $${retail.toFixed(2)}\nUnit: $${unit.toFixed(2)}`;
-            },
-          },
-        },
-        scales: {
-          x: {
-            ticks: {
-              color: "#A7E1EE",
-              autoSkip: false,
-              maxRotation: 60,
-              minRotation: 45,
-              font: { size: 10 },
-            },
-          },
-          y: { beginAtZero: true, ticks: { color: "#A7E1EE" } },
-        },
-      },
-      plugins: [ChartDataLabels],
-    });
-  } catch (err) {
-    console.error("❌ Inventory metrics failed:", err);
+/* Give logs a bit more breathing room on desktop */
+@media (min-width: 1024px) {
+  main.inventory-log.pos-container,
+  main.expense-log.pos-container {
+    padding-bottom: 8rem !important;
   }
 }
 
-
-// ===========================================================
-// 🧾 RENDER INVENTORY SUMMARY CARDS (for mobile + desktop)
-// ===========================================================
-function renderInventorySummary(products) {
-  const container = document.getElementById("inventory-summary");
-  if (!container) return;
-
-  container.innerHTML = products
-    .map(p => {
-      const title = p["Product Title"] || p["Sku"];
-      const stock = parseFloat(p["In Stock"]) || 0;
-      const unit = parseFloat(p["Unit Price"]) || 0;
-      const retail = parseFloat(p["Retail Price"]) || 0;
-      const costValue = stock * unit;
-      const retailValue = stock * retail;
-      return `
-        <div class="inventory-card">
-          <strong>${title}</strong><br>
-          <small>In Stock: ${stock}</small><br>
-          <small>Cost Value: $${costValue.toFixed(2)}</small><br>
-          <small>Retail Value: $${retailValue.toFixed(2)}</small>
-        </div>
-      `;
-    })
-    .join("");
+/* ---------- CONTROL PANEL ---------- */
+.dashboard-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-bottom: 1.5rem;
+}
+.dashboard-controls select,
+.dashboard-controls input {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(0,198,255,0.25);
+  border-radius: var(--radius-md);
+  color: var(--color-accent);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+  outline: none;
+  box-shadow: 0 0 8px rgba(0,198,255,0.1);
 }
 
+/* ---------- TOGGLE SWITCH ---------- */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 46px;
+  height: 24px;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid var(--color-accent);
+  border-radius: 20px;
+  transition: 0.3s;
+}
+.slider::before {
+  content: "";
+  position: absolute;
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: var(--color-accent);
+  border-radius: 50%;
+  transition: transform 0.3s;
+}
+input:checked + .slider {
+  background-color: rgba(167,225,238,0.2);
+}
+input:checked + .slider::before {
+  transform: translateX(22px);
+}
 
-// ===========================================================
-// 📦 INVENTORY BAR CHART — Direct read from POS
-// Shows current stock vs low stock thresholds
-// ===========================================================
-async function drawInventoryMetrics() {
-  try {
-    const res = await fetch(`${API_URL}?mode=pos`);
-    const json = await res.json();
-    const products = json.data || [];
-    if (!Array.isArray(products) || products.length === 0) return;
+/* ============================================================
+   🌿 KINAYA RISING DASHBOARD — FUTURISTIC GLOW EDITION
+   ============================================================ */
 
-    // ---------- SUMMARY METRICS ----------
-    const totalUnits = products.reduce((s, p) => s + (parseFloat(p["In Stock"]) || 0), 0);
-    const totalValue = products.reduce((s, p) => {
-      const stock = parseFloat(p["In Stock"]) || 0;
-      const cost =
-        parseFloat(p[" Bulk Cost ($) "]) ||
-        parseFloat(p["Unit Price"]) ||
-        parseFloat(p[" Retail Price "]) ||
-        0;
-      return s + stock * cost;
-    }, 0);
-    const avgCost = totalUnits ? totalValue / totalUnits : 0;
-    const lowStock = products.filter((p) => (parseFloat(p["In Stock"]) || 0) <= 5).length;
+/* ---------- LAYOUT & SCROLL ---------- */
+html, body {
+  height: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: radial-gradient(circle at top, #031318 0%, #020a0f 100%);
+}
 
-    assign("inv-total-units", totalUnits);
-    assign("inv-stock-value", `$${totalValue.toFixed(2)}`);
-    assign("inv-avg-cost", `$${avgCost.toFixed(2)}`);
-    assign("inv-low-stock", lowStock);
+main.dashboard {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-auto-rows: minmax(420px, auto);
+  gap: 1.75rem;
+  padding: 2.5rem 3rem 8rem 3rem; /* extra bottom padding for sticky bar */
+  align-items: stretch;
+  justify-content: center;
+  perspective: 1000px;
+  animation: fadeInUp 0.8s ease forwards;
+}
 
-    // ---------- VISUALIZATION ----------
-    const ctx = document.getElementById("inventory-bar-chart");
-    if (!ctx) return;
+/* ---------- PANELS ---------- */
+.panel {
+  grid-column: span 4;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: linear-gradient(
+    145deg,
+    rgba(0,198,255,0.05) 0%,
+    rgba(10,30,45,0.35) 100%
+  );
+  border: 1px solid rgba(0,198,255,0.15);
+  box-shadow:
+    inset 0 0 20px rgba(0,198,255,0.05),
+    0 0 18px rgba(0,198,255,0.1);
+  backdrop-filter: blur(12px);
+  transition: all 0.4s ease;
+  transform-style: preserve-3d;
+  padding: 1.5rem 1.8rem;
+}
+.panel:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow:
+    0 0 28px rgba(0,198,255,0.3),
+    0 0 12px rgba(0,198,255,0.15) inset;
+  border-color: rgba(0,198,255,0.35);
+}
+.panel.wide {
+  grid-column: span 12;
+  min-height: 520px;
+  background: linear-gradient(
+    160deg,
+    rgba(0,198,255,0.05) 0%,
+    rgba(10,30,45,0.4) 100%
+  );
+  border: 1px solid rgba(0,198,255,0.2);
+  box-shadow:
+    inset 0 0 25px rgba(0,198,255,0.08),
+    0 0 35px rgba(0,198,255,0.2);
+}
 
-    new Chart(ctx, {
-      type: "bar",
-      data: {
-        labels: products.map((p) => p["Product Title"] || p["Sku"]),
-        datasets: [
-          {
-            data: products.map((p) => parseFloat(p["In Stock"]) || 0),
-            backgroundColor: products.map((p) =>
-              (parseFloat(p["In Stock"]) || 0) <= 5
-                ? "rgba(255,80,80,0.7)" // alert color for low stock
-                : "rgba(0,198,255,0.6)" // calm cyan for healthy stock
-            ),
-            borderRadius: 4,
-          },
-        ],
-      },
-      options: {
-        plugins: { legend: { display: false } },
-        scales: {
-          x: {
-            ticks: {
-              color: "#A7E1EE",
-              autoSkip: false,
-              maxRotation: 60,
-              minRotation: 45,
-              font: { size: 9 },
-            },
-            grid: { display: false },
-          },
-          y: {
-            beginAtZero: true,
-            ticks: { color: "#A7E1EE" },
-            grid: { color: "rgba(0,198,255,0.05)" },
-          },
-        },
-      },
-    });
-  } catch (err) {
-    console.error("❌ Inventory metrics failed:", err);
+/* ---------- RESPONSIVE BREAKPOINTS ---------- */
+@media (max-width: 1024px) {
+  main.dashboard {
+    grid-template-columns: repeat(6, 1fr);
+    grid-auto-rows: minmax(400px, auto);
+  }
+  .panel { grid-column: span 6; }
+  .panel.wide { grid-column: span 12; }
+}
+
+@media (max-width: 768px) {
+  main.dashboard {
+    grid-template-columns: 1fr;
+    grid-auto-rows: auto;
+    padding: 1.5rem;
+  }
+  .panel, .panel.wide {
+    grid-column: span 12;
+    min-height: auto;
   }
 }
 
-// ===========================================================
-// 🧮 PRODUCT ANALYTICS SNAPSHOT — Top/Low Stock + Avg Margin
-// ===========================================================
-async function drawProductAnalytics() {
-  try {
-    const res = await fetch(`${API_URL}?mode=productAnalytics`);
-    const json = await res.json();
-    const info = json.data || {};
+/* ---------- PANEL HEADERS ---------- */
+.panel h2 {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  letter-spacing: 0.03em;
+  color: var(--color-accent-light);
+  text-shadow: 0 0 14px rgba(0,198,255,0.7);
+  margin-bottom: 0.75rem;
+  position: relative;
+}
+.panel h2::after {
+  content: "";
+  display: block;
+  height: 2px;
+  width: 40%;
+  background: linear-gradient(90deg, rgba(0,198,255,0.8), rgba(0,198,255,0));
+  margin-top: 0.3rem;
+  border-radius: 2px;
+}
 
-    assign("top-products", (info.topSelling || []).join(", ") || "–");
-    assign("low-stock-products", (info.lowStock || []).join(", ") || "–");
-    assign("profit-margin", info.avgMargin ? `${info.avgMargin.toFixed(1)}%` : "–");
-    assign("total-skus", info.totalSkus || "–");
-  } catch (err) {
-    console.error("❌ Product Analytics failed:", err);
+/* ---------- METRICS ---------- */
+.metric,
+.panel p {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0.4rem 0;
+  padding: 0 0.3rem;
+  font-size: 0.95rem;
+  color: var(--color-accent);
+}
+.metric strong {
+  color: var(--color-accent-light);
+  font-weight: 700;
+  font-size: 1rem;
+  text-shadow: 0 0 8px rgba(0,198,255,0.4);
+}
+
+/* ---------- CHART AREA ---------- */
+.panel canvas {
+  margin: 1rem 0;
+  background: rgba(0,198,255,0.03);
+  border-radius: var(--radius-md);
+  box-shadow: inset 0 0 12px rgba(0,198,255,0.05);
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+.panel canvas:hover {
+  box-shadow:
+    0 0 12px rgba(0,198,255,0.25),
+    inset 0 0 10px rgba(0,198,255,0.15);
+}
+
+/* ---------- GLOW BUTTONS ---------- */
+.glow-button {
+  margin-top: auto;
+  width: 100%;
+  border: 1px solid rgba(0,198,255,0.6);
+  color: var(--color-accent-light);
+  border-radius: var(--radius-md);
+  text-align: center;
+  font-weight: 600;
+  background: rgba(0,198,255,0.05);
+  padding: 0.6rem 1rem;
+  transition: all 0.25s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.glow-button:hover {
+  background: var(--color-accent);
+  color: #0b0b0b;
+  box-shadow:
+    0 0 20px rgba(0,198,255,0.5),
+    0 0 40px rgba(0,198,255,0.3);
+  transform: translateY(-1px);
+}
+
+/* ---------- REPORT ACTION BAR ---------- */
+.report-actions {
+  position: sticky;
+  bottom: 0;
+  background: rgba(0,10,20,0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.8rem 1.5rem;
+  border-top: 1px solid rgba(0,198,255,0.25);
+  z-index: 99;
+  animation: fadeInUp 0.6s ease forwards;
+}
+.report-actions .glow-button {
+  width: auto;
+  min-width: 160px;
+  font-size: 0.85rem;
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+@media (max-width: 768px) {
+  .report-actions {
+    flex-direction: column;
+    gap: 0.6rem;
+    align-items: stretch;
   }
 }
 
-// ===========================================================
-// 💹 METRIC ASSIGNER — Feeds live numbers to UI boxes
-// Maps backend metrics to dashboard panels
-// ===========================================================
-function updateMetrics(m = {}) {
-  // --- Structured sections for clarity ---
-  const inv  = m.inventoryOverview || {};
-  const log  = inv.logSummary       || {};
-  const rec  = m.reconciliation     || {};
-  const cust = m.customerInsights   || {};
+/* ---------- ANIMATIONS ---------- */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
-  // ===========================================================
-  // 🧾 SALES & PRODUCT PERFORMANCE
-  // ===========================================================
-  assign("total-revenue", `$${(m.totalRevenue || 0).toFixed(2)}`);
-  assign("gross-profit", `$${(m.grossProfit || 0).toFixed(2)}`);
-  assign("net-profit", `$${(m.netProfit || 0).toFixed(2)}`);
-  assign("account-net-profit", `$${(m.netProfit || 0).toFixed(2)}`);
-  assign("avg-transaction", `$${(m.avgTransactionValue || 0).toFixed(2)}`);
-  assign("units-sold", m.unitsSold || 0);
-  assign("tax-collected", `$${(m.taxCollected || 0).toFixed(2)}`);
-  assign("expenses", `$${(m.totalExpenses || 0).toFixed(2)}`);
-  assign("profit-margin", `${(m.profitMargin || 0).toFixed(1)}%`);
+.inventory-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
 
-  // ===========================================================
-  // 🧭 CUSTOMER INSIGHTS & BEHAVIOR
-  // ===========================================================
-  assign("num-transactions", m.totalTransactions || 0);             // total completed sales
-  assign("unique-customers", cust.uniqueCustomers || 0);            // distinct buyers
-  assign("repeat-customers", cust.repeatCustomers || 0);            // returning buyers
-  assign("retention-rate", `${(cust.retentionRate || 0).toFixed(1)}%`);
-  assign("refund-rate", `${(cust.refundCount || 0)} returns`);
-  assign("emails-collected", cust.customerEmailsCollected || 0);
-  assign("avg-items-sale", m.avgItemsPerSale || 0);
-  assign("avg-frequency", `${(cust.purchaseFrequency || 0)}x / month`);
-  assign("customer-ltv", `$${(cust.lifetimeValue || 0).toFixed(2)}`);
+.inventory-card {
+  background: rgba(10, 20, 25, 0.6);
+  border: 1px solid rgba(0, 198, 255, 0.25);
+  border-radius: 12px;
+  padding: 0.75rem;
+  font-size: 0.85rem;
+  color: #a7e1ee;
+  box-shadow: inset 0 0 10px rgba(0,198,255,0.1);
+}
 
-  // ===========================================================
-  // 💌 SUBSCRIPTION RATE — Derived from sales log or customer data
-  // ===========================================================
-  try {
-    const records = m.records || []; // fallback if your backend returns all sales
-    let subscribedCount = 0;
-    let totalEmails = 0;
+@media (max-width: 600px) {
+  .inventory-summary {
+    grid-template-columns: 1fr;
+  }
+}
 
-    const uniqueEmails = new Set();
-    const uniqueSubs = new Set();
+/* ============================================================
+🌿 DASHBOARD CONTROLS SPACING TWEAK
+Adds breathing room below fixed header
+============================================================ */
 
-    // Some backends store customer info inside m.customerInsights.customers or m.sales
-    const allSales = m.sales || m.records || [];
-    allSales.forEach(r => {
-      const email = (r.Email || "").trim();
-      const subscribe = (r.Subscribe || "").toLowerCase();
-      if (email) {
-        uniqueEmails.add(email);
-        if (subscribe === "yes" || subscribe === "true") uniqueSubs.add(email);
-      }
-    });
+.dashboard-controls {
+  margin-top: 20px !important; /* ≈ 1.25rem — clears header glow */
+}
 
-    totalEmails = uniqueEmails.size;
-    subscribedCount = uniqueSubs.size;
 
-    const subscriptionRate = totalEmails > 0 ? (subscribedCount / totalEmails) * 100 : 0;
-    assign("subscription-rate", `${subscriptionRate.toFixed(0)}%`);
-  } catch (err) {
-    console.warn("⚠️ Could not compute subscription rate:", err);
-    assign("subscription-rate", "0%");
+/* ============================================================
+🌿 DASHBOARD SPACING — Balanced for Both Mobile & Desktop
+Keeps header/controls visible and bottom buttons reachable
+============================================================ */
+
+/* 🔹 MOBILE & TABLET */
+@media only screen and (max-width: 768px) {
+  main.dashboard {
+    padding-top: calc(6rem + env(safe-area-inset-top)) !important;   /* push below fixed header */
+    padding-bottom: calc(7rem + env(safe-area-inset-bottom)) !important; /* keep above bottom nav */
   }
 
-  // ===========================================================
-  // 📦 INVENTORY OVERVIEW
-  // ===========================================================
-  assign("inv-total-units", inv.totalUnitsInStock || 0);
-  assign("inv-stock-value", `$${(inv.totalStockValue || 0).toFixed(2)}`);
-  assign("inv-avg-cost", `$${(inv.avgCost || 0).toFixed(2)}`);
-  assign("inv-low-stock", inv.lowStockItems || 0);
-
-  // ===========================================================
-  // 📊 INVENTORY LOG ACTIVITY
-  // ===========================================================
-  assign("log-received", log.received || 0);
-  assign("log-damaged", log.damaged || 0);
-  assign("log-manual-count", log["manual count"] || 0);
-
-  // ===========================================================
-  // 💰 FINANCIAL HEALTH
-  // ===========================================================
-  assign("tax-deductible", `${(m.taxDeductibleRatio || 0).toFixed(1)}%`);
-  try {
-  const allRecords = m.sales || m.records || [];
-  const outstanding = allRecords.filter(r => {
-    const paid = parseFloat(r.Paid || 0);
-    const total = parseFloat(r.Total || 0);
-    // invoice is outstanding if not fully paid and not a return
-    return Math.abs(paid) < Math.abs(total) && total > 0;
-  }).length;
-
-  assign("outstanding-invoices", outstanding);
-} catch (err) {
-  console.warn("⚠️ Could not compute outstanding invoices:", err);
-  assign("outstanding-invoices", m.outstandingInvoices || 0);
-}
-
-  assign("outstanding-invoices", m.outstandingInvoices || 0);
-  assign("avg-expense-month", `$${(m.avgExpensePerMonth || 0).toFixed(2)}`);
-
-  // ===========================================================
-  // 🏷️ VENDOR & RECONCILIATION
-  // ===========================================================
-  assign("top-vendor", m.topVendor || "–");
-  assign("mismatch-count", rec.mismatchCount || 0);
-
-  // ===========================================================
-  // 🧠 DEBUG MODE (optional)
-  // Uncomment while testing to inspect returned metrics
-  // ===========================================================
-  console.table({
-     totalRevenue: m.totalRevenue,
-     uniqueCustomers: cust.uniqueCustomers,
-     totalUnitsInStock: inv.totalUnitsInStock,
-     topVendor: m.topVendor,
-     stockMismatchCount: rec.mismatchCount
-   });
-}
-
-// ===========================================================
-// 📈 SALES TREND CHART (fix for undefined error)
-// ===========================================================
-function drawSalesTrend(records = []) {
-  const ctx = document.getElementById("sales-trend");
-  if (!ctx) return;
-  if (window.salesTrendChart) {
-    window.salesTrendChart.destroy();
+  /* Ensure the controls bar isn’t hidden behind the header */
+  .dashboard-controls {
+    margin-top: 1rem !important;
   }
 
-  const totals = {};
-  records.forEach(r => {
-    const d = new Date(r["Date"]);
-    if (!isNaN(d)) {
-      const label = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-      totals[label] = (totals[label] || 0) + (parseFloat(r["Grand Total"]) || 0);
-    }
-  });
-
-  const labels = Object.keys(totals);
-  const values = Object.values(totals);
-
-  if (!labels.length) return;
-
-  const chartCtx = ctx.getContext("2d");
-  window.salesTrendChart = new Chart(chartCtx, {
-    type: "line",
-    data: {
-      labels,
-      datasets: [
-        {
-          label: "Revenue",
-          data: values,
-          borderColor: "#00c6ff",
-          backgroundColor: "rgba(0,198,255,0.2)",
-          fill: true,
-          tension: 0.3
-        }
-      ]
-    },
-    options: {
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { ticks: { color: "#A7E1EE" } },
-        y: { ticks: { color: "#A7E1EE" } }
-      }
-    }
-  });
-}
-
-// ===========================================================
-// 🚀 MAIN DASHBOARD LOADER — Pulls fresh data from backend
-// ===========================================================
-async function loadDashboard() {
-  const start = startInput.value;
-  const end = endInput.value;
-  console.log(`📊 Loading dashboard data from ${start} to ${end}...`);
-
-  const data = await fetchDashboardData(start, end);
-  if (!data || !data.metrics) return;
-
-  // ✅ Feed metrics as before
-  updateMetrics(data.metrics);
-
-  // ✅ Now compute Subscription Rate from full records
-  computeSubscriptionRate(data.records || []);
-
-  // ✅ Continue with charts
-  drawSalesTrend(data.records);
-  await drawInventoryMetrics();
-  await drawProductAnalytics();
-
-
-  showToast("📈 Dashboard refreshed");
-}
-
-// ===========================================================
-// 💌 SUBSCRIPTION RATE CALCULATOR — Uses raw sales records
-// ===========================================================
-function computeSubscriptionRate(records = []) {
-  if (!records.length) {
-    assign("subscription-rate", "—");
-    console.warn("⚠️ No sales records found for subscription rate.");
-    return;
+  /* Make sure the bottom sticky bar stays fully visible */
+  .report-actions {
+    position: sticky;
+    bottom: calc(env(safe-area-inset-bottom) + 0px);
   }
-
-  const uniqueEmails = new Set();
-  const uniqueSubs = new Set();
-
-  records.forEach(r => {
-    const email = (r.Email || "").trim();
-    const sub = (r.Subscribe || "").toLowerCase();
-    if (email) {
-      uniqueEmails.add(email);
-      if (sub === "yes" || sub === "true") uniqueSubs.add(email);
-    }
-  });
-
-  const total = uniqueEmails.size;
-  const subs = uniqueSubs.size;
-  const rate = total > 0 ? (subs / total) * 100 : 0;
-
-  assign("subscription-rate", `${rate.toFixed(0)}%`);
-
-  console.log(`💌 Subscription Rate: ${subs}/${total} (${rate.toFixed(0)}%)`);
 }
 
-  // ===========================================================
-  // 🧭 EVENT LISTENERS
-  // ===========================================================
-  refreshBtn.addEventListener("click", loadDashboard);
+/* 🔹 DESKTOP — dial back the spacing to normal */
+@media only screen and (min-width: 769px) {
+  main.dashboard {
+    padding-top: 1rem !important;   /* just enough to clear header */
+    padding-bottom: 8rem !important; /* consistent with other pages */
+  }
+}
 
-  // 🔹 Compare Period Toggle — compares previous date range
-  compareToggle.addEventListener("change", async () => {
-    if (!compareToggle.checked) return;
-    const start = new Date(startInput.value);
-    const end = new Date(endInput.value);
-    const days = (end - start) / (1000 * 60 * 60 * 24);
-    const prevStart = new Date(start);
-    prevStart.setDate(start.getDate() - days - 1);
-    const prevEnd = new Date(end);
-    prevEnd.setDate(end.getDate() - days - 1);
+/* ===== Date Picker (Consistent Style) ===== */
+input[type="date"] {
+  appearance: auto;
+  -webkit-appearance: auto;
+  background: rgba(5, 15, 20, 0.6);
+  border: 1px solid rgba(0, 198, 255, 0.2);
+  border-radius: 6px;
+  color: #bffcff;
+  font-size: 0.9rem;
+  padding: 0.5rem 0.7rem;
+  cursor: pointer;
+  z-index: 2;
+  position: relative;
+}
 
-    const prevData = await fetchDashboardData(
-      prevStart.toISOString().split("T")[0],
-      prevEnd.toISOString().split("T")[0]
-    );
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.8);
+  cursor: pointer;
+  opacity: 0.9;
+}
 
-    if (prevData?.metrics) {
-      alert(`Previous Total Revenue: $${prevData.metrics.totalRevenue.toFixed(2)}`);
-    }
-
-    // ===========================================================
-    // 🌿 EMAIL REPORT BUTTON HANDLERS
-    // ===========================================================
-    const API_URL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec"; // <-- replace with your Apps Script web app URL
-
-    async function triggerEmailReport(reportType, buttonEl) {
-      try {
-        buttonEl.disabled = true;
-        const originalText = buttonEl.textContent;
-        buttonEl.textContent = "⏳ Sending...";
-
-        // Call backend via GET or POST (using ?mode=email&type=weekly for example)
-        const res = await fetch(`${API_URL}?mode=sendReport&type=${encodeURIComponent(reportType)}`);
-        const json = await res.json();
-
-        if (json.success) {
-          buttonEl.textContent = "✅ Sent!";
-        } else {
-          buttonEl.textContent = "⚠️ Error";
-          console.error("Email error:", json.error || json.message);
-        }
-
-        setTimeout(() => {
-          buttonEl.textContent = originalText;
-          buttonEl.disabled = false;
-        }, 2500);
-      } catch (err) {
-        console.error("❌ Report email failed:", err);
-        buttonEl.textContent = "⚠️ Error";
-        setTimeout(() => {
-          buttonEl.textContent = originalText;
-          buttonEl.disabled = false;
-        }, 2500);
-      }
-    }
-
-    // Attach event listeners
-    document.addEventListener("DOMContentLoaded", () => {
-      const salesBtn = document.getElementById("email-sales");
-      const custBtn = document.getElementById("email-customers");
-      const finBtn = document.getElementById("email-financial");
-      const invBtn = document.getElementById("email-inventory");
-
-      if (salesBtn) salesBtn.addEventListener("click", () => triggerEmailReport("weekly", salesBtn));
-      if (custBtn) custBtn.addEventListener("click", () => triggerEmailReport("monthly", custBtn));
-      if (finBtn) finBtn.addEventListener("click", () => triggerEmailReport("quarterly", finBtn));
-      if (invBtn) invBtn.addEventListener("click", () => triggerEmailReport("yearly", invBtn));
-    });
-
-  });
+input[type="date"]:hover::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
 
 
-  // ===========================================================
-  // ✅ INITIALIZE DASHBOARD
-  // ===========================================================
-  loadDashboard();
-  console.log("✅ Kinaya Dashboard live sync ready.");
-});
