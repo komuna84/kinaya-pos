@@ -60,13 +60,13 @@
     </label>
 
     <label>Range:</label>
-    <input type="date" id="start-date" />
+    <input type="date" id="start-date" class="date"/>
     <span>to</span>
     <input type="date" id="end-date" />
 
     <label>Compare:
       <label class="switch">
-        <input type="checkbox" id="compare-toggle" />
+        <input type="checkbox" id="compare-toggle" class="date"/>
         <span class="slider"></span>
       </label>
     </label>
@@ -91,7 +91,7 @@
     <div class="metric"><h4>Manual Count</h4><p id="log-manual-count">0</p></div>
     <div class="metric"><span>Refund Rate</span><strong id="refund-rate">0%</strong></div>
     <div class="metric"><span>Sell-Through Rate</span><strong id="sell-through">0%</strong></div>
-    <button type="button" class="glow-button">Email Sales Report</button>
+    <!-- <button type="button" id="email-sales" class="glow-button">Email Sales Report</button> -->
   </section>
 
   <!-- B. CUSTOMER INSIGHTS & BEHAVIOR -->
@@ -107,7 +107,7 @@
   <div class="metric"><span>Customer Emails Collected</span><strong id="emails-collected">0</strong></div>
   <div class="metric"><span>Unique Customers</span><strong id="unique-customers">0</strong></div>
   <div class="metric"><span>Subscription Rate</span><strong id="subscription-rate">0%</strong></div>
-  <button type="button" class="glow-button">Email Customer Report</button>
+  <!-- <button type="button" id="email-customers" class="glow-button">Email Customer Report</button> -->
 </section>
 
 
@@ -125,7 +125,7 @@
     <div class="metric"><span>Avg Exepense Month</span><strong id="avg-expense-month">$0.00</strong></div>
     <div class="metric"><span>Top Vendor</span><strong id="top-vendor">–</strong></div>
 
-    <button type="button" class="glow-button">Email Financial Report</button>
+    <!-- <button type="button" id="email-financial" class="glow-button">Email Financial Report</button> -->
   </section>
 
   <!-- D. INVENTORY OVERVIEW & MANAGEMENT (LONG BOX) -->
@@ -143,7 +143,7 @@
     <div class="chart-container" style="margin-top: 1rem;">
       <h3>Inventory by SKU</h3>
       <canvas id="inventory-bar-chart" height="160"></canvas>
-    <button type="button" class="glow-button">Email Inventory Report</button>
+    <!-- <button type="button" id="email-inventory" class="glow-button">Email Inventory Report</button> -->
   </section>
 
 </main>
@@ -170,5 +170,21 @@
   <!-- ===== CHARTS & DASHBOARD LOGIC ===== -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="scripts/dashboard.js?v=7" defer></script>
+  <script defer>
+    document.addEventListener("DOMContentLoaded", () => {
+      // Auto-fill all .date inputs with today's date
+      document.querySelectorAll(".date").forEach(input => {
+        input.valueAsDate = new Date();
+      });
+
+      // Optional pretty picker (if you still want it)
+      flatpickr(".date", {
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "F j, Y",
+        allowInput: true
+      });
+    });
+  </script>
 </body>
 </html>
