@@ -15,6 +15,7 @@ body {
   padding: 0;
   overflow-x: hidden;
   transition: background 0.3s ease;
+
 }
 
 h1, h2, h3 {
@@ -42,6 +43,33 @@ header.pos-header .subtitle {
   color: #78dfff;
   font-size: 0.9rem;
   opacity: 0.8;
+}
+
+/* ============================================================
+🌿 FIX: MAIN CONTAINER OFFSET FOR FIXED HEADER + FOOTER
+Applies dynamic spacing without breaking glow layout
+============================================================ */
+
+/* Base adjustment for all pages that use .pos-header + bottom nav */
+main.pos-container {
+  padding-top: 6.5rem !important;   /* pushes below fixed header */
+  padding-bottom: 5.5rem !important; /* leaves space above fixed footer */
+}
+
+/* Tighten spacing for smaller devices */
+@media (max-width: 768px) {
+  main.pos-container {
+    padding-top: calc(5.5rem + env(safe-area-inset-top)) !important;
+    padding-bottom: calc(6.5rem + env(safe-area-inset-bottom)) !important;
+  }
+}
+
+/* Give logs a bit more breathing room on desktop */
+@media (min-width: 1024px) {
+  main.inventory-log.pos-container,
+  main.expense-log.pos-container {
+    padding-bottom: 8rem !important;
+  }
 }
 
 /* ============================================================
@@ -653,3 +681,80 @@ tr.return-line td {
   transform: scale(1.05);
   box-shadow: 0 0 35px #00c6ff;
 }
+
+/* ============================================================
+🌿 POS PAGE — DESKTOP NO-SCROLL MODE
+Prevents page scroll only on large screens; mobile unaffected
+============================================================ */
+
+@media only screen and (min-width: 1024px) {
+  html, body {
+    height: 100%;
+    overflow: hidden !important; /* 🔒 disable scrolling on desktop only */
+  }
+
+  main.pos-container,
+  .main-container {
+    height: calc(100vh - 120px); /* fits below header and above footer */
+    overflow: hidden;             /* no outer scroll */
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 1rem;
+    box-sizing: border-box;
+  }
+
+  /* internal panels scroll normally */
+  .receipt,
+  .menu-payment {
+    overflow-y: auto;
+    flex: 1;
+    max-height: 100%;
+  }
+}
+
+/* 🔒 Overlay when in review mode */
+.menu-lock {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  border-radius: 12px;
+  z-index: 5000;
+  transition: opacity 0.3s ease;
+}
+
+.menu-lock.hidden {
+  display: none;
+}
+
+.menu-lock .overlay-content {
+  text-align: center;
+  color: #bffcff;
+  font-family: "Audiowide", sans-serif;
+  text-shadow: 0 0 10px rgba(0, 198, 255, 0.7);
+}
+
+#unlock-grid-btn {
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #00c6ff, #0072ff);
+  border: none;
+  color: #fff;
+  font-weight: bold;
+  font-size: 1rem;
+  border-radius: 10px;
+  padding: 0.75rem 1.5rem;
+  box-shadow: 0 0 15px rgba(0, 198, 255, 0.5);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+#unlock-grid-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 25px rgba(0, 198, 255, 0.8);
+}
+
