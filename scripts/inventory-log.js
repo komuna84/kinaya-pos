@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   console.log("🌿 Kinaya Inventory Log initializing...");
 
   const SHEET_API =
-    "https://script.google.com/macros/s/AKfycbwz-wPTgjvFiEK29o5DMGhYnQ_2VslqdYOX0frsIESr_XXPrUD2Rj6Nco9py57dL6b-tQ/exec"; // 🔹 Replace if redeployed
+    "https://script.google.com/macros/s/AKfycbw3lgHk_DldA6zdUYsek6FTO64qtSEnE86nOdW5xNxWZbhiDHAvS53jtk6zuuf5tjJOkw/exec"; // 🔹 Replace if redeployed
 
   // ---------- Core Elements ----------
   const addBtn = document.getElementById("add-line-btn");
@@ -145,7 +145,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 // ===========================================================
 async function submitInventoryLog() {
   const SHEET_API =
-    "https://script.google.com/macros/s/AKfycbwz-wPTgjvFiEK29o5DMGhYnQ_2VslqdYOX0frsIESr_XXPrUD2Rj6Nco9py57dL6b-tQ/exec"; // 🔹 Replace if redeployed
+    "https://script.google.com/macros/s/AKfycbwvkAJbhcpmnSoggQfNRxmSWDFYa5mIV9NfVj6ldtRCDn5KHa3CfXZOR6xbKW84sOMD0Q/exec"; // 🔹 Replace if redeployed
 
   const groups = form.querySelectorAll(".item-group");
   const entries = [];
