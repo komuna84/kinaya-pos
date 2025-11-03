@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // 🔗 CONFIGURATION
   // ===========================================================
   const API_URL =
-    "https://script.google.com/macros/s/AKfycbwz-wPTgjvFiEK29o5DMGhYnQ_2VslqdYOX0frsIESr_XXPrUD2Rj6Nco9py57dL6b-tQ/exec"; // 🔹 Replace if redeployed
+    "https://script.google.com/macros/s/AKfycbw3lgHk_DldA6zdUYsek6FTO64qtSEnE86nOdW5xNxWZbhiDHAvS53jtk6zuuf5tjJOkw/exec"; // 🔹 Replace if redeployed
 
   // Dashboard control elements
   const startInput = document.getElementById("start-date");
@@ -81,50 +81,87 @@ async function drawInventoryMetrics() {
     if (!Array.isArray(products) || products.length === 0) return;
 
     // --- Summary metrics ---
-    const totalUnits = products.reduce((s, p) => s + (parseFloat(p["In Stock"]) || 0), 0);
+    const totalUnits = products.reduce(
+      (s, p) => s + (parseFloat(p["In Stock"]) || 0),
+      0
+    );
+
     const totalValue = products.reduce((s, p) => {
       const stock = parseFloat(p["In Stock"]) || 0;
       const unit = parseFloat(p["Unit Price"]) || 0;
       return s + stock * unit;
     }, 0);
-    const avgCost = totalUnits ? totalValue / totalUnits : 0;
-    const lowStock = products.filter(p => (parseFloat(p["In Stock"]) || 0) <= 5).length;
 
+    const avgCost = totalUnits ? totalValue / totalUnits : 0;
+    const lowStock = products.filter(
+      (p) => (parseFloat(p["In Stock"]) || 0) <= 5
+    ).length;
+
+    // --- Assign summary numbers to dashboard cards ---
     assign("inv-total-units", totalUnits);
     assign("inv-stock-value", `$${totalValue.toFixed(2)}`);
     assign("inv-avg-cost", `$${avgCost.toFixed(2)}`);
     assign("inv-low-stock", lowStock);
 
-    // --- Chart context ---
+    // ===========================================================
+    // 🌿 SELL-THROUGH RATE (NEW)
+    // ===========================================================
+    // Attempt to calculate using available product fields
+    const unitsReceived = products.reduce(
+      (sum, p) => sum + (parseFloat(p["Received"]) || 0),
+      0
+    );
+    const unitsSold = products.reduce(
+      (sum, p) => sum + (parseFloat(p["Units Sold"]) || 0),
+      0
+    );
+
+    const sellThroughRate =
+      unitsReceived > 0
+        ? ((unitsSold / unitsReceived) * 100).toFixed(1) + "%"
+        : "0%";
+
+    assign("sell-through-rate", sellThroughRate);
+
+    console.log(
+      `📊 Sell-Through Rate: ${sellThroughRate} (${unitsSold} sold / ${unitsReceived} received)`
+    );
+
+    // ===========================================================
+    // 🎨 CHART RENDERING — Retail vs Unit Price
+    // ===========================================================
     const ctx = document.getElementById("inventory-bar-chart");
     if (!ctx) return;
 
-    // --- Chart.js with dual price labels ---
     new Chart(ctx, {
       type: "bar",
       data: {
-        labels: products.map(p => p["Product Title"] || p["Sku"]),
+        labels: products.map((p) => p["Product Title"] || p["Sku"]),
         datasets: [
           {
             label: "Retail Value (In Stock × Retail Price)",
-            data: products.map(p =>
-              (parseFloat(p["In Stock"]) || 0) * (parseFloat(p["Retail Price"]) || 0)
+            data: products.map(
+              (p) =>
+                (parseFloat(p["In Stock"]) || 0) *
+                (parseFloat(p["Retail Price"]) || 0)
             ),
-            backgroundColor: "rgba(0,198,255,0.6)"
+            backgroundColor: "rgba(0,198,255,0.6)",
           },
           {
             label: "Unit Value (In Stock × Unit Price)",
-            data: products.map(p =>
-              (parseFloat(p["In Stock"]) || 0) * (parseFloat(p["Unit Price"]) || 0)
+            data: products.map(
+              (p) =>
+                (parseFloat(p["In Stock"]) || 0) *
+                (parseFloat(p["Unit Price"]) || 0)
             ),
-            backgroundColor: "rgba(255,180,80,0.6)"
-          }
-        ]
+            backgroundColor: "rgba(255,180,80,0.6)",
+          },
+        ],
       },
       options: {
         plugins: {
           legend: {
-            labels: { color: "#A7E1EE", font: { family: "Audiowide" } }
+            labels: { color: "#A7E1EE", font: { family: "Audiowide" } },
           },
           tooltip: {
             callbacks: {
@@ -139,12 +176,11 @@ async function drawInventoryMetrics() {
                   `Retail Price: $${retail.toFixed(2)}`,
                   `Unit Price: $${unit.toFixed(2)}`,
                   `Retail Value: $${(stock * retail).toFixed(2)}`,
-                  `Unit Value: $${(stock * unit).toFixed(2)}`
+                  `Unit Value: $${(stock * unit).toFixed(2)}`,
                 ];
-              }
-            }
+              },
+            },
           },
-          // 🧩 Label each bar with both prices
           datalabels: {
             color: "#A7E1EE",
             anchor: "end",
@@ -155,8 +191,8 @@ async function drawInventoryMetrics() {
               const retail = parseFloat(p["Retail Price"]) || 0;
               const unit = parseFloat(p["Unit Price"]) || 0;
               return `Retail: $${retail.toFixed(2)}\nUnit: $${unit.toFixed(2)}`;
-            }
-          }
+            },
+          },
         },
         scales: {
           x: {
@@ -165,18 +201,19 @@ async function drawInventoryMetrics() {
               autoSkip: false,
               maxRotation: 60,
               minRotation: 45,
-              font: { size: 10 }
-            }
+              font: { size: 10 },
+            },
           },
-          y: { beginAtZero: true, ticks: { color: "#A7E1EE" } }
-        }
+          y: { beginAtZero: true, ticks: { color: "#A7E1EE" } },
+        },
       },
-      plugins: [ChartDataLabels]
+      plugins: [ChartDataLabels],
     });
   } catch (err) {
     console.error("❌ Inventory metrics failed:", err);
   }
 }
+
 
 // ===========================================================
 // 🧾 RENDER INVENTORY SUMMARY CARDS (for mobile + desktop)
@@ -388,6 +425,21 @@ function updateMetrics(m = {}) {
   // 💰 FINANCIAL HEALTH
   // ===========================================================
   assign("tax-deductible", `${(m.taxDeductibleRatio || 0).toFixed(1)}%`);
+  try {
+  const allRecords = m.sales || m.records || [];
+  const outstanding = allRecords.filter(r => {
+    const paid = parseFloat(r.Paid || 0);
+    const total = parseFloat(r.Total || 0);
+    // invoice is outstanding if not fully paid and not a return
+    return Math.abs(paid) < Math.abs(total) && total > 0;
+  }).length;
+
+  assign("outstanding-invoices", outstanding);
+} catch (err) {
+  console.warn("⚠️ Could not compute outstanding invoices:", err);
+  assign("outstanding-invoices", m.outstandingInvoices || 0);
+}
+
   assign("outstanding-invoices", m.outstandingInvoices || 0);
   assign("avg-expense-month", `$${(m.avgExpensePerMonth || 0).toFixed(2)}`);
 
@@ -541,7 +593,58 @@ function computeSubscriptionRate(records = []) {
     if (prevData?.metrics) {
       alert(`Previous Total Revenue: $${prevData.metrics.totalRevenue.toFixed(2)}`);
     }
+
+    // ===========================================================
+    // 🌿 EMAIL REPORT BUTTON HANDLERS
+    // ===========================================================
+    const API_URL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec"; // <-- replace with your Apps Script web app URL
+
+    async function triggerEmailReport(reportType, buttonEl) {
+      try {
+        buttonEl.disabled = true;
+        const originalText = buttonEl.textContent;
+        buttonEl.textContent = "⏳ Sending...";
+
+        // Call backend via GET or POST (using ?mode=email&type=weekly for example)
+        const res = await fetch(`${API_URL}?mode=sendReport&type=${encodeURIComponent(reportType)}`);
+        const json = await res.json();
+
+        if (json.success) {
+          buttonEl.textContent = "✅ Sent!";
+        } else {
+          buttonEl.textContent = "⚠️ Error";
+          console.error("Email error:", json.error || json.message);
+        }
+
+        setTimeout(() => {
+          buttonEl.textContent = originalText;
+          buttonEl.disabled = false;
+        }, 2500);
+      } catch (err) {
+        console.error("❌ Report email failed:", err);
+        buttonEl.textContent = "⚠️ Error";
+        setTimeout(() => {
+          buttonEl.textContent = originalText;
+          buttonEl.disabled = false;
+        }, 2500);
+      }
+    }
+
+    // Attach event listeners
+    document.addEventListener("DOMContentLoaded", () => {
+      const salesBtn = document.getElementById("email-sales");
+      const custBtn = document.getElementById("email-customers");
+      const finBtn = document.getElementById("email-financial");
+      const invBtn = document.getElementById("email-inventory");
+
+      if (salesBtn) salesBtn.addEventListener("click", () => triggerEmailReport("weekly", salesBtn));
+      if (custBtn) custBtn.addEventListener("click", () => triggerEmailReport("monthly", custBtn));
+      if (finBtn) finBtn.addEventListener("click", () => triggerEmailReport("quarterly", finBtn));
+      if (invBtn) invBtn.addEventListener("click", () => triggerEmailReport("yearly", invBtn));
+    });
+
   });
+
 
   // ===========================================================
   // ✅ INITIALIZE DASHBOARD
