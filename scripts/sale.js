@@ -18,7 +18,7 @@ window.productCache = {
 
   // ---------- CONFIG ----------
   const SHEET_API =
-    "https://script.google.com/macros/s/AKfycbwz-wPTgjvFiEK29o5DMGhYnQ_2VslqdYOX0frsIESr_XXPrUD2Rj6Nco9py57dL6b-tQ/exec"; // 🔹 Replace if redeployed
+    "https://script.google.com/macros/s/AKfycbwvkAJbhcpmnSoggQfNRxmSWDFYa5mIV9NfVj6ldtRCDn5KHa3CfXZOR6xbKW84sOMD0Q/exec"; // 🔹 Replace if redeployed
 
   // ---------- CORE ELEMENTS ----------
   const menu = document.getElementById("menu");
@@ -69,6 +69,30 @@ function showToast(message) {
 }
 
 // ===========================================================
+// 🔒 PRODUCT GRID LOCK SYSTEM
+// ===========================================================
+function setGridLock(state) {
+  const overlay = document.getElementById("menu-lock-overlay");
+  const grid = document.getElementById("menu-section");
+
+  if (state) {
+    overlay?.classList.remove("hidden");
+    grid?.classList.add("locked");
+  } else {
+    overlay?.classList.add("hidden");
+    grid?.classList.remove("locked");
+  }
+
+  console.log(`🌿 Menu grid ${state ? "locked" : "unlocked"}`);
+}
+
+// 🔘 Unlock button event
+document.getElementById("unlock-grid-btn")?.addEventListener("click", () => {
+  const confirmUnlock = confirm("Unlock product grid to add items?");
+  if (confirmUnlock) setGridLock(false);
+});
+
+// ===========================================================
 // 🔢 INVOICE NUMBER
 // ===========================================================
 async function updateInvoiceNumber() {
@@ -113,7 +137,7 @@ if (document.getElementById("invoice-number")) {
 async function fetchOriginalInvoiceData(invoiceId) {
   try {
     const SHEET_API =
-      "https://script.google.com/macros/s/AKfycbwz-wPTgjvFiEK29o5DMGhYnQ_2VslqdYOX0frsIESr_XXPrUD2Rj6Nco9py57dL6b-tQ/exec";
+       "https://script.google.com/macros/s/AKfycbw3lgHk_DldA6zdUYsek6FTO64qtSEnE86nOdW5xNxWZbhiDHAvS53jtk6zuuf5tjJOkw/exec"; // 🔹 Replace if redeployed
 
     const res = await fetch(`${SHEET_API}?mode=invoice&id=${invoiceId}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -163,6 +187,7 @@ document
         resultDiv.innerHTML = `<p style="color:red;">❌ No record found for Invoice #${id}</p>`;
         return;
       }
+      
 
       // =======================================================
       // 🧾 BUILD RECEIPT TABLE
@@ -309,6 +334,9 @@ document
       console.error("❌ Invoice lookup failed:", err);
       resultDiv.innerHTML = `<p style="color:red;">⚠️ Error fetching invoice details. Check console.</p>`;
     }
+    // After searching an invoice (review mode)
+      // await handleInvoiceSearch(id);
+      setGridLock(true);
   });
 
 // ===========================================================
@@ -1479,12 +1507,15 @@ function toggleSubmitButton() {
   let readyToSubmit = false;
 
   if (isReturnMode) {
-    // 🔴 RETURN MODE → allow submission without payment
-    readyToSubmit = hasItems && validEmail;
+    // 🔴 RETURN MODE → allow submission for ANY valid return (refund or balance owed)
+    const refundOrBalance = total !== 0 && Math.abs(total) > 0.01;
+    readyToSubmit = hasItems && validEmail && refundOrBalance;
   } else {
-    // 🟢 SALE MODE → require both items + payment
-    readyToSubmit = hasItems && hasPayment && total > 0 && validEmail;
+    // 🟢 SALE MODE → allow submission for any nonzero total (positive = sale, negative = owed/refund)
+    const nonZeroMovement = total !== 0 && Math.abs(total) > 0.01;
+    readyToSubmit = hasItems && validEmail && nonZeroMovement;
   }
+
 
   // ===========================================================
   // 💳 Show / Hide Buttons
@@ -1495,6 +1526,7 @@ function toggleSubmitButton() {
   }
 
   if (footerBtn) {
+    // show Submit if ready, or if it's a return with negative/zero total
     footerBtn.style.display = readyToSubmit ? "inline-flex" : "none";
     footerBtn.disabled = !readyToSubmit;
   }
@@ -1504,6 +1536,7 @@ function toggleSubmitButton() {
   console.log(
     `🧾 Button state: ${isReturnMode ? "Return" : "Sale"} | ready=${readyToSubmit ? "✅" : "❌"} | total=${total} | items=${hasItems} | payment=${cash + card}`
   );
+
 }
 
 // ===========================================================
@@ -1581,9 +1614,29 @@ async function submitSale() {
     if (!rows.length) {
       alert("🧾 Add at least one product before submitting!");
       return;
+      // After submitting a sale or return
+      setGridLock(true);
     }
 
+    // ============================================================
+    // 🧾 POST-MAPPING: Add mode + correct transaction info
+    // ============================================================
+    rows.forEach((r) => {
+      // Always mark the mode for backend routing
+      r.Mode = "saleEntry";
+
+      // Grand total: negative for returns
+      const total = parseFloat(r.Subtotal || 0) * 1.07; // include tax if needed
+      r["Grand Total"] = window.returnMode
+        ? -Math.abs(total.toFixed(2))
+        : total.toFixed(2);
+
+      // Transaction type based on return mode
+      r["Transaction Type"] = window.returnMode ? "Return" : "Sale";
+    });
+
     console.log("POST →", SHEET_API, rows);
+  
 
     // ---------- Send to backend ----------
     const res = await fetch(SHEET_API, {
@@ -1617,14 +1670,22 @@ async function submitSale() {
     if (originalInvoiceInput) originalInvoiceInput.value = "";
     document.getElementById("return-condition-row")?.classList.add("hidden");
 
-    if (typeof setReturnMode === "function") showReturnSummary(id);
+    // ✅ Only call showReturnSummary if it actually exists
+    if (typeof showReturnSummary === "function") {
+      const invoiceId = window.nextInvoiceNumber || originalInvoice || "TEMP";
+      showReturnSummary(invoiceId);
+    }
+
+    // ✅ Recalculate totals safely
     if (typeof updateTotals === "function") updateTotals();
 
+    // ✅ Reset memory + refresh UI
     window.cashMemory = 0;
     window.cardMemory = 0;
 
     resetOrder(false);
     await loadProductCatalog();
+
 
     console.log("✅ Sale complete, UI cleared for next entry.");
   } catch (err) {
@@ -1731,6 +1792,9 @@ function resetOrder(full = true) {
   // 🔘 Hide submit button
   const submitRow = document.getElementById("submit-row");
   if (submitRow) submitRow.classList.add("hidden");
+
+  // After page refresh or new sale start
+  setGridLock(false);
 
   console.log("✅ POS reset complete — ready for next order.");
 
