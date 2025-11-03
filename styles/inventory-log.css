@@ -1,342 +1,499 @@
-// ===========================================================
-// 🌿 KINAYA RISING — INVENTORY LOG CONTROLLER (2025)
-// Tracks SKU adjustments: received, damaged, missing, manual count
-// ===========================================================
+/* ============================================================
+   🌿 KINAYA RISING — INVENORY LOG PAGE (2025)
+   Unified Layout + Glow System (Inventory/Expense Harmony)
+   ============================================================ */
 
-document.addEventListener("DOMContentLoaded", async () => {
-  console.log("🌿 Kinaya Inventory Log initializing...");
-
-  const SHEET_API =
-    "https://script.google.com/macros/s/AKfycbw3lgHk_DldA6zdUYsek6FTO64qtSEnE86nOdW5xNxWZbhiDHAvS53jtk6zuuf5tjJOkw/exec"; // 🔹 Replace if redeployed
-
-  // ---------- Core Elements ----------
-  const addBtn = document.getElementById("add-line-btn");
-  const saveBtn = document.getElementById("submit-log-btn");
-  const clearBtn = document.getElementById("clear-log-btn");
-  const tableBody = document.querySelector("#inventory-log-table tbody");
-  const form = document.getElementById("inventory-log-form");
-
-  let productLookup = {};
-  let cachedVendors = [];
-
-  // ===========================================================
-  // 🔹 LOAD ACTIVE SKUs (from POS)
-  // ===========================================================
-  async function loadActiveSKUs() {
-    try {
-      const res = await fetch(`${SHEET_API}?mode=pos`);
-      const json = await res.json();
-      const products = json.data || [];
-      productLookup = {};
-
-      const skuSelects = form.querySelectorAll(".sku");
-      skuSelects.forEach(select => {
-        select.innerHTML = `<option value="">Select SKU...</option>`;
-        products
-          .filter((p) => (p.Status || p.status || "").toLowerCase() === "active")
-          .forEach((p) => {
-            const sku = p.Sku || p.sku || "";
-            const title = p["Product Title"] || p["product title"] || "";
-            const opt = document.createElement("option");
-            opt.value = sku;
-            opt.textContent = `${sku} — ${title}`;
-            select.appendChild(opt);
-            productLookup[sku] = title;
-          });
-      });
-    } catch (err) {
-      console.error("❌ Failed to load SKUs:", err);
-    }
-  }
-
-  // ===========================================================
-  // 🔹 LOAD VENDORS
-  // ===========================================================
-  async function loadVendors() {
-    try {
-      const res = await fetch(`${SHEET_API}?mode=vendors`);
-      const json = await res.json();
-      cachedVendors = json.vendors || [];
-
-      const vendorSelects = form.querySelectorAll(".vendor");
-      vendorSelects.forEach(select => {
-        select.innerHTML = `<option value="">Select Vendor...</option>`;
-        cachedVendors.forEach((v) => {
-          const opt = document.createElement("option");
-          opt.value = v;
-          opt.textContent = v;
-          select.appendChild(opt);
-        });
-      });
-    } catch (err) {
-      console.error("❌ Failed to load vendors:", err);
-    }
-  }
-
-  // ===========================================================
-  // 🔁 AUTO-FILL PRODUCT TITLE WHEN SKU CHANGES
-  // ===========================================================
-  form.addEventListener("change", (e) => {
-    if (e.target.classList.contains("sku")) {
-      const sku = e.target.value;
-      const group = e.target.closest(".item-group");
-      const titleInput = group.querySelector(".product-title");
-      titleInput.value = productLookup[sku] || "";
-    }
-  });
-
-  // ===========================================================
-  // ➕ ADD NEW ITEM ROW
-  // ===========================================================
-  addBtn.addEventListener("click", () => {
-    const groups = form.querySelectorAll(".item-group");
-    if (groups.length >= 10) {
-      alert("⚠️ You can only add up to 10 items per batch.");
-      return;
-    }
-
-    const clone = groups[groups.length - 1].cloneNode(true);
-    clone.querySelectorAll("input, select").forEach(el => {
-      if (el.tagName === "SELECT") el.selectedIndex = 0;
-      else el.value = "";
-    });
-
-    form.insertBefore(clone, form.querySelector(".button-row"));
-
-    // re-populate new dropdowns
-    populateDropdowns(clone);
-  });
-
-  // ===========================================================
-  // ➕ Return to View Inventory
-  // ===========================================================
-
-  document.getElementById("view-inventory-btn")?.addEventListener("click", () => {
-  window.location.href = "./inventory.html"; // or adjust if your path differs
-    });
-
-
-  // ===========================================================
-  // 🌿 POPULATE DROPDOWNS FOR CLONED ROW
-  // ===========================================================
-  function populateDropdowns(group) {
-    const skuSelect = group.querySelector(".sku");
-    const vendorSelect = group.querySelector(".vendor");
-
-    skuSelect.innerHTML = `<option value="">Select SKU...</option>`;
-    Object.entries(productLookup).forEach(([sku, title]) => {
-      const opt = document.createElement("option");
-      opt.value = sku;
-      opt.textContent = `${sku} — ${title}`;
-      skuSelect.appendChild(opt);
-    });
-
-    vendorSelect.innerHTML = `<option value="">Select Vendor...</option>`;
-    cachedVendors.forEach((v) => {
-      const opt = document.createElement("option");
-      opt.value = v;
-      opt.textContent = v;
-      vendorSelect.appendChild(opt);
-    });
-  }
-
-// ===========================================================
-// 💾 SUBMIT INVENTORY LOG — CORS-SAFE + SUCCESS + CLEAR
-// ===========================================================
-async function submitInventoryLog() {
-  const SHEET_API =
-    "https://script.google.com/macros/s/AKfycbwvkAJbhcpmnSoggQfNRxmSWDFYa5mIV9NfVj6ldtRCDn5KHa3CfXZOR6xbKW84sOMD0Q/exec"; // 🔹 Replace if redeployed
-
-  const groups = form.querySelectorAll(".item-group");
-  const entries = [];
-
-  groups.forEach((g) => {
-    const sku = g.querySelector(".sku")?.value || "";
-    const title = g.querySelector(".product-title")?.value || "";
-    const type = g.querySelector(".type")?.value || "";
-    const qty = parseFloat(g.querySelector(".quantity")?.value || "0");
-    const vendor = g.querySelector(".vendor")?.value || "";
-    const date = g.querySelector(".date")?.value || new Date().toLocaleDateString("en-CA");
-
-    if (!sku || qty === 0 || !type) return;
-
-    entries.push({
-      Mode: "inventoryLog",
-      Date: date,
-      Sku: sku,
-      "Product Title": title,
-      Type: type,
-      Quantity: qty,
-      Vendor: vendor,
-    });
-  });
-
-  if (!entries.length) {
-    showToast?.("⚠️ Please fill out at least one valid line.", false);
-    return;
-  }
-
-  console.log("🧾 Submitting inventory log:", entries);
-
-  try {
-    const res = await fetch(SHEET_API, {
-      method: "POST",
-      mode: "cors",
-      headers: { "Content-Type": "text/plain" },
-      body: JSON.stringify(entries),
-    });
-
-    const text = await res.text();
-    const json = (() => {
-      try {
-        return JSON.parse(text);
-      } catch {
-        return { raw: text };
-      }
-    })();
-
-    // --- ✅ Success or Fail Handling ---
-    if (res.ok) {
-      console.log("✅ Inventory log saved:", json);
-      showToast?.("✅ Inventory Log updated successfully!");
-
-      // --- 🧹 Clear form (single, complete reset) ---
-      const groups = form.querySelectorAll(".item-group");
-      groups.forEach((g, i) => {
-        if (i > 0) g.remove(); // remove extra clones
-        g.querySelectorAll("input, select").forEach((el) => {
-          if (el.tagName === "SELECT") el.selectedIndex = 0;
-          else el.value = "";
-        });
-      });
-
-      // ✅ Visual feedback for reset
-      showToast?.("🧹 Form cleared and ready for next entry!");
-      
-      // 🔄 Refresh overview
-      if (typeof loadInventoryLog === "function") await loadInventoryLog();
-    } else {
-      console.error("❌ Save failed:", res.status, json);
-      showToast?.(`⚠️ Save failed: ${json.error || res.statusText}`, false);
-    }
-
-  } catch (err) {
-    console.error("❌ Network or CORS error:", err);
-    showToast?.("❌ Network or CORS error saving inventory log.", false);
-  }
+/* ============================================================
+🔹 HEADER
+============================================================ */
+header.pos-header {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%;
+  text-align: center;
+  background: rgba(5, 25, 35, 0.6);
+  border-bottom: 1px solid rgba(0,198,255,0.25);
+  box-shadow: 0 2px 12px rgba(0,198,255,0.15);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  padding: 1rem 0;
 }
-// ===========================================================
-// 💾 SAVE BUTTON HANDLER (spinner + disable)
-// ===========================================================
-saveBtn?.addEventListener("click", async (e) => {
-  e.preventDefault();
-  saveBtn.disabled = true;
-  const originalHTML = saveBtn.innerHTML;
-  saveBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Saving...`;
-
-  try {
-    await submitInventoryLog();
-  } finally {
-    saveBtn.disabled = false;
-    saveBtn.innerHTML = originalHTML;
-  }
-});
-
-
-// ===========================================================
-// 🧹 CLEAR FORM — Reset all item groups
-// ===========================================================
-clearBtn?.addEventListener("click", () => {
-  form.querySelectorAll(".item-group").forEach((g, i) => {
-    if (i > 0) g.remove();
-    g.querySelectorAll("input, select").forEach((el) => {
-      if (el.tagName === "SELECT") el.selectedIndex = 0;
-      else el.value = "";
-    });
-  });
-  showToast?.("🧹 Form cleared!");
-});
-
-  // ===========================================================
-  // 📊 LOAD INVENTORY LOG OVERVIEW
-  // ===========================================================
-  async function loadInventoryLog() {
-    try {
-      const res = await fetch(`${SHEET_API}?mode=inventoryLog`);
-      const json = await res.json();
-      const data = json.data || [];
-      if (!data.length) {
-        tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center;opacity:0.6;">No inventory records yet.</td></tr>`;
-        return;
-      }
-
-      const sorted = [...data].sort((a, b) => new Date(b.Date) - new Date(a.Date));
-      tableBody.innerHTML = sorted
-        .slice(0, 50)
-        .map(
-          (r) => `
-          <tr>
-            <td>${r.Date || ""}</td>
-            <td>${r.Sku || ""}</td>
-            <td>${r["Product Title"] || ""}</td>
-            <td>${r.Type || ""}</td>
-            <td>${r.Quantity || ""}</td>
-            <td>${r.Vendor || ""}</td>
-          </tr>`
-        )
-        .join("");
-    } catch (err) {
-      console.error("❌ Failed to load inventory log:", err);
-      tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#ffbfbf;">Failed to load inventory data.</td></tr>`;
-    }
-  }
-  // ===========================================================
-// 🌟 UNIVERSAL TOAST MESSAGE HANDLER (Safe for all pages)
-// ===========================================================
-function showToast(message, success = true) {
-  // remove any existing toasts first
-  const existing = document.querySelector(".toast-message");
-  if (existing) existing.remove();
-
-  // create toast
-  const toast = document.createElement("div");
-  toast.className = "toast-message";
-  toast.textContent = message;
-
-  // style it
-  Object.assign(toast.style, {
-    position: "fixed",
-    bottom: "30px",
-    left: "50%",
-    transform: "translateX(-50%)",
-    background: success
-      ? "rgba(0, 255, 180, 0.15)"
-      : "rgba(255, 100, 100, 0.15)",
-    border: success
-      ? "1px solid rgba(0, 255, 180, 0.5)"
-      : "1px solid rgba(255, 100, 100, 0.5)",
-    color: success ? "#00ffcc" : "#ff8080",
-    padding: "0.75rem 1.25rem",
-    borderRadius: "12px",
-    fontSize: "1rem",
-    fontFamily: "var(--font, 'Inter', sans-serif)",
-    boxShadow: "0 0 15px rgba(0, 255, 200, 0.25)",
-    zIndex: "9999",
-    opacity: "0",
-    transition: "opacity 0.3s ease",
-  });
-
-  document.body.appendChild(toast);
-  setTimeout(() => (toast.style.opacity = "1"), 50);
-  setTimeout(() => {
-    toast.style.opacity = "0";
-    setTimeout(() => toast.remove(), 500);
-  }, 3000);
+header.pos-header .subtitle {
+  color: #78dfff;
+  font-size: 0.9rem;
+  opacity: 0.8;
 }
 
-  // ===========================================================
-  // 🚀 INITIALIZE
-  // ===========================================================
-  await Promise.all([loadActiveSKUs(), loadVendors()]);
-  await loadInventoryLog();
-});
+/* ============================================================
+🌿 FIX: MAIN CONTAINER OFFSET FOR FIXED HEADER + FOOTER
+Applies dynamic spacing without breaking glow layout
+============================================================ */
+
+/* Base adjustment for all pages that use .pos-header + bottom nav */
+main.pos-container {
+  padding-top: 8.0rem !important;   /* pushes below fixed header */
+  padding-bottom: 6.5rem !important; /* leaves space above fixed footer */
+}
+
+/* Tighten spacing for smaller devices */
+@media (max-width: 768px) {
+  main.pos-container {
+    padding-top: calc(5.5rem + env(safe-area-inset-top)) !important;
+    padding-bottom: calc(6.5rem + env(safe-area-inset-bottom)) !important;
+  }
+}
+
+/* Give logs a bit more breathing room on desktop */
+@media (min-width: 1024px) {
+  main.inventory-log.pos-container,
+  main.expense-log.pos-container {
+    padding-bottom: 8rem !important;
+  }
+}
+
+
+   /* ===== Layout ===== */
+main.pos-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  overflow-y: auto;
+  min-height: 100vh;
+  padding-bottom: 3rem;
+  box-sizing: border-box;
+}
+
+/* ===== Glowing Container (Receipt / Add Expense Section) ===== */
+.receipt {
+  width: 100%;
+  max-width: 100%;
+  background: rgba(10, 20, 25, 0.75);
+  border: 1px solid rgba(0, 198, 255, 0.25);
+  border-radius: 16px;
+  padding: 1.5rem 2rem;
+  box-shadow:
+    0 0 25px rgba(0, 198, 255, 0.08),
+    inset 0 0 12px rgba(0, 198, 255, 0.05);
+  box-sizing: border-box;
+  animation: pulseGlow 4s infinite ease-in-out;
+
+  /* Balanced height + scroll if content grows */
+  max-height: 65vh;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+}
+
+/* ===== Headings ===== */
+.glow-title {
+  font-family: "Audiowide", sans-serif;
+  color: #bffcff;
+  text-align: center;
+  text-shadow: 0 0 20px rgba(0, 198, 255, 0.4);
+  margin-bottom: 1rem;
+  font-size: 1.4rem;
+}
+
+.glow-subtext {
+  text-align: center;
+  color: #a7e1ee;
+  font-size: 0.9rem;
+  margin-top: -0.5rem;
+  margin-bottom: 1.5rem;
+  opacity: 0.8;
+}
+
+/* ===== Input Grid (Horizontal Row Layout) ===== */
+.input-grid {
+  display: flex;
+  flex-wrap: nowrap;            /* prevent wrapping — keep one line */
+  overflow-x: auto;             /* enable horizontal scroll on small screens */
+  gap: .5rem;                    /* space between fields */
+  align-items: flex-end;        /* align bottoms of inputs + labels */
+  padding-bottom: 0.5rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 198, 255, 0.3) transparent;
+}
+
+.input-grid::-webkit-scrollbar {
+  height: 6px;
+}
+.input-grid::-webkit-scrollbar-thumb {
+  background: rgba(0, 198, 255, 0.3);
+  border-radius: 3px;
+}
+
+.input-grid > div {
+  flex: 0 0 180px;              /* keep each input at fixed width */
+  min-width: 160px;             /* ensure readability on small screens */
+  gap: .5rem; 
+}
+
+.input-grid label {
+  display: block;
+  font-size: 0.85rem;
+  color: #bffcff;
+  margin-bottom: 0.25rem;
+}
+
+.input-grid input,
+.input-grid select {
+  width: 100%;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid rgba(0, 198, 255, 0.2);
+  border-radius: 6px;
+  background: rgba(5, 15, 20, 0.6);
+  color: #bffcff;
+  font-size: 0.9rem;
+  box-shadow: inset 0 0 4px rgba(0, 198, 255, 0.1);
+}
+
+/* ============================================================
+   🌿 INVENTORY ENTRY — ITEM GROUPS (Unified + Responsive)
+   ============================================================ */
+
+main.pos-container {
+  counter-reset: item;
+}
+
+/* ============================================================
+   🌿 INVENTORY ENTRY — ITEM GROUPS (Tight, Wrapping, Responsive)
+   ============================================================ */
+
+main.pos-container {
+  counter-reset: item;
+}
+
+/* Each item group */
+.item-group {
+  display: flex;
+  flex-wrap: wrap;               /* ✅ allow wrapping — no horizontal scroll */
+  align-items: flex-end;
+  justify-content: flex-start;
+  column-gap: 1rem;              /* horizontal space between items */
+  row-gap: 6px;                  /* small vertical gap when wrapping */
+  margin-bottom: 1.5rem;         /* space between groups */
+  padding-bottom: 1rem;
+  position: relative;
+  border-bottom: 1px solid rgba(0, 198, 255, 0.1);
+}
+
+/* Make “Item 1” label pop visually */
+.item-group::before {
+  counter-increment: item;
+  content: "Item " counter(item);
+  position: absolute;
+  top: -1.6rem;
+  left: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #00f0ff;
+  text-shadow: 
+    0 0 10px rgba(0, 198, 255, 0.7),
+    0 0 20px rgba(0, 255, 200, 0.4);
+  letter-spacing: 0.5px;
+}
+
+/* Each field container */
+.item {
+  flex: 1 1 160px;               /* normal items take moderate width */
+  min-width: 140px;
+  padding: 2px;
+  box-sizing: border-box;
+}
+
+/* Make quantity smaller */
+.item.quantity {
+  flex: 0 0 90px;                /* ✅ smaller, fixed width */
+  min-width: 70px;
+}
+
+/* Label styling */
+.item label {
+  display: block;
+  font-size: 0.8rem;
+  color: #bffcff;
+  opacity: 0.9;
+  margin-bottom: 2px;
+  line-height: 1.1;
+}
+
+/* Inputs & selects */
+.item input,
+.item select {
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  line-height: 1.1;
+  border: 1px solid rgba(0, 198, 255, 0.25);
+  border-radius: 6px;
+  background: rgba(5, 15, 20, 0.6);
+  color: #bffcff;
+  font-size: 0.9rem;
+  box-shadow: inset 0 0 3px rgba(0, 198, 255, 0.1);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.item input:focus,
+.item select:focus {
+  border-color: rgba(0, 255, 200, 0.4);
+  box-shadow: 0 0 8px rgba(0, 198, 255, 0.4);
+  outline: none;
+}
+
+/* ===== Date Picker ===== */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.8);
+  opacity: 0.9;
+  cursor: pointer;
+}
+input[type="date"]:hover::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+
+/* ===========================================================
+   🌿 MOBILE — Full Stretch Layout
+   =========================================================== */
+@media (max-width: 768px) {
+  .item-group {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    margin-bottom: 1.25rem;
+    padding: 0.75rem;
+    border: 1px solid rgba(0, 198, 255, 0.15);
+    border-radius: 10px;
+    background: rgba(10, 20, 25, 0.45);
+  }
+
+  .item-group::before {
+    position: static;
+    display: block;
+    margin-bottom: 0.5rem;
+    text-align: center;
+    font-size: 1rem;
+    color: #7fffd4;
+    text-shadow: 0 0 10px rgba(0, 198, 255, 0.5);
+  }
+
+  .item {
+    width: 100%;
+    min-width: unset;
+    flex: 1 1 100%;              /* ✅ stretch full width on stack */
+  }
+
+  .item.quantity {
+    width: 100%;                 /* ✅ quantity also stretches when stacked */
+    flex: 1 1 100%;
+  }
+}
+
+/* ===== Date Picker (Consistent Style) ===== */
+input[type="date"] {
+  appearance: auto;
+  -webkit-appearance: auto;
+  background: rgba(5, 15, 20, 0.6);
+  border: 1px solid rgba(0, 198, 255, 0.2);
+  border-radius: 6px;
+  color: #bffcff;
+  font-size: 0.9rem;
+  padding: 0.5rem 0.7rem;
+  cursor: pointer;
+  z-index: 2;
+  position: relative;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.8);
+  cursor: pointer;
+  opacity: 0.9;
+}
+
+input[type="date"]:hover::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+
+
+
+/* ===========================================================
+   🌿 RESPONSIVE STACK — MOBILE
+   =========================================================== */
+@media (max-width: 768px) {
+  .item-group {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0.5rem;        /* less padding inside the box */
+  }
+
+  .item-group::before {
+    margin-bottom: 0.25rem;
+  }
+
+  .item-group > div {
+    width: 100%;
+    min-width: unset;
+  }
+}
+
+
+/* ============================================================
+   🌿 BUTTON ROW (Under Input Group)
+   ============================================================ */
+.button-row {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(0, 198, 255, 0.15);
+}
+
+.button-row button {
+  padding: 0.55rem 1.2rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+/* 🌿 Add / Submit Buttons */
+.button-row .save-btn {
+  background: rgba(0, 198, 255, 0.25);
+  color: #bffcff;
+  box-shadow: 0 0 10px rgba(0, 198, 255, 0.2);
+}
+
+.button-row .save-btn:hover {
+  background: rgba(0, 198, 255, 0.45);
+  box-shadow: 0 0 20px rgba(0, 198, 255, 0.4);
+}
+
+/* 🌿 Clear Button */
+.button-row .clear-btn {
+  background: rgba(200, 20, 20, 0.2);
+  color: #ffbfbf;
+}
+
+.button-row .clear-btn:hover {
+  background: rgba(255, 50, 50, 0.4);
+  box-shadow: 0 0 20px rgba(255, 100, 100, 0.3);
+}
+
+/* 🌿 Mobile layout */
+@media (max-width: 768px) {
+  .button-row {
+    flex-direction: column;
+    align-items: stretch;
+    border-top: none;
+    gap: 0.5rem;
+  }
+
+  .button-row button {
+    width: 100%;
+  }
+}
+
+
+/* ===== Expense Log Table ===== */
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  max-height: 40vh;
+  overflow-y: auto;
+  margin-top: 1.5rem;
+  border: 1px solid rgba(0, 198, 255, 0.15);
+  border-radius: 12px;
+  background: rgba(5, 15, 20, 0.5);
+  box-shadow: inset 0 0 10px rgba(0, 198, 255, 0.08);
+}
+
+.glow-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: #a7e1ee;
+  font-size: 0.9rem;
+}
+
+.glow-table th,
+.glow-table td {
+  padding: 0.6rem 0.8rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(0, 198, 255, 0.15);
+}
+
+.glow-table th {
+  text-shadow: 0 0 8px rgba(0, 198, 255, 0.4);
+  font-weight: 700;
+  color: #bffcff;
+}
+
+.glow-table tbody tr:hover {
+  background: rgba(0, 198, 255, 0.08);
+  cursor: pointer;
+  transition: background 0.25s ease;
+}
+
+/* ===== Divider (Between Form + Table) ===== */
+.divider {
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(to right, transparent, rgba(0, 198, 255, 0.4), transparent);
+  margin: 1rem 0;
+}
+
+/* ===== Kinaya Glow Animation ===== */
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(0, 198, 255, 0.08);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(0, 198, 255, 0.15);
+  }
+}
+
+.pending-row td {
+  background-color: rgba(0, 255, 180, 0.05);
+  transition: background-color 0.3s;
+}
+
+/* ============================================================
+🌿 PAGE SPACING — Inventory, Inventory Log, Expense Log
+Keeps headers/forms off the edges across mobile + desktop
+============================================================ */
+
+/* 🔹 MOBILE & TABLET */
+@media only screen and (max-width: 768px) {
+  main.inventory,
+  main.inventory-log,
+  main.expense-log {
+    padding-top: calc(4.5rem + env(safe-area-inset-top)) !important;
+    padding-bottom: calc(6.5rem + env(safe-area-inset-bottom)) !important;
+  }
+}
+
+/* 🔹 DESKTOP */
+@media only screen and (min-width: 769px) {
+  main.inventory-log,
+  main.expense-log {
+    padding-bottom: 5rem !important;  /* adds space below forms/tables */
+  }
+
+  main.inventory {
+    padding-top: 5rem !important;
+    padding-bottom: 4rem !important;
+  }
+}
+
+/* Optional: small screens (<400px) — add extra cushion */
+@media only screen and (max-width: 400px) {
+  main.inventory,
+  main.inventory-log,
+  main.expense-log {
+    padding-bottom: calc(7rem + env(safe-area-inset-bottom)) !important;
+  }
+}
+
