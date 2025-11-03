@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // ⚙️ CONFIGURATION + CORE ELEMENTS
   // ===========================================================
   const SHEET_API =
-    "https://script.google.com/macros/s/AKfycbwz-wPTgjvFiEK29o5DMGhYnQ_2VslqdYOX0frsIESr_XXPrUD2Rj6Nco9py57dL6b-tQ/exec"; // 🔹 Replace if redeployed
+    "https://script.google.com/macros/s/AKfycbwvkAJbhcpmnSoggQfNRxmSWDFYa5mIV9NfVj6ldtRCDn5KHa3CfXZOR6xbKW84sOMD0Q/exec"; // 🔹 Replace if redeployed
 
   const tableBody = document.querySelector("#expense-table tbody");
   const saveBtn = document.getElementById("save-expense-btn");
@@ -97,7 +97,7 @@ updateExpenseTotal(true);
 // ===========================================================
 async function saveExpense() {
   const SHEET_API =
-    "https://script.google.com/macros/s/AKfycbwz-wPTgjvFiEK29o5DMGhYnQ_2VslqdYOX0frsIESr_XXPrUD2Rj6Nco9py57dL6b-tQ/exec"; // 🔹 Replace if redeployed
+    "https://script.google.com/macros/s/AKfycbw3lgHk_DldA6zdUYsek6FTO64qtSEnE86nOdW5xNxWZbhiDHAvS53jtk6zuuf5tjJOkw/exec"; // 🔹 Replace if redeployed
 
   const data = {
     Mode: "expenseEntry",
