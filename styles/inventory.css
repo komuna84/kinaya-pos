@@ -1,596 +1,840 @@
-// ===========================================================
-// 🌿 Kinaya Rising POS — Inventory Management Logic (2025)
-// ===========================================================
+/* ============================================================
+   🌿 KINAYA RISING POS — FINAL UNIFIED GLOW (2025)
+   Includes: Return Mode overlay, glowing panels, bottom spacing
+   ============================================================ */
 
-// ---------- GLOBAL SETTINGS ----------
-document.addEventListener("DOMContentLoaded", async () => {
-  console.log("🌿 Inventory Manager initializing...");
-
-
-
-  // ---------- CONFIG ----------
-  const SHEET_API =
-    "https://script.google.com/macros/s/AKfycbw3lgHk_DldA6zdUYsek6FTO64qtSEnE86nOdW5xNxWZbhiDHAvS53jtk6zuuf5tjJOkw/exec"; // 🔹 Replace if redeployed
-
-  // ---------- CORE ELEMENTS ----------
-  const menu = document.getElementById("menu");
-  const form = document.getElementById("add-inventory-form");
-  form.addEventListener("input", () => {
-  formChanged = true;
-  updateSaveButtonLabel();
-});
-
-  const saveBtn = document.getElementById("save-item-btn");
-  const clearBtn = document.getElementById("clear-form-btn");
-  const inStockInput = document.getElementById("in-stock");
-  let currentProduct = null;
-  let formChanged = false;
-  let isExistingProduct = false;
-
-
-// ===========================================================
-// ⌨️ ENTER KEY BEHAVIOR — Move to next input instead of submit
-// ===========================================================
-form.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") {
-    const formElements = Array.from(
-      form.querySelectorAll("input, select, textarea, button")
-    );
-    const index = formElements.indexOf(e.target);
-
-    // Skip Enter for buttons or textareas
-    if (e.target.tagName === "TEXTAREA" || e.target.type === "button") return;
-
-    e.preventDefault();
-
-    const next = formElements[index + 1];
-    if (next) {
-      next.focus();
-      // Optional: select text for quicker overwrite
-      if (next.select) next.select();
-    } else {
-      // reached end of form — confirm save
-      confirmSave(currentProduct !== null);
-    }
-  }
-});
-
-// ===========================================================
-// 🔁 LOAD PRODUCT CATALOG (deduplicates to newest version)
-// ===========================================================
-async function loadProductCatalog() {
-  try {
-    const res = await fetch(`${SHEET_API}?mode=pos`);
-    const json = await res.json();
-
-    const raw =
-      json.data || json.records || json.values || json.products || json.items || json;
-
-    // 🧩 Normalize sheet headers → consistent JS keys
-    const normalized = raw.map((r) => {
-      const clean = {};
-      for (const k in r) clean[k.trim().toLowerCase()] = r[k];
-      return {
-  sku: clean["sku"] || clean["Sku"] || "",
-  stableSku: clean["stable sku"] || clean["Stable Sku"] || "",
-  name: clean["product title"] || clean["title"] || clean["Product Title"] || "Unnamed Product",
-  image:
-    clean["image link"] ||
-    clean["image"] ||
-    clean["image url"] ||
-    "https://raw.githubusercontent.com/komuna84/kinaya-pos-assets/main/default.png",
-
-  retailPrice: parseFloat(clean["retail price"] || clean["Retail Price"] || 0),
-  cost: parseFloat(
-  clean["unit price"] ||
-  clean["UnitPrice"] ||
-  clean["wholesale"] ||
-  clean["Wholesale"] ||
-  0
-),
-
-  stock: parseFloat(clean["in stock"] || clean["In Stock"] || 0),
-  bulkQuantity: parseFloat(clean["bulk quantity"]) || 0,
-  bulkCost: parseFloat(clean["bulk cost ($)"]) || 0,
-  profitMargin: parseFloat(clean["profit margin"] || clean["Profit Margin"] || 0),
-  unitsInSet: clean["units in set"] || clean["Units in Set"] || "1",
-  materials: clean["materials"] || clean["Materials"] || "",
-  vendor: clean["vendor"] || clean["Vendor"] || "",
-  description: clean["description"] || clean["Description"] || "",
-  keywords: clean["keywords"] || clean["Keywords"] || "",
-  status: clean["status"] || clean["Status"] || "Active",
-
-  timestamp: new Date(clean["timestamp"] || clean["Timestamp"] || 0).getTime() || 0,
-};
-    });
-
-    // 🌿 Keep only the most recent entry per SKU
-    const latestOnly = Object.values(
-      normalized.reduce((acc, item) => {
-        const existing = acc[item.sku];
-        if (!existing || item.timestamp > existing.timestamp) {
-          acc[item.sku] = item;
-        }
-        return acc;
-      }, {})
-    );
-
-    console.log(
-      `✅ Found ${latestOnly.length} latest products (deduplicated from ${normalized.length})`
-    );
-
-    window.productList = latestOnly; // ✅ make available globally for dropdowns
-    populateStableSkuDropdown(latestOnly); // ✅ refresh Stable SKU dropdown
-
-    // ✅ Render the deduped product list
-    renderProducts(latestOnly);
-  } catch (err) {
-    console.error("❌ Failed to load or deduplicate catalog:", err);
-    renderProducts(fallbackProducts);
-  }
-
+/* ---------- BASE ---------- */
+body {
+  background: radial-gradient(circle at center, #020202 0%, #000 100%);
+  color: #A7E1EE;
+  font-family: "Roboto", sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  transition: all 0.3s ease;
 }
 
-// ===========================================================
-// 🛍️ RENDER PRODUCTS — Grid + Click to Populate Form (Inventory)
-// ===========================================================
-function renderProducts(products) {
-  const menu = document.getElementById("menu");
-  if (!menu) return;
-
-  // 🔹 Build product grid
-  menu.innerHTML = products
-    .map(
-      (p) => `
-        <figure class="menu-item" data-sku="${p.sku}">
-          <img src="${p.image}" alt="${p.name}" />
-          <figcaption>${p.name}</figcaption>
-          <figcaption style="font-size:0.8em; color:#66caff;">${p.sku}</figcaption>
-          <figcaption style="color:#bffcff;">$${p.retailPrice.toFixed(2)}</figcaption>
-        </figure>`
-    )
-    .join("");
-
-  // 🔹 Click → populate form fields
-  document.querySelectorAll(".menu-item").forEach((item) => {
-    item.addEventListener("click", () => {
-      const sku = item.dataset.sku;
-      const product = products.find((p) => p.sku === sku);
-      if (!product) return;
-      isExistingProduct = true;
-      formChanged = false;
-      updateSaveButtonLabel();
-
-      const fields = [
-  ["sku", product.sku],
-  ["stable-sku", product.stableSku || ""],
-  ["title", product.name || ""],
-  ["image", product.image || ""],
-  ["status", product.status || ""],
-  ["vendor", product.vendor || ""],
-  ["description", product.description || ""],
-  ["keywords", product.keywords || ""],
-  ["materials", product.materials || ""],
-  ["price", product.retailPrice?.toFixed(2) || ""],
-  ["unit-cost", product.cost?.toFixed(2) || ""],
-  ["profit-margin", product.profitMargin?.toFixed(2) || ""],
-  ["bulk-quantity", product.bulkQuantity || ""],
-  ["bulk-cost", product.bulkCost?.toFixed(2) || ""],
-  ["in-stock", product.stock || 0],
-];
-
-      fields.forEach(([id, val]) => {
-      const el = document.getElementById(id);
-      if (!el) return;
-
-      // If it's a numeric field, format nicely
-      if (["price", "unit-cost", "profit-margin"].includes(id)) {
-        el.value = val ? parseFloat(val).toFixed(2) : "";
-      } else {
-        el.value = val ?? "";
-      }
-    });
-
-// 🔹 Auto-calculate Profit Margin for new products
-const cost = parseFloat(document.getElementById("unit-cost")?.value || 0);
-const retail = parseFloat(document.getElementById("price")?.value || 0);
-const profitInput = document.getElementById("profit-margin");
-
-if (!profitInput.value || profitInput.value === "0.00") {
-  const margin = retail - cost;
-  profitInput.value = margin > 0 ? margin.toFixed(2) : "0.00";
+/* ---------- HEADER ---------- */
+header.pos-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  background: rgba(5, 25, 35, 0.6);
+  border-bottom: 1px solid rgba(0,198,255,0.25);
+  box-shadow: 0 2px 12px rgba(0,198,255,0.15);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  padding: 1rem 0;
+}
+header.pos-header h1 {
+  font-family: "Audiowide", sans-serif;
+  color: #bffcff;
+  font-size: 1.7rem;
+  letter-spacing: 0.5px;
+  text-shadow: 0 0 20px rgba(0,198,255,0.9);
+}
+header.pos-header .subtitle {
+  color: #78dfff;
+  font-size: 0.9rem;
+  opacity: 0.8;
 }
 
+/* /* ============================================================
+🌿 FIX: MAIN CONTAINER OFFSET FOR FIXED HEADER + FOOTER
+Applies dynamic spacing without breaking glow layout
+============================================================ */
 
-      // Optional scroll + highlight
-      document.querySelector("header")?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-
-      currentProduct = product;
-      console.log(`📦 Loaded product into form: ${product.name}`);
-    });
-  });
-
-  console.log(`✅ Rendered ${products.length} products.`);
+/* Base adjustment for all pages that use .pos-header + bottom nav */
+main.pos-container {
+  padding-top: 6.5rem !important;   /* pushes below fixed header */
+  padding-bottom: 8.5rem !important; /* leaves space above fixed footer */
 }
 
-// ===========================================================
-// 🏷️ LOAD + MANAGE VENDOR DROPDOWN
-// ===========================================================
-async function loadVendorDropdown() {
-  const vendorSelect = document.getElementById("vendor");
-  if (!vendorSelect) return;
-
-  try {
-    // 🔹 Load vendor list from Sheet
-    const res = await fetch(`${SHEET_API}?mode=vendors`);
-    const json = await res.json();
-
-    // 🔹 Build dropdown options
-    vendorSelect.innerHTML = `<option value="">— Select or Add Vendor —</option>`;
-    (json.vendors || []).forEach((vendor) => {
-      const opt = document.createElement("option");
-      opt.value = vendor;
-      opt.textContent = vendor;
-      vendorSelect.appendChild(opt);
-    });
-
-    // 🔹 Add a special "Add new..." option at the end
-    const addOpt = document.createElement("option");
-    addOpt.value = "__add_new__";
-    addOpt.textContent = "+ Add new vendor";
-    vendorSelect.appendChild(addOpt);
-
-    console.log(`📦 Loaded ${json.count || 0} vendors`);
-  } catch (err) {
-    console.error("❌ Failed to load vendors:", err);
-  }
-
-  // 🔹 When user selects “Add new vendor”
-  vendorSelect.addEventListener("change", async () => {
-    if (vendorSelect.value === "__add_new__") {
-      const newVendor = prompt("Enter new vendor name:");
-      if (newVendor && newVendor.trim()) {
-        await addVendorToSheet(newVendor.trim());
-        await loadVendorDropdown();
-        vendorSelect.value = newVendor.trim();
-      } else {
-        vendorSelect.value = "";
-      }
-    }
-  });
-}
-
-// ===========================================================
-// ➕ ADD NEW VENDOR TO SHEET
-// ===========================================================
-async function addVendorToSheet(vendorName) {
-  try {
-    const payload = [{ Mode: "addVendor", Vendor: vendorName }];
-    const res = await fetch(SHEET_API, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    const result = await res.json();
-    showToast(result.message || `Added vendor '${vendorName}'`);
-  } catch (err) {
-    console.error("❌ Failed to add vendor:", err);
-    showToast("Error adding vendor.", false);
+/* Tighten spacing for smaller devices */
+@media (max-width: 768px) {
+  main.pos-container {
+    padding-top: calc(5.5rem + env(safe-area-inset-top)) !important;
+    padding-bottom: calc(6.5rem + env(safe-area-inset-bottom)) !important;
   }
 }
 
+/* Give logs a bit more breathing room on desktop */
+@media (min-width: 1024px) {
+  main.inventory-log.pos-container,
+  main.expense-log.pos-container {
+    padding-bottom: 8rem !important;
+  }
+} */
 
-// ===========================================================
-// 🧮 Populate Stable SKU Dropdown
-// ===========================================================
-function populateStableSkuDropdown(products) {
-  const stableSkuSelect = document.getElementById("stable-sku");
-  if (!stableSkuSelect) return;
 
-  // Clear current options except the first one
-  stableSkuSelect.innerHTML = `<option value="">— None (standalone item) —</option>`;
+/* ============================================================
+   🔥 RETURN MODE — Animated Red Overlay Banner
+   ============================================================ */
+#return-mode-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Audiowide", sans-serif;
+  font-size: 1.2rem;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: #ffeaea;
+  background: linear-gradient(
+    90deg,
+    rgba(120, 0, 0, 0.9),
+    rgba(255, 0, 0, 0.95),
+    rgba(120, 0, 0, 0.9)
+  );
+  background-size: 400% 100%;
+  border-bottom: 1px solid rgba(255, 120, 120, 0.5);
+  box-shadow: 0 0 40px rgba(255, 0, 0, 0.7),
+              inset 0 0 20px rgba(255, 80, 80, 0.5);
+  text-shadow: 0 0 10px #ff8a8a, 0 0 25px #ff4040, 0 0 50px #ff0000;
+  opacity: 0;
+  transform: translateY(-100%);
+  transition: all 0.4s ease;
+  z-index: 1500;
+}
+#return-mode-banner.active {
+  opacity: 1;
+  transform: translateY(0);
+  animation:
+    redPulse 1.6s infinite ease-in-out,
+    redSweep 6s linear infinite;
+}
+@keyframes redPulse {
+  0%, 100% {
+    box-shadow:
+      0 0 30px rgba(255, 0, 0, 0.5),
+      inset 0 0 25px rgba(255, 50, 50, 0.4);
+  }
+  50% {
+    box-shadow:
+      0 0 60px rgba(255, 40, 40, 0.9),
+      inset 0 0 40px rgba(255, 0, 0, 0.8);
+  }
+}
+@keyframes redSweep {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
 
-  // Add all SKUs as selectable base references
-  products.forEach((p) => {
-    if (p.sku) {
-      const opt = document.createElement("option");
-      opt.value = p.sku;
-      opt.textContent = `${p.sku} — ${p.name}`;
-      stableSkuSelect.appendChild(opt);
-    }
-  });
+/* ============================================================
+   🔹 MAIN CONTAINER
+   ============================================================ */
+.main-container {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 1.8rem;
+  height: calc(100vh - 120px); /* gives more vertical space */
+  padding: 1.2rem 1.5rem;
+  box-sizing: border-box;
+  margin-top: 5px; /* 🔹 raises panels closer to header */
+  margin-bottom: 95px; /* tighter bottom for balance */
+}
 
-  console.log(`📦 Stable SKU dropdown populated with ${products.length} items.`);
+/* ============================================================
+   🧾 RECEIPT PANEL
+   ============================================================ */
+.receipt {
+  flex: 1;
+  background: rgba(10,20,25,0.75);
+  border: 1px solid rgba(0,198,255,0.25);
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+  padding: 1.5rem;
+  box-shadow:
+    0 0 25px rgba(0,198,255,0.08),
+    inset 0 0 12px rgba(0,198,255,0.05);
+  animation: pulseGlow 4s infinite ease-in-out;
+  max-width: 420px;
+  overflow-y: auto;
+}
+@keyframes pulseGlow {
+  0%,100% {
+    box-shadow: 0 0 25px rgba(0,198,255,0.08),
+                inset 0 0 12px rgba(0,198,255,0.05);
+  }
+  50% {
+    box-shadow: 0 0 35px rgba(0,198,255,0.18),
+                inset 0 0 14px rgba(0,198,255,0.08);
+  }
+}
+.receipt table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.receipt th, .receipt td {
+  padding: 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.receipt-footer {
+  margin-top: 1rem;
+  text-align: center;
+  color: #bffcff;
+  font-size: 0.9rem;
+  text-shadow: 0 0 10px rgba(0,198,255,0.5);
+}
+
+/* ============================================================
+   🔁 RETURN MODE — Red Highlight + Overlay Glow
+   ============================================================ */
+.return-line td {
+  color: #ff5252 !important;
+  font-weight: 600;
+  text-shadow: 0 0 10px rgba(255,80,80,0.6);
+}
+.return-line .subtotal::before { content: "("; }
+.return-line .subtotal::after { content: ")"; }
+
+body.return-active {
+  box-shadow: inset 0 0 120px rgba(255, 0, 0, 0.25);
+  transition: box-shadow 0.6s ease-in-out;
+}
+body.return-active .menu-item {
+  border-color: rgba(255, 50, 50, 0.7);
+  box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
+}
+body.return-active .receipt {
+  box-shadow:
+    0 0 40px rgba(255, 0, 0, 0.25),
+    inset 0 0 20px rgba(255, 50, 50, 0.25);
+}
+
+/* ============================================================
+   🌿 PRODUCT GRID (POS Mirror)
+   ============================================================ */
+.menu-payment {
+  flex: 2;
+  overflow-y: auto;
+  background: rgba(5,25,35,0.5);
+  border: 1px solid rgba(0,198,255,0.25);
+  border-radius: 16px;
+  box-shadow:
+    0 0 25px rgba(0,198,255,0.08),
+    inset 0 0 12px rgba(0,198,255,0.05);
+  padding: 1rem;
+  backdrop-filter: blur(10px);
+}
+.menu {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+  padding: 0.5rem;
+}
+.product-card {
+  background: rgba(10,20,25,0.85);
+  border: 1px solid rgba(0,198,255,0.25);
+  border-radius: 12px;
+  padding: 0.8rem;
+  text-align: center;
+  color: #A7E1EE;
+  box-shadow: 0 0 10px rgba(0,198,255,0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+.product-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 25px rgba(0,198,255,0.4);
+}
+.product-card img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 0.5rem;
+}
+.product-card h3 {
+  font-size: 0.9rem;
+  color: #bffcff;
+  margin: 0.3rem 0 0;
+}
+.product-card .price {
+  color: #00c6ff;
+  font-weight: 600;
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
 }
 
 
-// ===========================================================
-// updateSaveButtonLabel() helper
-// ===========================================================
-function updateSaveButtonLabel() {
-  const btn = document.getElementById("save-item-btn");
-  if (!btn) return;
 
-  if (isExistingProduct && !formChanged) {
-    btn.innerHTML = `<i class="fa-solid fa-box"></i> Adjust Inventory`;
-    btn.classList.remove("primary-btn");
-    btn.classList.add("secondary-btn");
-  } else {
-    btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Submit Changes`;
-    btn.classList.remove("secondary-btn");
-    btn.classList.add("primary-btn");
+/* ============================================================
+   🔘 TOOLBAR BUTTONS
+   ============================================================ */
+.toolbar {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+.toolbar-btn {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(0,198,255,0.3);
+  border-radius: 8px;
+  color: #A7E1EE;
+  font-size: 1.1rem;
+  padding: 0.6rem 0.8rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 0 8px rgba(0,198,255,0.15);
+}
+.toolbar-btn:hover {
+  background: #00c6ff;
+  color: #000;
+  box-shadow: 0 0 25px #00c6ff;
+  transform: scale(1.08);
+}
+
+/* ============================================================
+   🔹 BOTTOM NAVIGATION
+   ============================================================ */
+.kinaya-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  background: rgba(10, 10, 10, 0.9);
+  border-top: 1px solid rgba(0,198,255,0.2);
+  backdrop-filter: blur(10px);
+  padding: 10px 0;
+  z-index: 100;
+}
+.kinaya-nav .nav-btn {
+  color: #A7E1EE;
+  text-decoration: none;
+  text-align: center;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+.kinaya-nav .nav-btn.active,
+.kinaya-nav .nav-btn:hover {
+  color: #00c6ff;
+  text-shadow: 0 0 10px #00c6ff;
+}
+
+
+/* ---------- MOBILE TOGGLE LOGIC ---------- */
+@media (max-width: 900px) {
+  body.mobile-view .receipt {
+    display: none;
+  }
+
+  body.mobile-view .menu-payment {
+    display: block;
+  }
+
+  body.show-receipt .receipt {
+    display: block;
+  }
+
+  body.show-receipt .menu-payment {
+    display: none;
+  }
+
+  /* Floating toggle button */
+  .toggle-view-btn {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    background: rgba(0, 198, 255, 0.1);
+    border: 1px solid rgba(0,198,255,0.4);
+    border-radius: 50%;
+    width: 56px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    color: #A7E1EE;
+    box-shadow: 0 0 15px rgba(0,198,255,0.4);
+    backdrop-filter: blur(6px);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 1200;
+  }
+
+  .toggle-view-btn:hover {
+    background: #00c6ff;
+    color: #000;
+    box-shadow: 0 0 25px #00c6ff;
+    transform: scale(1.08);
+  }
+
+  .toggle-view-btn i {
+    transition: transform 0.4s ease;
+  }
+
+  body.show-receipt .toggle-view-btn i {
+    transform: rotateY(180deg);
   }
 }
 
-  // ===========================================================
-  // 🌱 FALLBACK PRODUCTS (Offline Backup)
-  // ===========================================================
-  const fallbackProducts = [
-    { name: "Book — AoL Part 1", sku: "B0F8NFSWXW", price: 14.98, image: "https://raw.githubusercontent.com/komuna84/kinaya-pos-assets/main/B0F8NFSWXW.png" },
-    { name: "Bookmarks", sku: "BKM-001", price: 2.0, image: "https://raw.githubusercontent.com/komuna84/kinaya-pos-assets/main/BKM-001.png" },
-    { name: "Buttons (individual)", sku: "Button-001", price: 5.0, image: "https://raw.githubusercontent.com/komuna84/kinaya-pos-assets/main/Button-001.png" },
-    { name: "Buttons (5 pack)", sku: "Button-001-5pk", price: 15.0, image: "https://raw.githubusercontent.com/komuna84/kinaya-pos-assets/main/Button-001-5pk.png" },
-    { name: "Coaster", sku: "Cos-001", price: 10.0, image: "https://raw.githubusercontent.com/komuna84/kinaya-pos-assets/main/Cos-001.png" },
-    { name: "Journal", sku: "Jou-001", price: 14.0, image: "https://raw.githubusercontent.com/komuna84/kinaya-pos-assets/main/Jou-001.png" },
-    { name: "Tote Bag", sku: "TBA-001", price: 20.0, image: "https://raw.githubusercontent.com/komuna84/kinaya-pos-assets/main/TBA-001.png" },
-  ];
-
-// ===========================================================
-// 🌿 LIVE PROFIT + UNIT COST CALCULATOR — smooth typing
-// ===========================================================
-const bulkCost = document.getElementById("bulk-cost");        // Bulk Cost ($)
-const bulkQty = document.getElementById("bulk-quantity");     // Bulk Quantity
-const unitCost = document.getElementById("unit-cost");        // Unit Cost ($)
-const price = document.getElementById("price");               // Retail Price ($)
-const profit = document.getElementById("profit-margin");      // Profit Margin ($)
-
-function formatToCurrency(value) {
-  const num = parseFloat(value);
-  return isNaN(num) ? "" : num.toFixed(2);
+/* Overlay */
+#payment-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 10, 20, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
 }
 
-function updateUnitAndProfit(triggeredByBlur = false) {
-  const bulk = parseFloat(bulkCost?.value) || 0;
-  const qty = parseFloat(bulkQty?.value) || 0;
-  let unit = parseFloat(unitCost?.value) || 0;
-
-  // ✅ Only recalc unit cost if bulk info available
-  if (qty > 0 && bulk > 0) {
-    unit = bulk / qty;
-    if (triggeredByBlur) unitCost.value = formatToCurrency(unit);
-  }
-
-  // ✅ Only format when the user is done typing
-  if (triggeredByBlur) {
-    if (bulkCost === document.activeElement) bulkCost.value = formatToCurrency(bulkCost.value);
-    if (price === document.activeElement) price.value = formatToCurrency(price.value);
-    if (unitCost === document.activeElement) unitCost.value = formatToCurrency(unitCost.value);
-  }
-
-  // ✅ Update profit dynamically but don’t overwrite typing
-  const retail = parseFloat(price?.value) || 0;
-  const margin = retail - unit;
-  profit.value = formatToCurrency(margin);
+.paypad-container {
+  text-align: center;
+  background: rgba(10, 20, 25, 0.75);
+  border: 1px solid rgba(0,198,255,0.25);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 0 25px rgba(0,198,255,0.15), inset 0 0 12px rgba(0,198,255,0.05);
+  width: 360px;
+  animation: pulseGlow 4s infinite ease-in-out;
+  color: #bffcff;
 }
 
-// 🌀 Attach event listeners
-[bulkCost, bulkQty, unitCost, price].forEach((el) => {
-  if (!el) return;
-  el.addEventListener("input", () => updateUnitAndProfit(false)); // live update, no format
-  el.addEventListener("blur", () => updateUnitAndProfit(true));   // format on blur only
-});
-
-// 🌿 Initialize button to "Adjust Inventory" on first load
-isExistingProduct = true;
-formChanged = false;
-updateSaveButtonLabel();
-
-// ===========================================================
-// 💾 SAVE PRODUCT — POST TO BACKEND (CORS-SAFE, AUTO-RESET)
-// ===========================================================
-async function saveProduct() {
-  // 🔹 Your live deployed web app URL
-  const SHEET_API =
-    "https://script.google.com/macros/s/AKfycbwvkAJbhcpmnSoggQfNRxmSWDFYa5mIV9NfVj6ldtRCDn5KHa3CfXZOR6xbKW84sOMD0Q/exec"; // 🔹 Replace if redeployed
-
-  const data = {
-    Mode: "inventoryEntry",
-    Sku: document.getElementById("sku")?.value.trim() || "",
-    "Stable Sku": document.getElementById("stable-sku")?.value.trim() || "",
-    "Product Title": document.getElementById("title")?.value.trim() || "",
-    "Image Link": document.getElementById("image")?.value.trim() || "",
-    "Unit Cost ($)": document.getElementById("unit-cost")?.value.trim() || "",
-    "Bulk Quantity": document.getElementById("bulk-quantity")?.value.trim() || "",
-    "Bulk Cost ($)": document.getElementById("bulk-cost")?.value.trim() || "",
-    "Retail Price ($)": document.getElementById("price")?.value.trim() || "",
-    "Profit Margin ($)": document.getElementById("profit-margin")?.value.trim() || "",
-    "Units in Set": document.getElementById("units-in-set")?.value.trim() || "1",
-    Status: document.getElementById("status")?.value.trim() || "",
-    Materials: document.getElementById("materials")?.value.trim() || "",
-    Vendor: document.getElementById("vendor")?.value.trim() || "",
-    Description: document.getElementById("description")?.value.trim() || "",
-    Keywords: document.getElementById("keywords")?.value.trim() || "",
-  };
-
-  console.log("🧾 Saving product:", data);
-
-  // --- Send POST (CORS-safe, same style as sales log) ---
-  const res = await fetch(SHEET_API, {
-    method: "POST",
-    mode: "cors",
-    headers: { "Content-Type": "text/plain" },
-    body: JSON.stringify([data]),
-  });
-
-  const text = await res.text();
-  const json = (() => {
-    try {
-      return JSON.parse(text);
-    } catch {
-      return { raw: text };
-    }
-  })();
-
-  if (!res.ok || !json.success) {
-    console.error("❌ Save failed:", res.status, json);
-    showToast(`⚠️ Save failed: ${json.error || res.statusText}`, false);
-    return;
-  }
-
-  console.log("✅ Product saved:", json);
-  showToast(json.message || "✅ Product added successfully!");
-
-  // --- Reset form ---
-  document.querySelector("form")?.reset();
-
-  // --- Optional refresh ---
-  if (typeof loadProductCatalog === "function") await loadProductCatalog();
-  if (typeof loadVendorDropdown === "function") await loadVendorDropdown();
-
-  return json;
+.paypad-title {
+  font-family: "Audiowide", sans-serif;
+  color: #bffcff;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 0 10px rgba(0,198,255,0.6);
 }
 
-// ===========================================================
-// 💾 SAVE PRODUCT BUTTON HANDLER
-// ===========================================================
-saveBtn?.addEventListener("click", async (e) => {
-  e.preventDefault();
-
-  // 1️⃣ If form untouched → open Inventory Log
-  if (isExistingProduct && !formChanged) {
-    const sku = document.getElementById("sku")?.value?.trim();
-    const url = sku
-      ? `./inventory-log.html?sku=${encodeURIComponent(sku)}`
-      : `./inventory-log.html`;
-    window.location.href = url;
-    return;
-  }
-
-  // 2️⃣ Confirm before save
-  const proceed = await confirmSave();
-  if (!proceed) {
-    showToast("❌ Submission canceled.", false);
-    return;
-  }
-
-  // 3️⃣ Show spinner
-  saveBtn.disabled = true;
-  const originalHTML = saveBtn.innerHTML;
-  saveBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Saving...`;
-
-  try {
-    await saveProduct();
-    formChanged = false;
-    isExistingProduct = true;
-    updateSaveButtonLabel();
-  } catch (err) {
-    console.error("❌ Error saving product:", err);
-    showToast("⚠️ Save failed. Check console.", false);
-  } finally {
-    saveBtn.disabled = false;
-    saveBtn.innerHTML = originalHTML;
-  }
-});
-
-// ===========================================================
-// 💬 CONFIRM BEFORE SAVE
-// ===========================================================
-async function confirmSave() {
-  return confirm("Submit these changes to the inventory?");
+.amount-owed {
+  font-size: 0.9rem;
+  color: #a7e1ee;
+  margin-bottom: 1rem;
 }
 
-// ===========================================================
-// 🧹 CLEAR FORM — resets fields + restores Adjust Inventory state
-// ===========================================================
-clearBtn?.addEventListener("click", () => {
-  form.reset();
-  formChanged = false;
-  isExistingProduct = true; // ✅ always return to Adjust mode
-  updateSaveButtonLabel();
-  showToast("🧹 Form cleared! Ready to view inventory.");
-});
-
-
-// ===========================================================
-// 🌈 TOAST MESSAGE — Centered Success / Fail Feedback
-// ===========================================================
-function showToast(message, isSuccess = true) {
-  document.querySelectorAll(".toast").forEach(t => t.remove());
-
-  const toast = document.createElement("div");
-  toast.className = "toast";
-  toast.textContent = message;
-
-  Object.assign(toast.style, {
-    position: "fixed",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%) scale(0.9)",
-    background: isSuccess ? "rgba(0,198,255,0.85)" : "rgba(255,90,90,0.9)",
-    color: "#fff",
-    padding: "1rem 1.75rem",
-    borderRadius: "12px",
-    boxShadow: "0 0 20px rgba(0,0,0,0.4)",
-    fontFamily: "Audiowide, sans-serif",
-    fontSize: "1.1rem",
-    letterSpacing: "0.5px",
-    textAlign: "center",
-    zIndex: "9999",
-    opacity: "0",
-    transition: "opacity 0.4s ease, transform 0.3s ease",
-    backdropFilter: "blur(4px)",
-  });
-
-  document.body.appendChild(toast);
-  requestAnimationFrame(() => {
-    toast.style.opacity = "1";
-    toast.style.transform = "translate(-50%, -50%) scale(1)";
-  });
-
-  setTimeout(() => {
-    toast.style.opacity = "0";
-    toast.style.transform = "translate(-50%, -50%) scale(0.95)";
-  }, 2000);
-  setTimeout(() => toast.remove(), 2500);
+.paypad-display {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+  color: #bffcff;
+  text-shadow: 0 0 10px rgba(0,198,255,0.5);
 }
 
-// // ===========================================================
-// // 🔄 AUTO-SAVE TRIGGER — Detects edits + saves after pause
-// // ===========================================================
-// let formChanged = false;
-// let saveTimeout;
+/* Grid */
+.paypad-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* Tighter numeric grid */
+  gap: 0.8rem; /* More spacing between buttons */
+  justify-items: center;
+  margin-top: 0.5rem;
+  margin-bottom: 1.2rem; /* Adds space before Confirm Payment */
+}
 
-// form.querySelectorAll("input, select, textarea").forEach((el) => {
-//   el.addEventListener("input", () => {
-//     formChanged = true;
-//     saveBtn.disabled = false;
-//   });
-// });
+.paypad-btn {
+  width: 80px;
+  height: 60px;
+  padding: 0.7rem 0;
+  font-size: 1.1rem;
+  color: #bffcff;
+  background: rgba(0, 30, 40, 0.5);
+  border: 1px solid rgba(0, 198, 255, 0.3);
+  border-radius: 10px;
+  box-shadow: 0 0 6px rgba(0, 198, 255, 0.2);
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
 
-// form.addEventListener("input", () => {
-//   clearTimeout(saveTimeout);
-//   saveTimeout = setTimeout(async () => {
-//     if (!formChanged) return;
-//     formChanged = false;
+.paypad-btn:hover {
+  background: rgba(0, 198, 255, 0.2);
+  box-shadow: 0 0 12px rgba(0, 198, 255, 0.4);
+}
 
-//     try {
-//       console.log("💾 Auto-saving form...");
-//       await saveProduct();
-//       showToast("✅ Changes saved automatically!");
-//     } catch (err) {
-//       console.error("❌ Auto-save failed:", err);
-//       showToast("⚠️ Auto-save failed. Check console.", false);
-//     }
-//   }, 3000); // 3 sec debounce
-// });
+.confirm-btn {
+  display: block;
+  width: 100%;
+  padding: 0.9rem 0;
+  margin-top: 1rem;
+  background: rgba(0, 198, 255, 0.15);
+  border: 1px solid rgba(0, 198, 255, 0.3);
+  border-radius: 10px;
+  color: #bffcff;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  text-shadow: 0 0 10px rgba(0,198,255,0.5);
+  box-shadow: 0 0 8px rgba(0,198,255,0.2);
+  transition: all 0.3s ease;
+}
 
-// ===========================================================
-// 🌿 INIT
-// ===========================================================
-await loadProductCatalog();
-await loadVendorDropdown();
-});
+.confirm-btn:hover {
+  background: rgba(0,198,255,0.25);
+  box-shadow: 0 0 18px rgba(0,198,255,0.5);
+}
+
+/* ============================================================
+   🌿 INVENTORY ACTIONS & CONTROL BAR
+   ============================================================ */
+.inventory-control {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+  background: rgba(255,255,255,0.05);
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(0,198,255,0.08);
+  backdrop-filter: blur(6px);
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.control-group label {
+  font-size: 0.9rem;
+  color: #78dfff;
+  margin-bottom: 0.3rem;
+}
+.control-group input {
+  width: 80px;
+  text-align: center;
+  background: rgba(10,20,30,0.8);
+  border: 1px solid rgba(0,198,255,0.25);
+  border-radius: 8px;
+  padding: 0.4rem 0.5rem;
+  color: #A7E1EE;
+  font-weight: 600;
+}
+.small-btn {
+  background: linear-gradient(90deg, #00c6ff, #5FC7D9);
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 0 12px rgba(0,198,255,0.25);
+  transition: all 0.2s ease;
+}
+.small-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(0,198,255,0.45);
+}
+
+/* ============================================================
+   🌿 STICKY TOOLBAR INSIDE RECEIPT (Inventory Page)
+   ============================================================ */
+
+.receipt .toolbar.flex-row {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  justify-content: center;
+  gap: 1rem;
+  background: rgba(10, 20, 25, 0.92);
+  border-top: 1px solid rgba(0,198,255,0.25);
+  backdrop-filter: blur(10px);
+  padding: 1rem 0;
+  box-shadow: 0 -4px 20px rgba(0,198,255,0.12);
+  z-index: 10;
+}
+
+/* Matching Kinaya glow buttons */
+.receipt .toolbar button {
+  border: 1px solid rgba(0,198,255,0.3);
+  background: rgba(255,255,255,0.05);
+  color: #A7E1EE;
+  font-weight: 600;
+  padding: 0.75rem 1.6rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 0 8px rgba(0,198,255,0.15);
+}
+
+.receipt .toolbar button:hover {
+  background: #00c6ff;
+  color: #000;
+  box-shadow: 0 0 25px #00c6ff;
+  transform: scale(1.05);
+}
+
+/* Primary glowing Save button */
+#save-item-btn {
+  background: linear-gradient(90deg, #00c6ff, #5FC7D9);
+  color: #000;
+  box-shadow: 0 0 15px rgba(0,198,255,0.25);
+}
+
+/* Subtle neutral secondary buttons */
+.secondary-btn {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(0,198,255,0.3);
+  color: #A7E1EE;
+}
+.secondary-btn:hover {
+  background: rgba(255,255,255,0.15);
+  color: #bffcff;
+  box-shadow: 0 0 25px rgba(0,198,255,0.4);
+}
+
+/* ============================================================
+   🌿 INVENTORY CONTROL GRID — Final Kinaya Glow Layout
+   ============================================================ */
+.input-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(140px, 1fr));
+  gap: 1rem;
+  background: rgba(5, 25, 35, 0.7);
+  border: 1px solid rgba(0,198,255,0.25);
+  border-radius: 16px;
+  padding: 1.2rem 1.4rem;
+  margin: 0 auto 1.2rem;
+  width: 90%;
+  box-shadow:
+    0 0 25px rgba(0,198,255,0.08),
+    inset 0 0 20px rgba(0,198,255,0.05);
+  backdrop-filter: blur(10px);
+}
+
+.input-grid div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.input-grid label {
+  font-size: 0.82rem;
+  color: #9ae8ff;
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  text-shadow: 0 0 6px rgba(0,198,255,0.4);
+}
+
+.input-grid input {
+  width: 100%;
+  text-align: center;
+  padding: 0.5rem;
+  font-size: 0.9rem;
+  color: #bffcff;
+  background: rgba(10, 25, 35, 0.9);
+  border: 1px solid rgba(0,198,255,0.25);
+  border-radius: 10px;
+  font-weight: 600;
+  transition: all 0.25s ease;
+  box-shadow: inset 0 0 10px rgba(0,198,255,0.05);
+}
+
+.input-grid input:focus {
+  outline: none;
+  border-color: #00c6ff;
+  box-shadow:
+    0 0 12px rgba(0,198,255,0.4),
+    inset 0 0 8px rgba(0,198,255,0.25);
+}
+
+/* ------------------------------------------------------------
+   🔘 UPDATE BUTTON — Integrated Glow
+   ------------------------------------------------------------ */
+#update-btn {
+  display: block;
+  width: 80%;
+  margin: 1rem auto 0;
+  padding: 0.65rem 0;
+  background: linear-gradient(90deg, #00c6ff, #007fa3);
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow:
+    0 0 20px rgba(0,198,255,0.3),
+    inset 0 0 8px rgba(0,198,255,0.15);
+  transition: all 0.25s ease-in-out;
+}
+
+#update-btn:hover {
+  transform: scale(1.05);
+  box-shadow:
+    0 0 30px rgba(0,198,255,0.55),
+    inset 0 0 10px rgba(0,198,255,0.3);
+}
+
+#update-btn:active {
+  transform: scale(0.98);
+  background: linear-gradient(90deg, #009dd4, #005f80);
+}
+
+/* Give the entire left form a card glow */
+.receipt {
+  background: rgba(10,20,25,0.75);
+  border: 1px solid rgba(0,198,255,0.25);
+  border-radius: 16px;
+  box-shadow:
+    0 0 25px rgba(0,198,255,0.08),
+    inset 0 0 12px rgba(0,198,255,0.05);
+  padding: 1.5rem;
+  backdrop-filter: blur(12px);
+  animation: pulseGlow 4s infinite ease-in-out;
+}
+.receipt h2 {
+  font-family: "Audiowide", sans-serif;
+  color: #bffcff;
+  font-size: 1.3rem;
+  letter-spacing: 0.5px;
+  text-align: center;
+  text-shadow: 0 0 15px rgba(0,198,255,0.5);
+  margin-bottom: 1rem;
+}
+
+.status-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.8em;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-tag[data-status="active"] {
+  color: #00ffcc;
+}
+
+.status-tag[data-status="out of stock"] {
+  color: #ffd166;
+}
+
+.status-tag[data-status="inactive"] {
+  color: #bbbbbb;
+}
+
+.status-tag[data-status="discontinued"] {
+  color: #ff6b6b;
+}
+
+/* ============================================================
+📱 INVENTORY PRODUCT GRID — Match Sales Mobile Behavior
+============================================================ */
+@media only screen and (max-width: 768px) {
+  .menu {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(140px, 1fr)) !important;
+    gap: 0.8rem !important;
+    justify-items: center;
+  }
+
+  .product-card {
+    width: 100%;
+    max-width: 100%;
+    background: rgba(10, 20, 25, 0.85);
+    border: 1px solid rgba(0,198,255,0.25);
+    border-radius: 12px;
+    padding: 0.8rem;
+    box-shadow: 0 0 10px rgba(0,198,255,0.15);
+  }
+
+  /* Optional: reduce image height for better mobile fit */
+  .product-card img {
+    height: 110px;
+  }
+}
+
+/* Optional: for extra-small devices (<400px) use 1-per-row for readability */
+@media only screen and (max-width: 400px) {
+  .menu {
+    grid-template-columns: repeat(1, 1fr) !important;
+  }
+}
+
+/* ============================================================
+📱 MOBILE FIX — Force 2-per-row on mobile browsers
+============================================================ */
+@media only screen and (max-width: 768px) {
+  .menu {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(140px, 1fr)) !important;
+    gap: 0.8rem !important;
+    justify-items: center;
+  }
+
+  .menu-item {
+    max-width: 100%;
+  }
+}
+
+/* ============================================================
+🌿 POS PAGE — DESKTOP HYBRID SCROLL FIX
+Keeps toolbar fixed, header aligned, panels scroll independently
+============================================================ */
+@media only screen and (min-width: 1024px) {
+  html, body {
+    height: 100%;
+    overflow: hidden; /* prevent full page scroll */
+  }
+
+  /* main layout frame */
+  main.pos-container,
+  .main-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: stretch;
+    gap: 1rem;
+    height: 75vh;
+    box-sizing: border-box;
+    padding: 1rem 1.5rem 0 1.5rem;
+    overflow: visible !important; /* ✅ restore internal scroll context */
+  }
+
+  /* ✅ each column scrolls independently */
+  .receipt,
+  .menu-payment {
+    flex: 1;
+    overflow-y: auto !important;
+    max-height: calc(100vh - 200px); /* accounts for header + footer */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0,198,255,0.3) transparent;
+  }
+
+  /* ✅ sticky sections work normally again */
+  .company-info,
+  .invoice-search {
+    position: sticky;
+    top: 0;
+  }
+
+  /* ✅ footer toolbar stays fixed + clickable */
+  #submit-row,
+  .toolbar.flex-row {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    background: rgba(10, 20, 25, 0.92);
+    border-top: 1px solid rgba(0,198,255,0.25);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 -4px 20px rgba(0,198,255,0.12);
+    z-index: 900;
+  }
+}
+
+
+
