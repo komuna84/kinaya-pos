@@ -719,30 +719,45 @@ Prevents page scroll only on large screens; mobile unaffected
   }
 }
 
-/* 🔒 Overlay when in review mode */
+/* ============================================================
+🌿 PRODUCT GRID LOCK OVERLAY — FIXED FOR MOBILE + DESKTOP
+============================================================ */
+
+/* Make the grid container the positioning anchor */
+.menu-payment {
+  position: relative;
+  z-index: 10; /* keeps the grid on top of receipt base layer */
+}
+
+/* 🔒 Lock overlay (covers only grid area) */
 .menu-lock {
   position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
+  inset: 0; /* cover entire .menu-payment */
+  background: rgba(0, 10, 20, 0.85);
+  backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
   border-radius: 12px;
-  z-index: 5000;
-  transition: opacity 0.3s ease;
+  z-index: 100; /* high enough to cover product images */
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  opacity: 1;
 }
 
 .menu-lock.hidden {
-  display: none;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 
+/* Center content with Kinaya glow */
 .menu-lock .overlay-content {
   text-align: center;
   color: #bffcff;
   font-family: "Audiowide", sans-serif;
   text-shadow: 0 0 10px rgba(0, 198, 255, 0.7);
+  max-width: 90%;
 }
 
 #unlock-grid-btn {
@@ -754,15 +769,27 @@ Prevents page scroll only on large screens; mobile unaffected
   font-size: 1rem;
   border-radius: 10px;
   padding: 0.75rem 1.5rem;
-  box-shadow: 0 0 15px rgba(0, 198, 255, 0.5);
+  box-shadow: 0 0 20px rgba(0, 198, 255, 0.6);
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 #unlock-grid-btn:hover {
   transform: scale(1.05);
-  box-shadow: 0 0 25px rgba(0, 198, 255, 0.8);
+  box-shadow: 0 0 30px rgba(0, 198, 255, 0.8);
 }
+
+/* 📱 Mobile fix — overlay above images but below nav/footer */
+@media (max-width: 900px) {
+  .menu-payment {
+    z-index: 100; /* slightly higher to ensure it’s above receipt */
+  }
+  .menu-lock {
+    z-index: 1500; /* ensures it sits above all grid images */
+    border-radius: 0; /* cleaner edge-to-edge look on mobile */
+  }
+}
+
 
 /* ============================================================
 📱 KINAYA MOBILE OPTIMIZATION PATCH (Inventory + Forms)
@@ -836,4 +863,19 @@ Prevents page scroll only on large screens; mobile unaffected
   header.pos-header h1 {
     font-size: 1.4rem !important;
   }
+}
+
+/* 🔒 Overlay when in review mode */
+.menu-lock {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  border-radius: 12px;
+  z-index: 5000;
+  transition: opacity 0.3s ease;
 }
