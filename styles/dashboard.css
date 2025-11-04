@@ -24,6 +24,12 @@ header.pos-header .subtitle {
   opacity: 0.8;
 }
 
+header h1 {
+  font-size: 1.9rem;
+  color: var(--color-accent);
+  text-shadow: 0 0 15px rgba(167,225,238,0.5);
+}
+
 /* ============================================================
 🌿 FIX: MAIN CONTAINER OFFSET FOR FIXED HEADER + FOOTER
 Applies dynamic spacing without breaking glow layout
@@ -127,7 +133,7 @@ main.dashboard {
   grid-template-columns: repeat(12, minmax(0, 1fr));
   grid-auto-rows: minmax(420px, auto);
   gap: 1.75rem;
-  padding: 2.5rem 3rem 8rem 3rem; /* extra bottom padding for sticky bar */
+  padding: 1rem 3rem 8rem 3rem; /* extra bottom padding for sticky bar */
   align-items: stretch;
   justify-content: center;
   perspective: 1000px;
@@ -342,40 +348,7 @@ Adds breathing room below fixed header
 ============================================================ */
 
 .dashboard-controls {
-  margin-top: 20px !important; /* ≈ 1.25rem — clears header glow */
-}
-
-
-/* ============================================================
-🌿 DASHBOARD SPACING — Balanced for Both Mobile & Desktop
-Keeps header/controls visible and bottom buttons reachable
-============================================================ */
-
-/* 🔹 MOBILE & TABLET */
-@media only screen and (max-width: 768px) {
-  main.dashboard {
-    padding-top: calc(6rem + env(safe-area-inset-top)) !important;   /* push below fixed header */
-    padding-bottom: calc(7rem + env(safe-area-inset-bottom)) !important; /* keep above bottom nav */
-  }
-
-  /* Ensure the controls bar isn’t hidden behind the header */
-  .dashboard-controls {
-    margin-top: 1rem !important;
-  }
-
-  /* Make sure the bottom sticky bar stays fully visible */
-  .report-actions {
-    position: sticky;
-    bottom: calc(env(safe-area-inset-bottom) + 0px);
-  }
-}
-
-/* 🔹 DESKTOP — dial back the spacing to normal */
-@media only screen and (min-width: 769px) {
-  main.dashboard {
-    padding-top: 1rem !important;   /* just enough to clear header */
-    padding-bottom: 8rem !important; /* consistent with other pages */
-  }
+  margin-top: 125px !important; /* ≈ 1.25rem — clears header glow */
 }
 
 /* ===== Date Picker (Consistent Style) ===== */
@@ -402,5 +375,3 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 input[type="date"]:hover::-webkit-calendar-picker-indicator {
   filter: invert(1);
 }
-
-
