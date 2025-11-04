@@ -136,3 +136,68 @@ body.login-body {
   text-shadow: 0 0 10px rgba(255, 79, 79, 0.8);
 }
 
+
+/* ============================================================
+🌿 KINAYA GRADIENT GLOW — FULL-PAGE BACKGROUND
+   Dark base with subtle aqua → copper light pulse
+============================================================ */
+html, body.login-body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  color-scheme: dark;
+  background: radial-gradient(
+      circle at 50% 50%,
+      rgba(0,198,255,0.20) 0%,
+      rgba(0,198,255,0.10) 20%,
+      rgba(255,174,94,0.06) 60%,
+      #000000 100%
+  );
+  background-attachment: fixed;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-color: #000;
+}
+
+/* Safe-area insets for iOS */
+body.login-body {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+           env(safe-area-inset-bottom) env(safe-area-inset-left);
+  position: relative;
+}
+
+/* Subtle animated glow overlay */
+body.login-body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(
+    circle at 50% 55%,
+    rgba(0,198,255,0.15) 0%,
+    rgba(255,174,94,0.07) 55%,
+    transparent 100%
+  );
+  animation: kinayaGlow 14s ease-in-out infinite alternate;
+  z-index: -1;
+}
+
+@keyframes kinayaGlow {
+  0% {
+    background-position: 50% 45%;
+    opacity: 0.9;
+  }
+  100% {
+    background-position: 50% 60%;
+    opacity: 1;
+  }
+}
+
+/* Ensures full black under Safari UI chrome */
+@supports (-webkit-touch-callout: none) {
+  html, body.login-body {
+    background-color: #000 !important;
+  }
+}
+
+
