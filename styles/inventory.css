@@ -1,9 +1,12 @@
 /* ============================================================
-   🌿 KINAYA RISING POS — FINAL UNIFIED GLOW (2025)
-   Includes: Return Mode overlay, glowing panels, bottom spacing
-   ============================================================ */
+🌿 KINAYA RISING POS — GLOW LITE (2025)
+Optimized for performance, clarity, and mobile stability
+Includes: Return Mode, Payment Overlay, Product Modals, Mobile Toggle
+============================================================ */
 
-/* ---------- BASE ---------- */
+/* ============================================================
+🔹 BASE LAYOUT & TYPOGRAPHY
+============================================================ */
 body {
   background: radial-gradient(circle at center, #020202 0%, #000 100%);
   color: #A7E1EE;
@@ -11,14 +14,22 @@ body {
   margin: 0;
   padding: 0;
   overflow-x: hidden;
-  transition: all 0.3s ease;
+  transition: background 0.3s ease;
+
 }
 
-/* ---------- HEADER ---------- */
+h1, h2, h3 {
+  font-family: "Audiowide", sans-serif;
+  color: #bffcff;
+  text-shadow: 0 0 12px rgba(0,198,255,0.7);
+}
+
+/* ============================================================
+🔹 HEADER
+============================================================ */
 header.pos-header {
   position: fixed;
-  top: 0;
-  left: 0;
+  top: 0; left: 0;
   width: 100%;
   text-align: center;
   background: rgba(5, 25, 35, 0.6);
@@ -28,20 +39,19 @@ header.pos-header {
   z-index: 1000;
   padding: 1rem 0;
 }
-header.pos-header h1 {
-  font-family: "Audiowide", sans-serif;
-  color: #bffcff;
-  font-size: 1.7rem;
-  letter-spacing: 0.5px;
-  text-shadow: 0 0 20px rgba(0,198,255,0.9);
-}
 header.pos-header .subtitle {
   color: #78dfff;
   font-size: 0.9rem;
   opacity: 0.8;
 }
 
-/* /* ============================================================
+header h1 {
+  font-size: 1.9rem;
+  color: var(--color-accent);
+  text-shadow: 0 0 15px rgba(167,225,238,0.5);
+}
+
+/* ============================================================
 🌿 FIX: MAIN CONTAINER OFFSET FOR FIXED HEADER + FOOTER
 Applies dynamic spacing without breaking glow layout
 ============================================================ */
@@ -49,7 +59,7 @@ Applies dynamic spacing without breaking glow layout
 /* Base adjustment for all pages that use .pos-header + bottom nav */
 main.pos-container {
   padding-top: 6.5rem !important;   /* pushes below fixed header */
-  padding-bottom: 8.5rem !important; /* leaves space above fixed footer */
+  padding-bottom: 5.5rem !important; /* leaves space above fixed footer */
 }
 
 /* Tighten spacing for smaller devices */
@@ -66,108 +76,67 @@ main.pos-container {
   main.expense-log.pos-container {
     padding-bottom: 8rem !important;
   }
-} */
-
+}
 
 /* ============================================================
-   🔥 RETURN MODE — Animated Red Overlay Banner
-   ============================================================ */
+🔴 RETURN MODE — Overlay Banner + Visuals
+============================================================ */
 #return-mode-banner {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 90px;
+  top: 0; left: 0;
+  width: 100%; height: 90px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: "Audiowide", sans-serif;
   font-size: 1.2rem;
   letter-spacing: 1.2px;
-  text-transform: uppercase;
   color: #ffeaea;
-  background: linear-gradient(
-    90deg,
-    rgba(120, 0, 0, 0.9),
-    rgba(255, 0, 0, 0.95),
-    rgba(120, 0, 0, 0.9)
-  );
-  background-size: 400% 100%;
-  border-bottom: 1px solid rgba(255, 120, 120, 0.5);
-  box-shadow: 0 0 40px rgba(255, 0, 0, 0.7),
-              inset 0 0 20px rgba(255, 80, 80, 0.5);
-  text-shadow: 0 0 10px #ff8a8a, 0 0 25px #ff4040, 0 0 50px #ff0000;
-  opacity: 0;
-  transform: translateY(-100%);
+  background: linear-gradient(90deg, rgba(120,0,0,0.9), rgba(255,0,0,0.95), rgba(120,0,0,0.9));
+  border-bottom: 1px solid rgba(255,120,120,0.5);
+  text-shadow: 0 0 10px #ff8a8a;
+  opacity: 0; transform: translateY(-100%);
   transition: all 0.4s ease;
   z-index: 1500;
 }
 #return-mode-banner.active {
-  opacity: 1;
-  transform: translateY(0);
-  animation:
-    redPulse 1.6s infinite ease-in-out,
-    redSweep 6s linear infinite;
+  opacity: 1; transform: translateY(0);
+  animation: redPulse 1.6s infinite ease-in-out;
 }
 @keyframes redPulse {
-  0%, 100% {
-    box-shadow:
-      0 0 30px rgba(255, 0, 0, 0.5),
-      inset 0 0 25px rgba(255, 50, 50, 0.4);
-  }
-  50% {
-    box-shadow:
-      0 0 60px rgba(255, 40, 40, 0.9),
-      inset 0 0 40px rgba(255, 0, 0, 0.8);
-  }
-}
-@keyframes redSweep {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0%,100% { box-shadow: 0 0 20px rgba(255,50,50,0.4); }
+  50% { box-shadow: 0 0 60px rgba(255,0,0,0.8); }
 }
 
 /* ============================================================
-   🔹 MAIN CONTAINER
-   ============================================================ */
+🔹 MAIN CONTAINER
+============================================================ */
 .main-container {
   display: flex;
   align-items: stretch;
   justify-content: space-between;
-  gap: 1.8rem;
-  height: calc(100vh - 120px); /* gives more vertical space */
-  padding: 1.2rem 1.5rem;
+  gap: 1.5rem;
+  height: calc(100vh - 180px);
+  margin-top: 110px;
+  margin-bottom: 100px;
+  padding: 1.5rem;
   box-sizing: border-box;
-  margin-top: 5px; /* 🔹 raises panels closer to header */
-  margin-bottom: 95px; /* tighter bottom for balance */
 }
 
 /* ============================================================
-   🧾 RECEIPT PANEL
-   ============================================================ */
+🧾 RECEIPT PANEL
+============================================================ */
 .receipt {
   flex: 1;
+  display: flex;
+  flex-direction: column;
   background: rgba(10,20,25,0.75);
   border: 1px solid rgba(0,198,255,0.25);
   border-radius: 16px;
   backdrop-filter: blur(12px);
   padding: 1.5rem;
-  box-shadow:
-    0 0 25px rgba(0,198,255,0.08),
-    inset 0 0 12px rgba(0,198,255,0.05);
-  animation: pulseGlow 4s infinite ease-in-out;
-  max-width: 420px;
+  box-shadow: 0 0 25px rgba(0,198,255,0.08);
   overflow-y: auto;
-}
-@keyframes pulseGlow {
-  0%,100% {
-    box-shadow: 0 0 25px rgba(0,198,255,0.08),
-                inset 0 0 12px rgba(0,198,255,0.05);
-  }
-  50% {
-    box-shadow: 0 0 35px rgba(0,198,255,0.18),
-                inset 0 0 14px rgba(0,198,255,0.08);
-  }
 }
 .receipt table {
   width: 100%;
@@ -178,61 +147,207 @@ main.pos-container {
   padding: 6px;
   border-bottom: 1px solid rgba(255,255,255,0.05);
 }
-.receipt-footer {
+.receipt-footer, .submit-row {
   margin-top: 1rem;
   text-align: center;
   color: #bffcff;
-  font-size: 0.9rem;
-  text-shadow: 0 0 10px rgba(0,198,255,0.5);
+  text-shadow: 0 0 10px rgba(0,198,255,0.4);
 }
 
 /* ============================================================
-   🔁 RETURN MODE — Red Highlight + Overlay Glow
-   ============================================================ */
+🌿 STICKY COMPANY INFO + INVOICE SEARCH (Unified Header Block)
+============================================================ */
+.company-info,
+.invoice-search {
+  position: sticky;
+  z-index: 50;
+  background: rgba(10, 20, 25, 0.94);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0,198,255,0.25);
+  box-shadow: 0 4px 20px rgba(0,198,255,0.15);
+}
+
+/* --- Company Info Section --- */
+.company-info {
+  top: 0;
+  padding: 1rem;
+  border-radius: 12px 12px 0 0;
+  text-align: center;
+}
+
+.company-info p {
+  margin: 0.3rem 0;
+  color: #A7E1EE;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+}
+
+.company-info #company-name {
+  font-family: "Audiowide", sans-serif;
+  font-size: 1.2rem;
+  color: #bffcff;
+  text-shadow: 0 0 10px rgba(0,198,255,0.6);
+}
+
+/* ============================================================
+🌿 INVOICE SEARCH + SUCCESS MESSAGE
+============================================================ */
+
+/* Input + Button Row */
+.invoice-search {
+  position: sticky;
+  top: 105px; /* aligns with sticky company info */
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem 1rem;
+  background: rgba(10, 20, 25, 0.94);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(0,198,255,0.15);
+  box-shadow: 0 4px 20px rgba(0,198,255,0.1);
+}
+
+/* Row container for input + button */
+.invoice-search .search-row {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Input styling */
+.invoice-search input {
+  background: rgba(15, 25, 30, 0.9);
+  border: 1px solid rgba(0,198,255,0.3);
+  border-radius: 8px;
+  color: #bffcff;
+  padding: 0.4rem 0.8rem;
+  width: 60%;
+  max-width: 220px;
+  font-size: 0.9rem;
+  transition: all 0.25s ease;
+}
+.invoice-search input:focus {
+  border-color: #00c6ff;
+  box-shadow: 0 0 10px rgba(0,198,255,0.4);
+  outline: none;
+}
+
+/* Button styling */
+.invoice-search button {
+  background: linear-gradient(90deg, #00c6ff, #5FC7D9);
+  color: #000;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1.2rem;
+  cursor: pointer;
+  box-shadow: 0 0 15px rgba(0,198,255,0.25);
+  transition: all 0.25s ease;
+}
+.invoice-search button:hover {
+  background: #00c6ff;
+  box-shadow: 0 0 25px rgba(0,198,255,0.5);
+}
+
+/* ✅ Success Message */
+#invoice-result {
+  font-size: 0.85rem;
+  color: #7FFF9F;
+  background: rgba(0, 255, 140, 0.08);
+  border: 1px solid rgba(0, 255, 140, 0.3);
+  padding: 0.4rem 0.9rem;
+  border-radius: 8px;
+  box-shadow: 0 0 8px rgba(0,255,120,0.25);
+  animation: fadeIn 0.3s ease;
+  max-width: 250px;
+  text-align: center;
+  margin-top: 0.25rem; /* ✅ adds breathing room below search bar */
+}
+
+/* Hide when empty (fixes ghost glow) */
+#invoice-result:empty {
+  display: none;
+  box-shadow: none;
+  border: none;
+  background: none;
+  padding: 0;
+}
+
+/* Subtle fade-in */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Space below sticky header for scrollable content */
+.receipt-details {
+  margin-top: 1rem;
+}
+
+/* ============================================================
+🌿 DIMMED ITEMS — Hide Trash Can, Keep Image Dimmed
+============================================================ */
+
+/* Dimmed state for product/receipt items */
+.menu-item.dimmed img,
+.receipt-details tr.dimmed img {
+  opacity: 0.4;          /* soft dim */
+  filter: grayscale(60%);
+  transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+/* Hide the trash icon completely in dimmed state */
+.menu-item.dimmed .trash-icon,
+.receipt-details tr.dimmed .trash-icon {
+  display: none !important;
+}
+
+/* Restore normal state */
+.menu-item:not(.dimmed) img,
+.receipt-details tr:not(.dimmed) img {
+  opacity: 1;
+  filter: none;
+}
+
+
+
+/* ============================================================
+🔁 RETURN MODE STYLE
+============================================================ */
 .return-line td {
   color: #ff5252 !important;
   font-weight: 600;
   text-shadow: 0 0 10px rgba(255,80,80,0.6);
 }
-.return-line .subtotal::before { content: "("; }
-.return-line .subtotal::after { content: ")"; }
-
 body.return-active {
-  box-shadow: inset 0 0 120px rgba(255, 0, 0, 0.25);
-  transition: box-shadow 0.6s ease-in-out;
+  box-shadow: inset 0 0 120px rgba(255,0,0,0.25);
 }
 body.return-active .menu-item {
-  border-color: rgba(255, 50, 50, 0.7);
-  box-shadow: 0 0 20px rgba(255, 0, 0, 0.4);
-}
-body.return-active .receipt {
-  box-shadow:
-    0 0 40px rgba(255, 0, 0, 0.25),
-    inset 0 0 20px rgba(255, 50, 50, 0.25);
+  border-color: rgba(255,50,50,0.7);
 }
 
 /* ============================================================
-   🌿 PRODUCT GRID (POS Mirror)
-   ============================================================ */
+🛍️ PRODUCT GRID
+============================================================ */
 .menu-payment {
   flex: 2;
-  overflow-y: auto;
   background: rgba(5,25,35,0.5);
   border: 1px solid rgba(0,198,255,0.25);
   border-radius: 16px;
-  box-shadow:
-    0 0 25px rgba(0,198,255,0.08),
-    inset 0 0 12px rgba(0,198,255,0.05);
   padding: 1rem;
   backdrop-filter: blur(10px);
+  overflow-y: auto;
 }
 .menu {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 1rem;
-  padding: 0.5rem;
 }
-.product-card {
+.menu-item {
   background: rgba(10,20,25,0.85);
   border: 1px solid rgba(0,198,255,0.25);
   border-radius: 12px;
@@ -240,37 +355,91 @@ body.return-active .receipt {
   text-align: center;
   color: #A7E1EE;
   box-shadow: 0 0 10px rgba(0,198,255,0.1);
-  transition: all 0.3s ease;
+  transition: transform 0.2s ease;
   cursor: pointer;
 }
-.product-card:hover {
+.menu-item:hover {
   transform: scale(1.05);
-  box-shadow: 0 0 25px rgba(0,198,255,0.4);
+  box-shadow: 0 0 20px rgba(0,198,255,0.4);
 }
-.product-card img {
-  width: 100%;
-  height: 120px;
+.menu-item img {
+  width: 100%; height: 120px;
   object-fit: cover;
   border-radius: 10px;
   margin-bottom: 0.5rem;
 }
-.product-card h3 {
+.menu-item figcaption {
   font-size: 0.9rem;
   color: #bffcff;
-  margin: 0.3rem 0 0;
-}
-.product-card .price {
-  color: #00c6ff;
-  font-weight: 600;
-  margin-top: 0.25rem;
-  font-size: 0.85rem;
 }
 
+/* ============================================================
+📱 MOBILE FIX — Force 2-per-row on mobile browsers
+============================================================ */
+@media only screen and (max-width: 768px) {
+  .menu {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(140px, 1fr)) !important;
+    gap: 0.8rem !important;
+    justify-items: center;
+  }
+
+  .menu-item {
+    max-width: 100%;
+  }
+}
+
+/* ============================================================
+💳 PAYMENT OVERLAY
+============================================================ */
+#payment-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,10,20,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  backdrop-filter: blur(8px);
+}
+.paypad-container {
+  background: rgba(10,20,25,0.75);
+  border: 1px solid rgba(0,198,255,0.25);
+  border-radius: 16px;
+  padding: 2rem;
+  width: 340px;
+  color: #bffcff;
+  text-align: center;
+}
+.paypad-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.8rem;
+}
+.paypad-btn {
+  width: 80px; height: 60px;
+  background: rgba(0,30,40,0.5);
+  border: 1px solid rgba(0,198,255,0.3);
+  border-radius: 10px;
+  color: #bffcff;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+.paypad-btn:hover {
+  background: rgba(0,198,255,0.25);
+}
+.paypad-btn[data-value="TAX"].active {
+  background: rgba(0,198,255,0.25);
+  box-shadow: 0 0 10px rgba(0,198,255,0.6);
+  color: #bffcff;
+  font-weight: bold;
+}
 
 
 /* ============================================================
-   🔘 TOOLBAR BUTTONS
-   ============================================================ */
+🔘 TOOLBAR
+============================================================ */
 .toolbar {
   display: flex;
   justify-content: center;
@@ -286,196 +455,315 @@ body.return-active .receipt {
   padding: 0.6rem 0.8rem;
   cursor: pointer;
   transition: all 0.25s ease;
-  box-shadow: 0 0 8px rgba(0,198,255,0.15);
 }
 .toolbar-btn:hover {
   background: #00c6ff;
   color: #000;
   box-shadow: 0 0 25px #00c6ff;
-  transform: scale(1.08);
 }
 
 /* ============================================================
-   🔹 BOTTOM NAVIGATION
-   ============================================================ */
-.kinaya-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  display: flex;
-  justify-content: space-around;
-  background: rgba(10, 10, 10, 0.9);
-  border-top: 1px solid rgba(0,198,255,0.2);
-  backdrop-filter: blur(10px);
-  padding: 10px 0;
-  z-index: 100;
-}
-.kinaya-nav .nav-btn {
-  color: #A7E1EE;
-  text-decoration: none;
-  text-align: center;
-  font-size: 0.9rem;
+🌿 CONFIRM SALE BUTTON — KINAYA GLOW STANDALONE
+============================================================ */
+.submit-sale-btn {
+  background: linear-gradient(90deg, #00c6ff, #0072ff);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 30px;
+  font-size: 1rem;
+  font-family: "Audiowide", sans-serif;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  box-shadow: 0 0 20px rgba(0, 198, 255, 0.25);
   transition: all 0.3s ease;
-}
-.kinaya-nav .nav-btn.active,
-.kinaya-nav .nav-btn:hover {
-  color: #00c6ff;
-  text-shadow: 0 0 10px #00c6ff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
+.submit-sale-btn:hover {
+  box-shadow: 0 0 30px rgba(0, 198, 255, 0.6);
+  transform: translateY(-2px);
+}
 
-/* ---------- MOBILE TOGGLE LOGIC ---------- */
+.submit-sale-btn:active {
+  transform: scale(0.97);
+}
+
+.submit-sale-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ============================================================
+🪩 MODALS (Product Menu + Gallery)
+============================================================ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,10,20,0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+}
+.modal-content {
+  background: rgba(10,20,25,0.85);
+  border: 1px solid rgba(0,198,255,0.25);
+  border-radius: 16px;
+  max-width: 95%;
+  max-height: 90vh;
+  overflow: auto;
+  padding: 1rem;
+  box-shadow: 0 0 25px rgba(0,198,255,0.15);
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.close-btn {
+  background: transparent;
+  border: none;
+  color: #bffcff;
+  font-size: 1.3rem;
+  cursor: pointer;
+}
+
+/* ============================================================
+📱 MOBILE VIEW + PERFORMANCE OPTIMIZATION
+============================================================ */
 @media (max-width: 900px) {
-  body.mobile-view .receipt {
-    display: none;
+  /* Simplify glow and blur */
+  .receipt, .menu-payment, .paypad-container {
+    animation: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
   }
 
-  body.mobile-view .menu-payment {
-    display: block;
-  }
-
-  body.show-receipt .receipt {
-    display: block;
-  }
-
-  body.show-receipt .menu-payment {
-    display: none;
+  .main-container {
+    flex-direction: column;
+    height: auto;
+    padding: 1rem;
   }
 
   /* Floating toggle button */
   .toggle-view-btn {
     position: fixed;
-    bottom: 80px;
-    right: 20px;
-    background: rgba(0, 198, 255, 0.1);
+    bottom: 80px; right: 20px;
+    background: rgba(0,198,255,0.1);
     border: 1px solid rgba(0,198,255,0.4);
     border-radius: 50%;
-    width: 56px;
-    height: 56px;
+    width: 56px; height: 56px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.4rem;
     color: #A7E1EE;
     box-shadow: 0 0 15px rgba(0,198,255,0.4);
-    backdrop-filter: blur(6px);
+    backdrop-filter: blur(4px);
     cursor: pointer;
     transition: all 0.3s ease;
     z-index: 1200;
   }
-
   .toggle-view-btn:hover {
     background: #00c6ff;
     color: #000;
-    box-shadow: 0 0 25px #00c6ff;
-    transform: scale(1.08);
-  }
-
-  .toggle-view-btn i {
-    transition: transform 0.4s ease;
-  }
-
-  body.show-receipt .toggle-view-btn i {
-    transform: rotateY(180deg);
   }
 }
 
-/* Overlay */
-#payment-overlay {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0, 10, 20, 0.85);
-  backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
+/* ============================================================
+🌙 LIGHT GPU LOAD ALTERNATIVE GLOW
+============================================================ */
+.glow-lite {
+  filter: drop-shadow(0 0 6px rgba(0,198,255,0.5));
+}
+
+/* ============================================================
+🌿 GLOBAL TOOLBAR FIX (Sales Page)
+Ensures toolbar always visible + clickable
+============================================================ */
+.toolbar.flex-row {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
   justify-content: center;
-  z-index: 999;
+  gap: 1rem;
+  background: rgba(10, 20, 25, 0.92);
+  border-top: 1px solid rgba(0,198,255,0.25);
+  backdrop-filter: blur(10px);
+  padding: 1rem 0;
+  box-shadow: 0 -4px 20px rgba(0,198,255,0.12);
+  z-index: 500 !important; /* higher than receipt so it's clickable */
 }
 
-.paypad-container {
+/* ensure toolbar never hidden by submit-row or overlays */
+.toolbar {
+  display: flex !important;
+  opacity: 1 !important;
+  pointer-events: all !important;
+}
+
+/* Primary glowing Save button */
+#save-item-btn {
+  background: linear-gradient(90deg, #00c6ff, #5FC7D9);
+  color: #000;
+  box-shadow: 0 0 15px rgba(0,198,255,0.25);
+}
+
+/* Subtle neutral secondary buttons */
+.secondary-btn {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(0,198,255,0.3);
+  color: #A7E1EE;
+}
+.secondary-btn:hover {
+  background: rgba(255,255,255,0.15);
+  color: #bffcff;
+  box-shadow: 0 0 25px rgba(0,198,255,0.4);
+}
+
+tr.original-item td {
+  opacity: 0.8;
+  color: #A7E1EE;
+}
+tr.return-line td {
+  color: #ff8080;
+}
+
+.return-condition-row {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 82, 82, 0.25);
+  color: #ffcccc;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  padding: 2px 4px;
+  width: 50px;
   text-align: center;
-  background: rgba(10, 20, 25, 0.75);
-  border: 1px solid rgba(0,198,255,0.25);
-  border-radius: 16px;
-  padding: 2rem;
-  box-shadow: 0 0 25px rgba(0,198,255,0.15), inset 0 0 12px rgba(0,198,255,0.05);
-  width: 360px;
-  animation: pulseGlow 4s infinite ease-in-out;
+  transition: all 0.2s ease;
+}
+
+.return-condition-row:hover,
+.return-condition-row:focus {
   color: #bffcff;
+  border-color: rgba(0, 198, 255, 0.5);
+  outline: none;
 }
 
-.paypad-title {
-  font-family: "Audiowide", sans-serif;
-  color: #bffcff;
-  margin-bottom: 0.5rem;
-  text-shadow: 0 0 10px rgba(0,198,255,0.6);
+
+/* ============================================================
+   🧾 FOOTER CONFIRM SALE BUTTON (centered)
+   ============================================================ */
+#submit-row {
+  display: flex;
+  justify-content: center; /* 👈 horizontally center */
+  align-items: center;     /* 👈 vertically center */
+  padding: 1rem 0;
+  background: rgba(10, 20, 25, 0.85);
+  border-top: 1px solid rgba(0,198,255,0.25);
+  box-shadow: 0 -4px 15px rgba(0,198,255,0.12);
 }
 
-.amount-owed {
-  font-size: 0.9rem;
-  color: #a7e1ee;
-  margin-bottom: 1rem;
-}
-
-.paypad-display {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-bottom: 1.5rem;
-  color: #bffcff;
-  text-shadow: 0 0 10px rgba(0,198,255,0.5);
-}
-
-/* Grid */
-.paypad-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr); /* Tighter numeric grid */
-  gap: 0.8rem; /* More spacing between buttons */
-  justify-items: center;
-  margin-top: 0.5rem;
-  margin-bottom: 1.2rem; /* Adds space before Confirm Payment */
-}
-
-.paypad-btn {
-  width: 80px;
-  height: 60px;
-  padding: 0.7rem 0;
-  font-size: 1.1rem;
-  color: #bffcff;
-  background: rgba(0, 30, 40, 0.5);
-  border: 1px solid rgba(0, 198, 255, 0.3);
+#submit-sale {
+  background: linear-gradient(90deg, #00c6ff, #5fc7d9);
+  color: #000;
+  border: none;
   border-radius: 10px;
-  box-shadow: 0 0 6px rgba(0, 198, 255, 0.2);
+  padding: 0.8rem 1.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 0 25px rgba(0,198,255,0.3);
   cursor: pointer;
   transition: all 0.25s ease;
 }
 
-.paypad-btn:hover {
-  background: rgba(0, 198, 255, 0.2);
-  box-shadow: 0 0 12px rgba(0, 198, 255, 0.4);
+#submit-sale:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 35px #00c6ff;
 }
 
-.confirm-btn {
-  display: block;
-  width: 100%;
-  padding: 0.9rem 0;
-  margin-top: 1rem;
-  background: rgba(0, 198, 255, 0.15);
-  border: 1px solid rgba(0, 198, 255, 0.3);
-  border-radius: 10px;
+/* ============================================================
+🌿 POS PAGE — DESKTOP NO-SCROLL MODE
+Prevents page scroll only on large screens; mobile unaffected
+============================================================ */
+
+@media only screen and (min-width: 1024px) {
+  html, body {
+    height: 100%;
+    overflow: hidden !important; /* 🔒 disable scrolling on desktop only */
+  }
+
+  main.pos-container,
+  .main-container {
+    height: calc(100vh - 120px); /* fits below header and above footer */
+    overflow: hidden;             /* no outer scroll */
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 1rem;
+    box-sizing: border-box;
+  }
+
+  /* internal panels scroll normally */
+  .receipt,
+  .menu-payment {
+    overflow-y: auto;
+    flex: 1;
+    max-height: 100%;
+  }
+}
+
+/* 🔒 Overlay when in review mode */
+.menu-lock {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  border-radius: 12px;
+  z-index: 5000;
+  transition: opacity 0.3s ease;
+}
+
+.menu-lock.hidden {
+  display: none;
+}
+
+.menu-lock .overlay-content {
+  text-align: center;
   color: #bffcff;
+  font-family: "Audiowide", sans-serif;
+  text-shadow: 0 0 10px rgba(0, 198, 255, 0.7);
+}
+
+#unlock-grid-btn {
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #00c6ff, #0072ff);
+  border: none;
+  color: #fff;
   font-weight: bold;
-  letter-spacing: 0.05em;
-  text-shadow: 0 0 10px rgba(0,198,255,0.5);
-  box-shadow: 0 0 8px rgba(0,198,255,0.2);
+  font-size: 1rem;
+  border-radius: 10px;
+  padding: 0.75rem 1.5rem;
+  box-shadow: 0 0 15px rgba(0, 198, 255, 0.5);
+  cursor: pointer;
   transition: all 0.3s ease;
 }
 
-.confirm-btn:hover {
-  background: rgba(0,198,255,0.25);
-  box-shadow: 0 0 18px rgba(0,198,255,0.5);
+#unlock-grid-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 25px rgba(0, 198, 255, 0.8);
 }
+
 
 /* ============================================================
    🌿 INVENTORY ACTIONS & CONTROL BAR
@@ -729,110 +1017,10 @@ body.return-active .receipt {
   color: #ff6b6b;
 }
 
-/* ============================================================
-📱 INVENTORY PRODUCT GRID — Match Sales Mobile Behavior
-============================================================ */
-@media only screen and (max-width: 768px) {
-  .menu {
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(140px, 1fr)) !important;
-    gap: 0.8rem !important;
-    justify-items: center;
-  }
-
-  .product-card {
-    width: 100%;
-    max-width: 100%;
-    background: rgba(10, 20, 25, 0.85);
-    border: 1px solid rgba(0,198,255,0.25);
-    border-radius: 12px;
-    padding: 0.8rem;
-    box-shadow: 0 0 10px rgba(0,198,255,0.15);
-  }
-
-  /* Optional: reduce image height for better mobile fit */
-  .product-card img {
-    height: 110px;
-  }
-}
-
 /* Optional: for extra-small devices (<400px) use 1-per-row for readability */
 @media only screen and (max-width: 400px) {
   .menu {
     grid-template-columns: repeat(1, 1fr) !important;
-  }
-}
-
-/* ============================================================
-📱 MOBILE FIX — Force 2-per-row on mobile browsers
-============================================================ */
-@media only screen and (max-width: 768px) {
-  .menu {
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(140px, 1fr)) !important;
-    gap: 0.8rem !important;
-    justify-items: center;
-  }
-
-  .menu-item {
-    max-width: 100%;
-  }
-}
-
-/* ============================================================
-🌿 POS PAGE — DESKTOP HYBRID SCROLL FIX
-Keeps toolbar fixed, header aligned, panels scroll independently
-============================================================ */
-@media only screen and (min-width: 1024px) {
-  html, body {
-    height: 100%;
-    overflow: hidden; /* prevent full page scroll */
-  }
-
-  /* main layout frame */
-  main.pos-container,
-  .main-container {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: stretch;
-    gap: 1rem;
-    height: 75vh;
-    box-sizing: border-box;
-    padding: 1rem 1.5rem 0 1.5rem;
-    overflow: visible !important; /* ✅ restore internal scroll context */
-  }
-
-  /* ✅ each column scrolls independently */
-  .receipt,
-  .menu-payment {
-    flex: 1;
-    overflow-y: auto !important;
-    max-height: calc(100vh - 200px); /* accounts for header + footer */
-    scrollbar-width: thin;
-    scrollbar-color: rgba(0,198,255,0.3) transparent;
-  }
-
-  /* ✅ sticky sections work normally again */
-  .company-info,
-  .invoice-search {
-    position: sticky;
-    top: 0;
-  }
-
-  /* ✅ footer toolbar stays fixed + clickable */
-  #submit-row,
-  .toolbar.flex-row {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    background: rgba(10, 20, 25, 0.92);
-    border-top: 1px solid rgba(0,198,255,0.25);
-    backdrop-filter: blur(10px);
-    box-shadow: 0 -4px 20px rgba(0,198,255,0.12);
-    z-index: 900;
   }
 }
 
