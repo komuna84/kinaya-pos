@@ -3,19 +3,6 @@
    Matching your dashboard’s glow + unified buttons
    ============================================================ */
 
-header {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%;
-  text-align: center;
-  background: rgba(5, 25, 35, 0.6);
-  border-bottom: 1px solid rgba(0,198,255,0.25);
-  box-shadow: 0 2px 12px rgba(0,198,255,0.15);
-  backdrop-filter: blur(10px);
-  z-index: 1000;
-  padding: 1rem 0;
-}
-
 body.login-body {
   display: flex;
   flex-direction: column;
@@ -147,4 +134,34 @@ body.login-body {
   font-size: 1rem;
   margin-top: 0.5rem;
   text-shadow: 0 0 10px rgba(255, 79, 79, 0.8);
+}
+
+/* ============================================================
+🌙 FIX: SAFARI BLUE BAR / STATUS BAR COLOR — KEEP PAGE DARK
+============================================================ */
+html, body.login-body {
+  background-color: #000 !important;
+  color-scheme: dark;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* For iOS Safe Areas (status bar / bottom inset) */
+body.login-body {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  background-color: #000 !important;
+  background: radial-gradient(circle at center, #020202 0%, #000 100%) !important;
+}
+
+/* Ensures full-bleed black background behind Safari UI */
+@supports (-webkit-touch-callout: none) {
+  html {
+    background-color: #000 !important;
+  }
+  body.login-body {
+    background-color: #000 !important;
+  }
 }
