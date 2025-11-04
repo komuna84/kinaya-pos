@@ -65,8 +65,8 @@ main.pos-container {
 /* Tighten spacing for smaller devices */
 @media (max-width: 768px) {
   main.pos-container {
-    padding-top: calc(5.5rem + env(safe-area-inset-top)) !important;
-    padding-bottom: calc(6.5rem + env(safe-area-inset-bottom)) !important;
+    padding-top: calc(7.5rem + env(safe-area-inset-top)) !important;
+    padding-bottom: calc(7.5rem + env(safe-area-inset-bottom)) !important;
   }
 }
 
