@@ -867,7 +867,7 @@ Prevents page scroll only on large screens; mobile unaffected
 
 /* 🔒 Overlay when in review mode */
 .menu-lock {
-  position: absolute;
+  position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(4px);
