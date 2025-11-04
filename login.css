@@ -136,7 +136,6 @@ body.login-body {
   text-shadow: 0 0 10px rgba(255, 79, 79, 0.8);
 }
 
-
 /* ============================================================
 🌿 KINAYA GRADIENT GLOW — FULL-PAGE BACKGROUND
    Dark base with subtle aqua → copper light pulse
@@ -199,5 +198,4 @@ body.login-body::before {
     background-color: #000 !important;
   }
 }
-
 
