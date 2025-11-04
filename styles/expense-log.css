@@ -40,13 +40,14 @@ main.pos-container {
   padding-bottom: 6.5rem !important; /* leaves space above fixed footer */
 }
 
-/* Tighten spacing for smaller devices */
+/* ✅ Unified mobile header spacing */
 @media (max-width: 768px) {
   main.pos-container {
-    padding-top: calc(5.5rem + env(safe-area-inset-top)) !important;
-    padding-bottom: calc(6.5rem + env(safe-area-inset-bottom)) !important;
+    padding-top: calc(6.5rem + env(safe-area-inset-top)) !important;
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom)) !important;
   }
 }
+
 
 /* Give logs a bit more breathing room on desktop */
 @media (min-width: 1024px) {
