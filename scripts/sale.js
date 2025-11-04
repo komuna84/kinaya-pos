@@ -1518,24 +1518,31 @@ function toggleSubmitButton() {
 
 
   // ===========================================================
-  // 💳 Show / Hide Buttons
-  // ===========================================================
-  if (calcBtn) {
-    // show Paypad if items exist and sale mode
-    calcBtn.style.display = (!isReturnMode && hasItems) ? "inline-flex" : "none";
-  }
+// 💳 Show / Hide Buttons — based on email + payment conditions
+// ===========================================================
+if (calcBtn) {
+  // Only show Paypad if there are items and not in return mode
+  calcBtn.style.display = (!isReturnMode && hasItems) ? "inline-flex" : "none";
+}
 
-  if (footerBtn) {
-    // show Submit if ready, or if it's a return with negative/zero total
-    footerBtn.style.display = readyToSubmit ? "inline-flex" : "none";
-    footerBtn.disabled = !readyToSubmit;
-  }
+if (footerBtn) {
+  // 🧭 New: Ready when email is filled AND payment matches/exceeds total
+  const emailFilled = email.length > 0 && validEmail;
+  const paymentSufficient =
+    (total > 0 && (cash + card) >= total) || // paid enough for sale
+    (total < 0); // negative = refund / return
 
-  submitRow.style.display = hasItems ? "flex" : "none";
+  const readyToSubmit = hasItems && emailFilled && paymentSufficient;
 
-  console.log(
-    `🧾 Button state: ${isReturnMode ? "Return" : "Sale"} | ready=${readyToSubmit ? "✅" : "❌"} | total=${total} | items=${hasItems} | payment=${cash + card}`
-  );
+  footerBtn.style.display = readyToSubmit ? "inline-flex" : "none";
+  footerBtn.disabled = !readyToSubmit;
+}
+
+submitRow.style.display = hasItems ? "flex" : "none";
+
+console.log(
+  `🧾 Button state: ${isReturnMode ? "Return" : "Sale"} | ready=${readyToSubmit ? "✅" : "❌"} | total=${total} | items=${hasItems} | payment=${cash + card} | email=${email}`
+);
 
 }
 
@@ -1714,6 +1721,19 @@ if (trashBtn) {
   });
 } else {
   console.warn("⚠️ Trash button not found in DOM");
+}
+
+// ===========================================================
+// 🧹 CLEAR BUTTON HANDLER (Mobile/Desktop Safe)
+// ===========================================================
+const clearBtn = document.getElementById("clear-btn");
+if (clearBtn) {
+  clearBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.target.blur(); // 🩵 removes stuck focus highlight on mobile
+    resetOrder(true);
+    showToast("Cleared all fields");
+  });
 }
 
 
