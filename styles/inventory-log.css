@@ -398,24 +398,23 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator {
   }
 }
 
-
 /* ============================================================
-🌿 GLOW TABLE — Stable, Scrollable, and Mobile-Friendly
+🌿 GLOW TABLE — Sticky Header & First Column
 ============================================================ */
 
 /* ===== Wrapper ===== */
 .table-wrapper {
+  position: relative;
   width: 100%;
+  max-height: 60vh;
   overflow-x: auto;
   overflow-y: auto;
-  max-height: 45vh;
   margin-top: 1.5rem;
   border: 1px solid rgba(0, 198, 255, 0.15);
   border-radius: 12px;
   background: rgba(5, 15, 20, 0.5);
   box-shadow: inset 0 0 10px rgba(0, 198, 255, 0.08);
   -webkit-overflow-scrolling: touch;
-  position: relative;
 }
 
 /* ===== Table Core ===== */
@@ -424,7 +423,7 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator {
   border-collapse: collapse;
   color: #a7e1ee;
   font-size: 0.9rem;
-  min-width: 600px; /* keeps a consistent scroll width */
+  min-width: 600px; /* consistent scroll width */
 }
 
 /* ===== Cells ===== */
@@ -434,38 +433,54 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator {
   text-align: left;
   border-bottom: 1px solid rgba(0, 198, 255, 0.15);
   white-space: nowrap;
+  background: rgba(10, 25, 30, 0.85);
 }
 
-/* ===== Header ===== */
+/* ===== Sticky Header ===== */
 .glow-table th {
-  text-shadow: 0 0 8px rgba(0, 198, 255, 0.4);
-  font-weight: 700;
-  color: #bffcff;
   position: sticky;
   top: 0;
-  background: rgba(0, 25, 35, 0.85);
-  backdrop-filter: blur(4px);
+  z-index: 3;
+  color: #bffcff;
+  font-weight: 700;
+  text-shadow: 0 0 8px rgba(0, 198, 255, 0.4);
+  backdrop-filter: blur(6px);
+  background: rgba(0, 25, 35, 0.9);
+}
+
+/* ===== Sticky First Column ===== */
+.glow-table th:first-child,
+.glow-table td:first-child {
+  position: sticky;
+  left: 0;
   z-index: 2;
+  background: rgba(0, 25, 35, 0.9);
+  box-shadow: 2px 0 6px rgba(0, 198, 255, 0.1);
+}
+
+/* Ensure header corner stays above first col shadow */
+.glow-table th:first-child {
+  z-index: 4;
 }
 
 /* ===== Hover State ===== */
-.glow-table tbody tr:hover {
+.glow-table tbody tr:hover td {
   background: rgba(0, 198, 255, 0.08);
   cursor: pointer;
   transition: background 0.25s ease;
 }
 
 /* ============================================================
-🌿 Mobile Optimization
+🌿 MOBILE OPTIMIZATION
 ============================================================ */
 @media (max-width: 768px) {
   .table-wrapper {
     border-radius: 10px;
-    overflow-x: scroll;
+    max-height: 50vh;
   }
 
   .glow-table {
-    min-width: 480px; /* shows roughly 3 columns on mobile */
+    min-width: 480px;
   }
 
   .glow-table th,
@@ -476,46 +491,11 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator {
 }
 
 /* ============================================================
-🌿 STICKY HEADER + FIRST COLUMN FIX
+📱 KINAYA MOBILE PATCH (Inventory + Forms)
 ============================================================ */
-.table-wrapper {
-  position: relative; /* important for sticky context */
-  overflow: auto;
-  max-height: 60vh;
-}
-
-.glow-table th {
-  position: sticky;
-  top: 0;
-  background: rgba(10, 25, 30, 0.95);
-  z-index: 5;
-}
-
-.glow-table th:first-child,
-.glow-table td:first-child {
-  position: sticky;
-  left: 0;
-  background: rgba(10, 25, 30, 0.9);
-  z-index: 6; /* higher than header cells */
-  backdrop-filter: blur(6px);
-  box-shadow: 2px 0 6px rgba(0, 198, 255, 0.1);
-}
-
-/* Optional: Add subtle hover highlight that doesn't shift layout */
-.glow-table tbody tr:hover td {
-  background: rgba(0, 198, 255, 0.08);
-}
-
-
-
-/* ============================================================
-📱 KINAYA MOBILE OPTIMIZATION PATCH (Inventory + Forms)
-============================================================ */
-
-/* ✅ Make input grids stack on small screens */
 @media (max-width: 768px) {
   .input-grid {
-    grid-template-columns: 1fr !important; /* 1 per row */
+    grid-template-columns: 1fr !important;
     width: 95% !important;
     padding: 1rem !important;
     gap: 0.9rem !important;
@@ -532,14 +512,12 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator {
     width: 100% !important;
   }
 
-  /* Center align card titles + spacing */
   .receipt h2 {
     font-size: 1.2rem !important;
     text-align: center;
     margin-top: 0.3rem;
   }
 
-  /* Add breathing room below fixed header */
   header.pos-header {
     padding: 0.8rem 0 !important;
   }
@@ -549,35 +527,34 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator {
     padding-bottom: 6rem !important;
   }
 
-  /* Smooth scroll if bottom bar visible */
   html, body {
     overflow-y: auto !important;
     height: auto !important;
   }
 
-  /* Buttons full-width for touch */
   #update-btn,
   #save-item-btn {
     width: 100% !important;
     font-size: 1rem !important;
   }
 
-  /* Slightly larger tap area for inputs */
   input, select, button {
-    min-height: 44px; /* Apple touch target guideline */
+    min-height: 44px;
   }
 }
 
-/* ✅ Handle ultra-small screens (<400px) */
 @media (max-width: 400px) {
   .receipt {
     padding: 1rem !important;
   }
+
   .input-grid {
     width: 100% !important;
     padding: 0.8rem !important;
   }
+
   header.pos-header h1 {
     font-size: 1.4rem !important;
   }
 }
+
