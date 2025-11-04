@@ -136,32 +136,3 @@ body.login-body {
   text-shadow: 0 0 10px rgba(255, 79, 79, 0.8);
 }
 
-/* ============================================================
-🌙 FIX: SAFARI BLUE BAR / STATUS BAR COLOR — KEEP PAGE DARK
-============================================================ */
-html, body.login-body {
-  background-color: #000 !important;
-  color-scheme: dark;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-}
-
-/* For iOS Safe Areas (status bar / bottom inset) */
-body.login-body {
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
-  background-color: #000 !important;
-  background: radial-gradient(circle at center, #020202 0%, #000 100%) !important;
-}
-
-/* Ensures full-bleed black background behind Safari UI */
-@supports (-webkit-touch-callout: none) {
-  html {
-    background-color: #000 !important;
-  }
-  body.login-body {
-    background-color: #000 !important;
-  }
-}
