@@ -99,13 +99,13 @@
         </div>
 
         <!-- 🌿 BUTTONS UNDER THE ROW -->
-        <div class="button-row">
+        <div class="button-row" style="padding: 10px;">
           <button type="button" class="save-btn" id="add-line-btn">+ Add Item</button>
           <button type="button" class="save-btn" id="submit-log-btn">Submit to Log</button>
           <button type="button" class="clear-btn" id="clear-log-btn">Clear</button>
         </div>
       </form>
-      <div class="view-inventory-row">
+      <div class="view-inventory-row" style="padding-top: 20px;">
   <button id="view-inventory-btn" class="glow-btn">View Inventory</button>
 </div>
 
@@ -115,6 +115,8 @@
     <section class="receipt">
       <h2 class="glow-title">📊 Inventory Log Overview</h2>
       <p class="glow-subtext">Review your recent stock changes below.</p>
+      <p><input type="text" id="inventory-log-search" placeholder="🔍 Search by SKU, ventor, or type..." />
+        <button id="clear-search" class="btn-clear-small">✖</button></p> 
 
       <div class="table-wrapper">
         <table id="inventory-log-table" class="glow-table">
