@@ -23,6 +23,12 @@ header.pos-header .subtitle {
   opacity: 0.8;
 }
 
+header h1 {
+  font-size: 1.9rem;
+  color: var(--color-accent);
+  text-shadow: 0 0 15px rgba(167,225,238,0.5);
+}
+
 /* ============================================================
 🌿 FIX: MAIN CONTAINER OFFSET FOR FIXED HEADER + FOOTER
 Applies dynamic spacing without breaking glow layout
@@ -316,4 +322,78 @@ Keeps headers/forms off the edges across mobile + desktop
   }
 }
 
+/* ============================================================
+🌿 GLOW TABLE — Stable, Scrollable, and Mobile-Friendly
+============================================================ */
 
+/* ===== Wrapper ===== */
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 45vh;
+  margin-top: 1.5rem;
+  border: 1px solid rgba(0, 198, 255, 0.15);
+  border-radius: 12px;
+  background: rgba(5, 15, 20, 0.5);
+  box-shadow: inset 0 0 10px rgba(0, 198, 255, 0.08);
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+}
+
+/* ===== Table Core ===== */
+.glow-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: #a7e1ee;
+  font-size: 0.9rem;
+  min-width: 600px; /* keeps a consistent scroll width */
+}
+
+/* ===== Cells ===== */
+.glow-table th,
+.glow-table td {
+  padding: 0.6rem 0.8rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(0, 198, 255, 0.15);
+  white-space: nowrap;
+}
+
+/* ===== Header ===== */
+.glow-table th {
+  text-shadow: 0 0 8px rgba(0, 198, 255, 0.4);
+  font-weight: 700;
+  color: #bffcff;
+  position: sticky;
+  top: 0;
+  background: rgba(0, 25, 35, 0.85);
+  backdrop-filter: blur(4px);
+  z-index: 2;
+}
+
+/* ===== Hover State ===== */
+.glow-table tbody tr:hover {
+  background: rgba(0, 198, 255, 0.08);
+  cursor: pointer;
+  transition: background 0.25s ease;
+}
+
+/* ============================================================
+🌿 Mobile Optimization
+============================================================ */
+@media (max-width: 768px) {
+  .table-wrapper {
+    border-radius: 10px;
+    overflow-x: scroll;
+  }
+
+  .glow-table {
+    min-width: 480px; /* shows roughly 3 columns on mobile */
+  }
+
+  .glow-table th,
+  .glow-table td {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.7rem;
+  }
+}
