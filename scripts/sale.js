@@ -18,7 +18,7 @@ window.productCache = {
 
   // ---------- CONFIG ----------
   const SHEET_API =
-    "https://script.google.com/macros/s/AKfycbwvkAJbhcpmnSoggQfNRxmSWDFYa5mIV9NfVj6ldtRCDn5KHa3CfXZOR6xbKW84sOMD0Q/exec"; // 🔹 Replace if redeployed
+    "https://script.google.com/macros/s/AKfycbxDzflmDmWiP8qzTUKhKdsdWSL_ZOaRnA8sRrmJ0Qj8yPXm1hya6dWvq-BoJW25NntLLA/exec"; // 🔹 Replace if redeployed
 
   // ---------- CORE ELEMENTS ----------
   const menu = document.getElementById("menu");
@@ -137,7 +137,7 @@ if (document.getElementById("invoice-number")) {
 async function fetchOriginalInvoiceData(invoiceId) {
   try {
     const SHEET_API =
-       "https://script.google.com/macros/s/AKfycbw3lgHk_DldA6zdUYsek6FTO64qtSEnE86nOdW5xNxWZbhiDHAvS53jtk6zuuf5tjJOkw/exec"; // 🔹 Replace if redeployed
+       "https://script.google.com/macros/s/AKfycbxDzflmDmWiP8qzTUKhKdsdWSL_ZOaRnA8sRrmJ0Qj8yPXm1hya6dWvq-BoJW25NntLLA/exec"; // 🔹 Replace if redeployed
 
     const res = await fetch(`${SHEET_API}?mode=invoice&id=${invoiceId}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
