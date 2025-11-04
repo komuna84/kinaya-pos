@@ -334,6 +334,57 @@ function showToast(message, success = true) {
   }, 3000);
 }
 
+// ===========================================================
+  // 🔍 SEARCH + SORT
+  // ===========================================================
+  function setupSearchAndSort() {
+    const table = document.getElementById("inventory-log-table");
+    const searchInput = document.getElementById("inventory-log-search");
+    const clearBtn = document.getElementById("clear-search");
+
+    if (!table) return;
+
+    // ----- SORT -----
+    const headers = table.querySelectorAll("th");
+    headers.forEach((header, index) => {
+      header.addEventListener("click", () => {
+        const tbody = table.querySelector("tbody");
+        const rows = Array.from(tbody.querySelectorAll("tr"));
+        const ascending = !header.classList.contains("asc");
+
+        headers.forEach((h) => h.classList.remove("asc", "desc"));
+        header.classList.add(ascending ? "asc" : "desc");
+
+        rows.sort((a, b) => {
+          const A = a.children[index].innerText.trim().toLowerCase();
+          const B = b.children[index].innerText.trim().toLowerCase();
+          if (!isNaN(parseFloat(A)) && !isNaN(parseFloat(B)))
+            return ascending ? A - B : B - A;
+          return ascending ? A.localeCompare(B) : B.localeCompare(A);
+        });
+
+        tbody.innerHTML = "";
+        rows.forEach((r) => tbody.appendChild(r));
+      });
+    });
+
+    // ----- SEARCH -----
+    searchInput?.addEventListener("input", () => {
+      const term = searchInput.value.toLowerCase();
+      table.querySelectorAll("tbody tr").forEach((row) => {
+        row.style.display = row.innerText.toLowerCase().includes(term)
+          ? ""
+          : "none";
+      });
+    });
+
+    // ----- CLEAR SEARCH -----
+    clearBtn?.addEventListener("click", () => {
+      searchInput.value = "";
+      searchInput.dispatchEvent(new Event("input"));
+    });
+  }
+
   // ===========================================================
   // 🚀 INITIALIZE
   // ===========================================================
