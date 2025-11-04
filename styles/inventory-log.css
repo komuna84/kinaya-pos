@@ -475,6 +475,38 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator {
   }
 }
 
+/* ============================================================
+🌿 STICKY HEADER + FIRST COLUMN FIX
+============================================================ */
+.table-wrapper {
+  position: relative; /* important for sticky context */
+  overflow: auto;
+  max-height: 60vh;
+}
+
+.glow-table th {
+  position: sticky;
+  top: 0;
+  background: rgba(10, 25, 30, 0.95);
+  z-index: 5;
+}
+
+.glow-table th:first-child,
+.glow-table td:first-child {
+  position: sticky;
+  left: 0;
+  background: rgba(10, 25, 30, 0.9);
+  z-index: 6; /* higher than header cells */
+  backdrop-filter: blur(6px);
+  box-shadow: 2px 0 6px rgba(0, 198, 255, 0.1);
+}
+
+/* Optional: Add subtle hover highlight that doesn't shift layout */
+.glow-table tbody tr:hover td {
+  background: rgba(0, 198, 255, 0.08);
+}
+
+
 
 /* ============================================================
 📱 KINAYA MOBILE OPTIMIZATION PATCH (Inventory + Forms)
