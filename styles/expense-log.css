@@ -398,3 +398,78 @@ Keeps headers/forms off the edges across mobile + desktop
     padding: 0.5rem 0.7rem;
   }
 }
+
+
+/* ============================================================
+📱 KINAYA MOBILE OPTIMIZATION PATCH (Inventory + Forms)
+============================================================ */
+
+/* ✅ Make input grids stack on small screens */
+@media (max-width: 768px) {
+  .input-grid {
+    grid-template-columns: 1fr !important; /* 1 per row */
+    width: 95% !important;
+    padding: 1rem !important;
+    gap: 0.9rem !important;
+  }
+
+  .input-grid label {
+    font-size: 0.85rem !important;
+  }
+
+  .input-grid input,
+  .input-grid select {
+    font-size: 1rem !important;
+    padding: 0.65rem !important;
+    width: 100% !important;
+  }
+
+  /* Center align card titles + spacing */
+  .receipt h2 {
+    font-size: 1.2rem !important;
+    text-align: center;
+    margin-top: 0.3rem;
+  }
+
+  /* Add breathing room below fixed header */
+  header.pos-header {
+    padding: 0.8rem 0 !important;
+  }
+
+  main.pos-container {
+    padding-top: 7rem !important;
+    padding-bottom: 6rem !important;
+  }
+
+  /* Smooth scroll if bottom bar visible */
+  html, body {
+    overflow-y: auto !important;
+    height: auto !important;
+  }
+
+  /* Buttons full-width for touch */
+  #update-btn,
+  #save-item-btn {
+    width: 100% !important;
+    font-size: 1rem !important;
+  }
+
+  /* Slightly larger tap area for inputs */
+  input, select, button {
+    min-height: 44px; /* Apple touch target guideline */
+  }
+}
+
+/* ✅ Handle ultra-small screens (<400px) */
+@media (max-width: 400px) {
+  .receipt {
+    padding: 1rem !important;
+  }
+  .input-grid {
+    width: 100% !important;
+    padding: 0.8rem !important;
+  }
+  header.pos-header h1 {
+    font-size: 1.4rem !important;
+  }
+}
