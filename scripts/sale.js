@@ -869,6 +869,15 @@ function updateReceipt(product) {
       (row) => row.dataset.sku === sku && !row.classList.contains("return-line")
     );
 
+    // ♻️ FINALIZE — UPDATE TOTALS + BUTTON STATES
+    updateTotals();
+    applyDiscount();
+
+    // ✅ Force button check after reset or new item
+    setTimeout(() => toggleSubmitButton?.(), 100);
+
+    
+
   // ===========================================================
   // 🌿 1️⃣ NORMAL SALE MODE
   // ===========================================================
@@ -1367,6 +1376,34 @@ closeBtn?.addEventListener("click", () => closePaypad(false));
     document.getElementById("change-amount").textContent = `$${change.toFixed(2)}`;
   }
 
+  // ===========================================================
+  // 🔹 HELPER — Toggle Submit Sale Button State
+  // ===========================================================
+  function toggleSubmitButton() {
+    const submitRow = document.getElementById("submit-row");
+    if (!submitRow) return;
+
+    const grandText =
+      document.getElementById("grandtotal-summary")?.textContent || "$0.00";
+    const grand = parseFloat(grandText.replace(/[^0-9.]/g, "")) || 0;
+    const paid = (window.cashMemory || 0) + (window.cardMemory || 0);
+
+    // Show when paid >= total and at least one item exists
+    const hasItems = document.querySelector("#receipt-details tr");
+    const canSubmit = hasItems && paid >= grand && grand > 0;
+
+    submitRow.classList.toggle("hidden", !canSubmit);
+    submitRow.style.opacity = canSubmit ? "1" : "0.3";
+    submitRow.style.pointerEvents = canSubmit ? "auto" : "none";
+
+    console.log(
+      `🔘 Submit button state → ${canSubmit ? "ENABLED" : "DISABLED"} | Paid=${paid.toFixed(
+        2
+      )} | Grand=${grand.toFixed(2)}`
+    );
+  }
+
+
   function showToast(message) {
   const toast = document.createElement("div");
   toast.textContent = message;
@@ -1476,6 +1513,76 @@ closeBtn?.addEventListener("click", () => closePaypad(false));
     );
   });
 })();
+
+// ===========================================================
+// 🔘 SMART SUBMIT BUTTON LOGIC (Keeps Calculator Button Visible)
+// ===========================================================
+function toggleSubmitButton() {
+  const tableBody = document.getElementById("receipt-details");
+  const emailInput = document.getElementById("customer-email");
+  const footerBtn = document.getElementById("submit-sale"); // 🧾 footer Confirm Sale button
+  const calcBtn = document.getElementById("open-paypad-btn"); // 💳 open calculator
+  const submitRow = document.getElementById("submit-row");
+
+  if (!tableBody || !submitRow) return;
+
+  const cash = window.cashMemory || 0;
+  const card = window.cardMemory || 0;
+  const total = parseFloat(
+    document.getElementById("grandtotal-summary")?.textContent.replace(/[^0-9.-]/g, "") || 0
+  );
+
+  const hasItems = tableBody.querySelectorAll("tr").length > 0;
+  const hasPayment = (cash + card) > 0;
+  const email = (emailInput?.value || "").trim();
+  const validEmail = email === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const isReturnMode = !!window.returnMode;
+
+  // ===========================================================
+  // 🧭 Logic: Sales vs Returns
+  // ===========================================================
+  let readyToSubmit = false;
+
+  if (isReturnMode) {
+    // 🔴 RETURN MODE → allow submission for ANY valid return (refund or balance owed)
+    const refundOrBalance = total !== 0 && Math.abs(total) > 0.01;
+    readyToSubmit = hasItems && validEmail && refundOrBalance;
+  } else {
+    // 🟢 SALE MODE → allow submission for any nonzero total (positive = sale, negative = owed/refund)
+    const nonZeroMovement = total !== 0 && Math.abs(total) > 0.01;
+    readyToSubmit = hasItems && validEmail && nonZeroMovement;
+  }
+
+
+  // ===========================================================
+// 💳 Show / Hide Buttons — based on email + payment conditions
+// ===========================================================
+if (calcBtn) {
+  // Only show Paypad if there are items and not in return mode
+  calcBtn.style.display = (!isReturnMode && hasItems) ? "inline-flex" : "none";
+}
+
+if (footerBtn) {
+  // 🧭 New: Ready when email is filled AND payment matches/exceeds total
+  const emailFilled = email.length > 0 && validEmail;
+  const paymentSufficient =
+    (total > 0 && (cash + card) >= total) || // paid enough for sale
+    (total < 0); // negative = refund / return
+
+  const readyToSubmit = hasItems && emailFilled && paymentSufficient;
+
+  footerBtn.style.display = readyToSubmit ? "inline-flex" : "none";
+  footerBtn.disabled = !readyToSubmit;
+}
+
+submitRow.style.display = hasItems ? "flex" : "none";
+
+console.log(
+  `🧾 Button state: ${isReturnMode ? "Return" : "Sale"} | ready=${readyToSubmit ? "✅" : "❌"} | total=${total} | items=${hasItems} | payment=${cash + card} | email=${email}`
+);
+
+
+}
 
 // ===========================================================
 // 🔘 SMART SUBMIT BUTTON LOGIC (Keeps Calculator Button Visible)
@@ -1806,12 +1913,21 @@ function resetOrder(full = true) {
   if (typeof setReturnMode === "function") setReturnMode(false);
 
   // 🧾 Refresh invoice number + totals
-  if (typeof updateInvoiceNumber === "function") updateInvoiceNumber();
-  if (typeof updateTotals === "function") updateTotals();
+    if (typeof updateInvoiceNumber === "function") updateInvoiceNumber();
+    if (typeof updateTotals === "function") updateTotals();
 
-  // 🔘 Hide submit button
-  const submitRow = document.getElementById("submit-row");
-  if (submitRow) submitRow.classList.add("hidden");
+    // 🔘 Reset and re-evaluate submit button
+    const submitRow = document.getElementById("submit-row");
+    if (submitRow) {
+      submitRow.classList.add("hidden"); // hide during reset
+      // recheck visibility after state rebuild
+      setTimeout(() => toggleSubmitButton?.(), 400);
+    }
+
+    // 🔓 Reset overlays + grid
+    resetOverlays();
+    console.log("✅ POS reset complete — all clear.");
+
 
   // After page refresh or new sale start
   setGridLock(false);
@@ -1824,6 +1940,26 @@ function resetOrder(full = true) {
   }, 200);
 }
 window.resetOrder = resetOrder; // ✅ make it global
+
+// ===========================================================
+// 🔁 RESTART POS LOOP — clean re-init without page reload
+// ===========================================================
+async function restartPOS() {
+  console.log("🔁 Restarting Kinaya POS loop...");
+
+  try {
+    await updateInvoiceNumber();  // refresh invoice number
+    await loadProductCatalog();   // reload current product grid
+    setGridLock(false);           // ensure product grid is unlocked
+    toggleSubmitButton?.();       // 🟦 force submit button recheck
+    showToast("✨ Ready for new transaction");
+    console.log("✅ POS reinitialized successfully.");
+  } catch (err) {
+    console.error("⚠️ Failed to restart POS:", err);
+  }
+}
+window.restartPOS = restartPOS;
+
 
 // ===========================================================
 // 🚀 INIT
