@@ -11,7 +11,7 @@ body {
   background: radial-gradient(circle at center, #020202 0%, #000 100%);
   color: #A7E1EE;
   font-family: "Roboto", sans-serif;
-  margin: 0;
+  margin: 2rem;
   padding: 0;
   overflow-x: hidden;
   transition: background 0.3s ease;
@@ -48,7 +48,7 @@ header.pos-header .subtitle {
 header h1 {
   font-size: 1.9rem;
   color: var(--color-accent);
-  text-shadow: 0 0 15px rgba(167,225,238,0.5);
+  text-shadow: 0 0 15px rgba(38, 56, 60, 0.5);
 }
 
 /* ============================================================
@@ -62,11 +62,11 @@ main.pos-container {
   padding-bottom: 5.5rem !important; /* leaves space above fixed footer */
 }
 
-/* Tighten spacing for smaller devices */
+/* ✅ Unified mobile header spacing */
 @media (max-width: 768px) {
   main.pos-container {
-    padding-top: calc(7.5rem + env(safe-area-inset-top)) !important;
-    padding-bottom: calc(7.5rem + env(safe-area-inset-bottom)) !important;
+    padding-top: calc(6.5rem + env(safe-area-inset-top)) !important;
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom)) !important;
   }
 }
 
