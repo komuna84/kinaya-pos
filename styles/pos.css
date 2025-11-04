@@ -45,6 +45,12 @@ header.pos-header .subtitle {
   opacity: 0.8;
 }
 
+header h1 {
+  font-size: 1.9rem;
+  color: var(--color-accent);
+  text-shadow: 0 0 15px rgba(167,225,238,0.5);
+}
+
 /* ============================================================
 🌿 FIX: MAIN CONTAINER OFFSET FOR FIXED HEADER + FOOTER
 Applies dynamic spacing without breaking glow layout
