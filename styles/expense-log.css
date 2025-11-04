@@ -437,7 +437,7 @@ Keeps headers/forms off the edges across mobile + desktop
   }
 
   main.pos-container {
-    padding-top: 9rem !important;
+    padding-top: 4.5rem !important;
     padding-bottom: 6rem !important;
   }
 
