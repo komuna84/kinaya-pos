@@ -145,7 +145,7 @@
       </select>
     </div>
   </div>
-  <div class="button-row">
+  <div class="button-row" style="padding: 10px;">
   <button id="save-expense-btn" class="btn-save">💾 SAVE</button>
   <button id="clear-expense-btn" class="btn-clear">🧹 CLEAR</button>
 </div>
@@ -159,11 +159,10 @@
     <section class="receipt">
   <h2 class="glow-title">📊 Current Expense Overview</h2>
   <p class="glow-subtext">Review your recent purchases, event fees, and vendor payments below.</p>
-
+  <p><input type="text" id="expense-search" placeholder="🔍 Search by vendor, category, or description..." />
+    <button id="clear-search" class="btn-clear-small">✖</button></p>
   <div class="table-wrapper">
     <div class="table-controls">
-      <input type="text" id="expense-search" placeholder="🔍 Search by vendor, category, or description..." />
-      <button id="clear-search" class="btn-clear-small">✖</button>
     </div>
 
     <table id="expense-table" class="glow-table">
