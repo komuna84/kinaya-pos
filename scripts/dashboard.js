@@ -40,22 +40,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const refreshBtn = document.getElementById("refresh-btn");
   const compareToggle = document.getElementById("compare-toggle");
 
-  // ===========================================================
-  // ✅ INITIALIZE DASHBOARD AFTER DATES SET
-  // ===========================================================
-  if (typeof loadDashboard === "function") {
-    await new Promise((r) => setTimeout(r, 100)); // small wait to ensure inputs render
-    loadDashboard();
-    console.log("✅ Dashboard initialized with current month.");
-  }
-});
-
-
-  // Dashboard control elements
-  const startInput = document.getElementById("start-date");
-  const endInput = document.getElementById("end-date");
-  const refreshBtn = document.getElementById("refresh-btn");
-  const compareToggle = document.getElementById("compare-toggle");
 
   // ===========================================================
   // 🧩 HELPER FUNCTIONS
