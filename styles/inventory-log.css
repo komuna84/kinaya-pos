@@ -425,7 +425,7 @@ Stable dual-scroll, sticky header/column, no wiggle
 /* ===== Core Table ===== */
 .glow-table {
   border-collapse: collapse;
-  width: max-content;                /* fit all columns naturally */
+  width: 100%;                /* fit all columns naturally */
   min-width: 600px;                  /* prevents shrink on small view */
   color: #a7e1ee;
   font-size: 0.9rem;
