@@ -540,3 +540,20 @@ Keeps headers/forms off the edges across mobile + desktop
     padding-bottom: calc(7rem + env(safe-area-inset-bottom)) !important;
   }
 }
+
+/* 🌿 Prevent charts from being hidden by bottom nav on mobile */
+@media (max-width: 768px) {
+  main.pos-container,
+  .dashboard-container,
+  .data-page,
+  body {
+    padding-bottom: 6rem !important; /* enough to clear the nav */
+  }
+
+  /* Optional: smooth spacing under last chart */
+  .chart-container:last-child,
+  .stats-section:last-child {
+    margin-bottom: 5rem !important;
+  }
+}
+
