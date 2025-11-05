@@ -151,7 +151,6 @@ async function submitInventoryLog() {
   const entries = [];
 
   groups.forEach((g) => {
-    groups.forEach((g) => {
     const sku = g.querySelector(".sku")?.value || "";
     const title = g.querySelector(".product-title")?.value || "";
     const type = g.querySelector(".type")?.value || "";
@@ -160,6 +159,7 @@ async function submitInventoryLog() {
     const rawDate = g.querySelector(".date")?.value || new Date();
     const dateObj = new Date(rawDate);
     const date = `${dateObj.getMonth() + 1}-${dateObj.getDate()}-${dateObj.getFullYear()}`;
+
 
     if (!sku || qty === 0 || !type) return;
 
@@ -279,7 +279,11 @@ clearBtn?.addEventListener("click", () => {
         .map(
           (r) => `
           <tr>
-            <td>${r.Date || ""}</td>
+            <td>${
+            r.Date
+                ? new Date(r.Date).toISOString().split("T")[0]
+                : ""
+            }</td>
             <td>${r.Sku || ""}</td>
             <td>${r["Product Title"] || ""}</td>
             <td>${r.Type || ""}</td>
