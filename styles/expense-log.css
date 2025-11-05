@@ -326,22 +326,33 @@ Stable scroll, sticky header/column, no wiggle
 }
 
 /* ============================================================
-🌿 MOBILE OPTIMIZATION
+🌿 MOBILE OPTIMIZATION — Stable, Non-Wiggling Tables
 ============================================================ */
 @media (max-width: 768px) {
   .table-wrapper {
     border-radius: 10px;
-    max-height: 50vh;
+    max-height: 10rem;                /* ~3–4 rows visible */
+    overflow-y: scroll;               /* only vertical scroll */
+    overflow-x: hidden;               /* disable horizontal wiggle */
+    -webkit-overflow-scrolling: touch;/* smooth iOS scroll */
+    overscroll-behavior: contain;     /* prevent bounce bleed */
+    width: 100%;                      /* lock width to parent */
+    box-sizing: border-box;
   }
 
   .glow-table {
-    min-width: 480px;
+    width: 100%;                      /* match wrapper */
+    min-width: unset;                 /* allow natural width */
+    table-layout: fixed;              /* prevent reflow jitter */
   }
 
   .glow-table th,
   .glow-table td {
     font-size: 0.8rem;
-    padding: 0.5rem 0.7rem;
+    padding: 0.4rem 0.6rem;
+    white-space: nowrap;              /* keep compact look */
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 
@@ -349,4 +360,3 @@ Stable scroll, sticky header/column, no wiggle
 body {
   overscroll-behavior-y: none;
 }
-
