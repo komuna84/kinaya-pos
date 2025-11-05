@@ -375,3 +375,19 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 input[type="date"]:hover::-webkit-calendar-picker-indicator {
   filter: invert(1);
 }
+
+/* 🌿 Mobile Dashboard Formatting */
+@media (max-width: 768px) {
+  .stats-section p strong,
+  .stats-section div strong {
+    display: block;                  /* Move bold label to its own line */
+    margin-bottom: 0.25rem;
+  }
+
+  .stats-section p,
+  .stats-section div {
+    text-align: left !important;     /* Left align text for mobile readability */
+    white-space: normal !important;  /* Allow wrapping */
+    word-break: break-word;          /* Break long text safely */
+  }
+}
