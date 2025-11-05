@@ -376,18 +376,19 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator {
   filter: invert(1);
 }
 
-/* 🌿 Mobile Dashboard Formatting */
+/* ============================================================
+🌿 MOBILE FIX — Prevent Dashboard Bottom Overlap
+Ensures charts & panels stay above bottom nav on mobile
+============================================================ */
 @media (max-width: 768px) {
-  .stats-section p strong,
-  .stats-section div strong {
-    display: block;                  /* Move bold label to its own line */
-    margin-bottom: 2rem;
+  main.dashboard {
+    padding-bottom: calc(7rem + env(safe-area-inset-bottom)) !important;
   }
 
-  .stats-section p,
-  .stats-section div {
-    text-align: left !important;     /* Left align text for mobile readability */
-    white-space: normal !important;  /* Allow wrapping */
-    word-break: break-word;          /* Break long text safely */
+  /* For extra cushion on smaller phones */
+  @media (max-width: 400px) {
+    main.dashboard {
+      padding-bottom: calc(8rem + env(safe-area-inset-bottom)) !important;
+    }
   }
 }
