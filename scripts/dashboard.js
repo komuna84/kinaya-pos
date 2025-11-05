@@ -367,12 +367,26 @@ function updateMetrics(m = {}) {
   assign("num-transactions", m.totalTransactions || 0);             // total completed sales
   assign("unique-customers", cust.uniqueCustomers || 0);            // distinct buyers
   assign("repeat-customers", cust.repeatCustomers || 0);            // returning buyers
-  assign("retention-rate", `${(cust.retentionRate || 0).toFixed(1)}%`);
-  assign("refund-rate", `${(cust.refundCount || 0)} returns`);
-  assign("emails-collected", cust.customerEmailsCollected || 0);
-  assign("avg-items-sale", m.avgItemsPerSale || 0);
-  assign("avg-frequency", `${(cust.purchaseFrequency || 0)}x / month`);
+
+  // ✅ Show percentages with exactly two decimals
+  assign("retention-rate", `${(cust.retentionRate || 0).toFixed(2)}%`);
+  assign("subscription-rate", `${(cust.subscriptionRate || 0).toFixed(2)}%`); // if you track subs
+
+  // ✅ Clean "returns" line
+  assign("refund-rate", `${cust.refundCount || 0} returns`);
+
+  // ✅ Clean average item count (2 decimals)
+  assign("avg-items-sale", (m.avgItemsPerSale || 0).toFixed(2));
+
+  // ✅ Monthly purchase frequency (2 decimals if needed)
+  assign("avg-frequency", `${(cust.purchaseFrequency || 0).toFixed(2)}x / month`);
+
+  // ✅ Lifetime Value formatted cleanly as money
   assign("customer-ltv", `$${(cust.lifetimeValue || 0).toFixed(2)}`);
+
+  // ✅ Collected emails stays integer
+  assign("emails-collected", cust.customerEmailsCollected || 0);
+
 
   // ===========================================================
   // 💌 SUBSCRIPTION RATE — Derived from sales log or customer data
