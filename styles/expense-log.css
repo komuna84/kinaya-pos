@@ -246,86 +246,9 @@ Keeps headers/forms off the edges across mobile + desktop
 }
 
 
-/* ===== Expense Log Table ===== */
-.table-wrapper {
-  width: 100%;
-  overflow-x: auto;
-  max-height: 40vh;
-  overflow-y: auto;
-  margin-top: 1.5rem;
-  border: 1px solid rgba(0, 198, 255, 0.15);
-  border-radius: 12px;
-  background: rgba(5, 15, 20, 0.5);
-  box-shadow: inset 0 0 10px rgba(0, 198, 255, 0.08);
-}
-
-.glow-table {
-  width: 100%;
-  border-collapse: collapse;
-  color: #a7e1ee;
-  font-size: 0.9rem;
-}
-
-.glow-table th,
-.glow-table td {
-  padding: 0.6rem 0.8rem;
-  text-align: left;
-  border-bottom: 1px solid rgba(0, 198, 255, 0.15);
-}
-
-.glow-table th {
-  text-shadow: 0 0 8px rgba(0, 198, 255, 0.4);
-  font-weight: 700;
-  color: #bffcff;
-}
-
-.glow-table tbody tr:hover {
-  background: rgba(0, 198, 255, 0.08);
-  cursor: pointer;
-  transition: background 0.25s ease;
-}
-
-/* ===== Divider (Between Form + Table) ===== */
-.divider {
-  width: 100%;
-  height: 2px;
-  background: linear-gradient(to right, transparent, rgba(0, 198, 255, 0.4), transparent);
-  margin: 1rem 0;
-}
-
-/* ===== Responsive Adjustments ===== */
-@media (max-width: 768px) {
-  main.pos-container {
-    padding: 1rem;
-  }
-
-  .glow-title {
-    font-size: 1.2rem;
-  }
-
-  .input-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .glow-table th,
-  .glow-table td {
-    font-size: 0.8rem;
-    padding: 0.5rem;
-  }
-}
-
-/* ===== Kinaya Glow Animation ===== */
-@keyframes pulseGlow {
-  0%, 100% {
-    box-shadow: 0 0 20px rgba(0, 198, 255, 0.08);
-  }
-  50% {
-    box-shadow: 0 0 30px rgba(0, 198, 255, 0.15);
-  }
-}
-
 /* ============================================================
-🌿 GLOW TABLE — Sticky Header & First Column
+🌿 UNIVERSAL GLOW TABLE SYSTEM — Expenses + Inventory
+Stable scroll, sticky header/column, no wiggle
 ============================================================ */
 
 /* ===== Wrapper ===== */
@@ -333,23 +256,27 @@ Keeps headers/forms off the edges across mobile + desktop
   position: relative;
   width: 100%;
   max-height: 60vh;
-  overflow-x: auto;
-  overflow-y: auto;
+  overflow-y: scroll;                 /* stable vertical scroll */
+  overflow-x: hidden;                 /* prevent wiggle */
   margin-top: 1.5rem;
   border: 1px solid rgba(0, 198, 255, 0.15);
   border-radius: 12px;
   background: rgba(5, 15, 20, 0.5);
   box-shadow: inset 0 0 10px rgba(0, 198, 255, 0.08);
-  -webkit-overflow-scrolling: touch;
+  -webkit-overflow-scrolling: touch;  /* smooth iOS */
+  overscroll-behavior: contain;       /* prevent bounce bleed */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,198,255,0.2) transparent;
 }
 
-/* ===== Table Core ===== */
+/* ===== Core Table ===== */
 .glow-table {
   width: 100%;
   border-collapse: collapse;
   color: #a7e1ee;
   font-size: 0.9rem;
-  min-width: 600px; /* consistent scroll width */
+  min-width: 600px;
+  table-layout: fixed;                /* prevents column reflow */
 }
 
 /* ===== Cells ===== */
@@ -359,6 +286,8 @@ Keeps headers/forms off the edges across mobile + desktop
   text-align: left;
   border-bottom: 1px solid rgba(0, 198, 255, 0.15);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   background: rgba(10, 25, 30, 0.85);
 }
 
@@ -384,12 +313,12 @@ Keeps headers/forms off the edges across mobile + desktop
   box-shadow: 2px 0 6px rgba(0, 198, 255, 0.1);
 }
 
-/* Ensure header corner stays above first col shadow */
+/* Header corner fix */
 .glow-table th:first-child {
   z-index: 4;
 }
 
-/* ===== Hover State ===== */
+/* ===== Hover ===== */
 .glow-table tbody tr:hover td {
   background: rgba(0, 198, 255, 0.08);
   cursor: pointer;
@@ -416,70 +345,8 @@ Keeps headers/forms off the edges across mobile + desktop
   }
 }
 
-/* ============================================================
-📱 KINAYA MOBILE PATCH (Inventory + Forms)
-============================================================ */
-@media (max-width: 768px) {
-  .input-grid {
-    grid-template-columns: 1fr !important;
-    width: 95% !important;
-    padding: 1rem !important;
-    gap: 0.9rem !important;
-  }
-
-  .input-grid label {
-    font-size: 0.85rem !important;
-  }
-
-  .input-grid input,
-  .input-grid select {
-    font-size: 1rem !important;
-    padding: 0.65rem !important;
-    width: 100% !important;
-  }
-
-  .receipt h2 {
-    font-size: 1.2rem !important;
-    text-align: center;
-    margin-top: 0.3rem;
-  }
-
-  header.pos-header {
-    padding: 0.8rem 0 !important;
-  }
-
-  main.pos-container {
-    padding-top: 8rem !important;
-    padding-bottom: 6rem !important;
-  }
-
-  html, body {
-    overflow-y: auto !important;
-    height: auto !important;
-  }
-
-  #update-btn,
-  #save-item-btn {
-    width: 100% !important;
-    font-size: 1rem !important;
-  }
-
-  input, select, button {
-    min-height: 44px;
-  }
+/* Prevent whole page bounce when inner scroll is active */
+body {
+  overscroll-behavior-y: none;
 }
 
-@media (max-width: 400px) {
-  .receipt {
-    padding: 1rem !important;
-  }
-
-  .input-grid {
-    width: 100% !important;
-    padding: 0.8rem !important;
-  }
-
-  header.pos-header h1 {
-    font-size: 1.4rem !important;
-  }
-}
