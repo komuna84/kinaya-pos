@@ -37,7 +37,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-
   // Dashboard control elements
   const startInput = document.getElementById("start-date");
   const endInput = document.getElementById("end-date");
