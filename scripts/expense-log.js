@@ -14,15 +14,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const tableBody = document.querySelector("#expense-table tbody");
   const saveBtn = document.getElementById("save-expense-btn");
-  const clearBtn = document.getElementById("clear-expense-btn");
 
-  // ===========================================================
-  // 🗓️ AUTO-FILL TODAY'S DATE ON PAGE LOAD
-  // ===========================================================
-  if (dateEl) {
-    const today = new Date();
-    dateEl.value = today.toISOString().split("T")[0]; // yyyy-mm-dd
-  }
 
   // ===========================================================
   // 🧾 FORM ELEMENTS
