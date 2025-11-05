@@ -28,7 +28,7 @@ const devLog = (...args) => { if (DEBUG_MODE) console.log(...args); };
   const SHEET_API =
     "https://script.google.com/macros/s/AKfycbxDzflmDmWiP8qzTUKhKdsdWSL_ZOaRnA8sRrmJ0Qj8yPXm1hya6dWvq-BoJW25NntLLA/exec"; // 🔹 Replace if redeployed
 
-    // ===========================================================
+// ===========================================================
 // ⚡ FAST CATALOG LOADER — Cache + Dedup + Background Refresh
 // ===========================================================
 async function loadProductCatalog(force = false) {
@@ -1563,25 +1563,65 @@ closeBtn?.addEventListener("click", () => closePaypad(false));
 // ===========================================================
 // 🧹 CLEAR BUTTON HANDLER — Full Page Refresh
 // ===========================================================
+// ===========================================================
+// 🧹 CANCEL / CLEAR BUTTON — Reset Form Without Page Refresh
+// ===========================================================
 const clearBtn = document.getElementById("clear-btn");
 if (clearBtn) {
   clearBtn.addEventListener("click", (e) => {
     e.preventDefault();
-    e.target.blur();
-    console.log("🔁 Refreshing POS page...");
-    showToast?.("Refreshing...");
-    setTimeout(() => location.reload(), 300);
-  });
-} else {
-  console.warn("⚠️ Clear button not found in DOM");
-}
+    if (!confirm("Clear current sale and reset form?")) return;
 
-if (clearBtn) {
-  clearBtn.addEventListener("click", (e) => {
-    e.preventDefault();
-    if (!confirm("Are you sure you want to clear this order?")) return;
-    showToast?.("Refreshing...");
-    setTimeout(() => location.reload(), 300);
+    // 🧾 Clear receipt table
+    const tableBody = document.getElementById("receipt-details");
+    if (tableBody) tableBody.innerHTML = "";
+
+    // 🧮 Reset totals
+    const fields = [
+      "subtotal-summary",
+      "tax-summary",
+      "grandtotal-summary",
+      "amount-paid-display",
+      "change-amount",
+      "split-info",
+      "refund-amount",
+      "return-total"
+    ];
+    fields.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = "$0.00";
+    });
+
+    // 🧾 Reset inputs
+    const emailEl = document.getElementById("customer-email");
+    const discountInput = document.getElementById("discount-input");
+    const originalInvoiceInput = document.getElementById("original-invoice");
+    if (emailEl) emailEl.value = "";
+    if (discountInput) discountInput.value = "";
+    if (originalInvoiceInput) originalInvoiceInput.value = "";
+
+    // 🧠 Reset memory flags
+    window.cashMemory = 0;
+    window.cardMemory = 0;
+    window.returnMode = false;
+    window.originalGrandLocked = false;
+    window.leftReturnMode = false;
+    sessionStorage.removeItem("returnMode");
+    sessionStorage.removeItem("leftReturnMode");
+
+    // 🔄 UI cleanup
+    document.body.classList.remove("return-active");
+    const banner = document.getElementById("return-mode-banner");
+    if (banner) banner.classList.remove("active");
+
+    // ✅ Reset button states
+    const submitRow = document.getElementById("submit-row");
+    if (submitRow) submitRow.classList.add("hidden");
+    toggleSubmitButton?.();
+
+    // 💬 Feedback
+    showToast?.("Form cleared.");
+    console.log("🧹 POS form reset — no refresh performed.");
   });
 }
 
