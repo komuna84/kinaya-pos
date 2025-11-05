@@ -14,6 +14,30 @@ document.addEventListener("DOMContentLoaded", () => {
   const API_URL =
     "https://script.google.com/macros/s/AKfycbxDzflmDmWiP8qzTUKhKdsdWSL_ZOaRnA8sRrmJ0Qj8yPXm1hya6dWvq-BoJW25NntLLA/exec"; // 🔹 Replace if redeployed
 
+  // ===========================================================
+  // 🌿 AUTO-FILL CURRENT MONTH RANGE FOR DASHBOARD FILTERS
+  // ===========================================================
+  document.addEventListener("DOMContentLoaded", () => {
+    const startDate = document.getElementById("start-date");
+    const endDate = document.getElementById("end-date");
+  
+    if (startDate && endDate) {
+      const now = new Date();
+  
+      // First day of current month
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+      // Last day of current month
+      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  
+      // Format to yyyy-mm-dd for <input type="date">
+      const fmt = (d) => d.toISOString().split("T")[0];
+  
+      startDate.value = fmt(firstDay);
+      endDate.value = fmt(lastDay);
+    }
+  });
+
+
   // Dashboard control elements
   const startInput = document.getElementById("start-date");
   const endInput = document.getElementById("end-date");
