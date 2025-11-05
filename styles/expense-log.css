@@ -347,45 +347,27 @@ Stable dual-scroll, sticky header/column, no wiggle
   }
 }
 
-/* Prevent whole page bounce when inner scroll is active */
-body {
-  overscroll-behavior-y: none;
-}
-
-
 /* ============================================================
-🌿 PAGE SPACING — Inventory, Inventory Log, Expense Log
-Keeps headers/forms off the edges across mobile + desktop
+🌿 MOBILE PAGE SPACING — Dashboard, Inventory, Expense, Logs
+Keeps all pages above fixed nav without pushing layout up
 ============================================================ */
-
-/* 🔹 MOBILE & TABLET */
-@media only screen and (max-width: 768px) {
+@media (max-width: 768px) {
+  main.pos-container,
   main.inventory,
   main.inventory-log,
-  main.expense-log {
-    padding-top: calc(6.5rem + env(safe-area-inset-top)) !important;
-    padding-bottom: calc(6.5rem + env(safe-area-inset-bottom)) !important;
+  main.expense-log,
+  .dashboard-container,
+  .data-page {
+    padding-top: calc(6.5rem + env(safe-area-inset-top)) !important;   /* below fixed header */
+    padding-bottom: calc(6.5rem + env(safe-area-inset-bottom)) !important; /* above bottom nav */
+    box-sizing: border-box;
+  }
+
+  /* Optional: last content blocks (charts, tables) */
+  .chart-container:last-child,
+  .stats-section:last-child,
+  .table-wrapper:last-child {
+    margin-bottom: 5rem !important; /* adds breathing room */
   }
 }
 
-/* 🔹 DESKTOP */
-@media only screen and (min-width: 769px) {
-  main.inventory-log,
-  main.expense-log {
-    padding-bottom: 5rem !important;  /* adds space below forms/tables */
-  }
-
-  main.inventory {
-    padding-top: 5rem !important;
-    padding-bottom: 4rem !important;
-  }
-}
-
-/* Optional: small screens (<400px) — add extra cushion */
-@media only screen and (max-width: 400px) {
-  main.inventory,
-  main.inventory-log,
-  main.expense-log {
-    padding-bottom: calc(7rem + env(safe-area-inset-bottom)) !important;
-  }
-}
