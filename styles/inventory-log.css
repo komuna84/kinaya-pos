@@ -503,17 +503,18 @@ Stable dual-scroll, sticky header/column, no wiggle
 🌿 MOBILE PAGE SPACING — Dashboard, Inventory, Expense, Logs
 Keeps all pages above fixed nav without pushing layout up
 ============================================================ */
-@media (max-width: 768px) {
-  main.pos-container,
+/* 🔹 MOBILE & TABLET — FIXED HEADER OVERLAP */
+@media only screen and (max-width: 768px) {
   main.inventory,
   main.inventory-log,
   main.expense-log,
-  .dashboard-container,
-  .data-page {
-    padding-top: calc(6.5rem + env(safe-area-inset-top)) !important;   /* below fixed header */
-    padding-bottom: calc(6.5rem + env(safe-area-inset-bottom)) !important; /* above bottom nav */
-    box-sizing: border-box;
+  main.pos-container {
+    /* match actual header height (~6rem) */
+    padding-top: calc(6.5rem + env(safe-area-inset-top)) !important;
+    padding-bottom: calc(6.5rem + env(safe-area-inset-bottom)) !important;
   }
+}
+
 
   /* Optional: last content blocks (charts, tables) */
   .chart-container:last-child,
