@@ -363,7 +363,7 @@ Keeps headers/forms off the edges across mobile + desktop
   main.inventory,
   main.inventory-log,
   main.expense-log {
-    padding-top: calc(4.5rem + env(safe-area-inset-top)) !important;
+    padding-top: calc(6.5rem + env(safe-area-inset-top)) !important;
     padding-bottom: calc(6.5rem + env(safe-area-inset-bottom)) !important;
   }
 }
