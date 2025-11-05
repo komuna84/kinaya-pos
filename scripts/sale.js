@@ -6,6 +6,7 @@
 window.taxEnabled = true;  // default ON
 window.taxRate = 0.07;     // 7% default rate
 
+
 document.addEventListener("DOMContentLoaded", async () => {
   console.log("🌿 Kinaya POS initializing...");
   
@@ -15,10 +16,96 @@ window.productCache = {
   products: []
 };
 
+// ===========================================================
+// 💤 QUIET MODE — Disable development logs
+// ===========================================================
+const DEBUG_MODE = false; // set true only for debugging
+const devLog = (...args) => { if (DEBUG_MODE) console.log(...args); };
+
+
 
   // ---------- CONFIG ----------
   const SHEET_API =
     "https://script.google.com/macros/s/AKfycbxDzflmDmWiP8qzTUKhKdsdWSL_ZOaRnA8sRrmJ0Qj8yPXm1hya6dWvq-BoJW25NntLLA/exec"; // 🔹 Replace if redeployed
+
+    // ===========================================================
+// ⚡ FAST CATALOG LOADER — Cache + Dedup + Background Refresh
+// ===========================================================
+async function loadProductCatalog(force = false) {
+  try {
+    if (!force) {
+      const cached = localStorage.getItem("kinayaCatalog");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        renderProducts(parsed);
+        console.log("⚡ Loaded catalog instantly from cache");
+        fetchCatalogAndUpdateCache(); // background refresh
+        return;
+      }
+    }
+    await fetchCatalogAndUpdateCache();
+  } catch (err) {
+    console.error("❌ Catalog load failed:", err);
+    renderProducts(fallbackProducts);
+  }
+}
+
+async function fetchCatalogAndUpdateCache() {
+  const res = await fetch(`${SHEET_API}?mode=pos`);
+  const json = await res.json();
+  const raw =
+    json.data || json.records || json.values || json.products || json.items || json;
+
+  const normalized = raw.map((r) => {
+    const clean = {};
+    for (const k in r) clean[k.trim().toLowerCase()] = r[k];
+    return {
+      sku: clean["sku"] || "",
+      name: clean["product title"] || "Unnamed Product",
+      image:
+        clean["image link"] ||
+        clean["image"] ||
+        clean["image url"] ||
+        "https://raw.githubusercontent.com/komuna84/kinaya-pos-assets/main/default.png",
+      retailPrice: parseFloat(clean["retail price"] || 0),
+      discountPrice: parseFloat(clean["sale price"] || 0),
+      cost: parseFloat(clean["unit cost"] || 0),
+      stock: parseFloat(clean["in stock"] || 0),
+      timestamp: new Date(clean["timestamp"] || 0).getTime() || 0,
+      vendor: clean["vendor"] || "",
+      description: clean["description"] || "",
+      status: clean["status"] || "Active",
+    };
+  });
+
+  const latestOnly = Object.values(
+    normalized.reduce((acc, item) => {
+      const existing = acc[item.sku];
+      if (!existing || item.timestamp > existing.timestamp) acc[item.sku] = item;
+      return acc;
+    }, {})
+  );
+
+
+  await updateInvoiceNumber();
+  persistInvoiceDisplay();
+
+
+  console.log(`✅ Found ${latestOnly.length} latest products`);
+  localStorage.setItem("kinayaCatalog", JSON.stringify(latestOnly));
+  renderProducts(latestOnly);
+}
+
+
+// ===========================================================
+// ⚡ START PRELOAD — do this AFTER defining the above functions
+// ===========================================================
+const productPromise = loadProductCatalog();
+
+document.addEventListener("DOMContentLoaded", async () => {
+  await productPromise;
+  console.log("⚡ Products ready");
+});
 
   // ---------- CORE ELEMENTS ----------
   const menu = document.getElementById("menu");
@@ -129,6 +216,24 @@ if (document.getElementById("invoice-number")) {
     document.getElementById("invoice-search-btn").click();
   };
   topInvoiceEl.appendChild(nextSpan);
+}
+
+// ===========================================================
+// 🧾 INVOICE NUMBER PERSISTENCE — Prevent Disappearance
+// ===========================================================
+function persistInvoiceDisplay() {
+  const invoiceNumEl = document.getElementById("invoice-number");
+  if (!invoiceNumEl) return;
+
+  // If updateInvoiceNumber already ran
+  if (window.nextInvoiceNumber) {
+    invoiceNumEl.textContent = `Invoice #${window.nextInvoiceNumber}`;
+  }
+
+  // Fallback if something overwrote the text
+  else if (invoiceNumEl.textContent.includes("Loading")) {
+    updateInvoiceNumber();
+  }
 }
 
 // ===========================================================
@@ -484,63 +589,6 @@ if (origTotalEl && window.originalGrandLocked) {
 // You can also call `updateReturnTotal()` manually after adding each return SKU
 
 // ===========================================================
-// 🔁 LOAD PRODUCT CATALOG (deduplicates to newest version)
-// ===========================================================
-async function loadProductCatalog() {
-  try {
-    const res = await fetch(`${SHEET_API}?mode=pos`);
-    const json = await res.json();
-
-    const raw =
-      json.data || json.records || json.values || json.products || json.items || json;
-
-    // 🧩 Normalize sheet headers → consistent JS keys
-    const normalized = raw.map((r) => {
-      const clean = {};
-      for (const k in r) clean[k.trim().toLowerCase()] = r[k];
-      return {
-        sku: clean["sku"] || "",
-        name: clean["product title"] || "Unnamed Product",
-        image:
-          clean["image link"] ||
-          clean["image"] ||
-          clean["image url"] ||
-          "https://raw.githubusercontent.com/komuna84/kinaya-pos-assets/main/default.png",
-        retailPrice: parseFloat(clean["retail price"] || 0),
-        discountPrice: parseFloat(clean["sale price"] || 0),
-        cost: parseFloat(clean["unit cost"] || 0),
-        stock: parseFloat(clean["in stock"] || 0),
-        timestamp: new Date(clean["timestamp"] || 0).getTime() || 0,
-        vendor: clean["vendor"] || "",
-        description: clean["description"] || "",
-        status: clean["status"] || "Active",
-      };
-    });
-
-    // 🌿 Keep only the most recent entry per SKU
-    const latestOnly = Object.values(
-      normalized.reduce((acc, item) => {
-        const existing = acc[item.sku];
-        if (!existing || item.timestamp > existing.timestamp) {
-          acc[item.sku] = item;
-        }
-        return acc;
-      }, {})
-    );
-
-    console.log(
-      `✅ Found ${latestOnly.length} latest products (deduplicated from ${normalized.length})`
-    );
-
-    // ✅ Render the deduped product list
-    renderProducts(latestOnly);
-  } catch (err) {
-    console.error("❌ Failed to load or deduplicate catalog:", err);
-    renderProducts(fallbackProducts);
-  }
-}
-
-// ===========================================================
   //  RETURN MODEE HELPERR
   // ===========================================================
   function getActiveUnitPrice(sale, retail) {
@@ -550,18 +598,16 @@ async function loadProductCatalog() {
 }
 
 // ===========================================================
-// 🛍️ RENDER PRODUCTS — Grid + Click to Add to Receipt
+// ⚡ FAST RENDERER — Incremental + Lazy Images + Click Logic
 // ===========================================================
 function renderProducts(products) {
   const menu = document.getElementById("menu");
   if (!menu) return;
 
-  // 🔹 Normalize product data
+  // 🔹 Normalize product data (same as your original)
   const normalized = products.map((p) => {
-    const sale =
-      parseFloat(p.discountPrice || p["Sale Price"] || 0) || 0;
-    const retail =
-      parseFloat(p.retailPrice || p["Retail Price"] || 0) || 0;
+    const sale = parseFloat(p.discountPrice || p["Sale Price"] || 0) || 0;
+    const retail = parseFloat(p.retailPrice || p["Retail Price"] || 0) || 0;
     const final = sale > 0 && sale < retail ? sale : retail;
 
     return {
@@ -578,65 +624,79 @@ function renderProducts(products) {
     };
   });
 
-  // 🔹 Build product grid
-  menu.innerHTML = normalized
-    .map(
-      (p) => `
-        <figure
-          class="menu-item"
-          data-sku="${p.sku}"
-          data-name="${p.name}"
-          data-price="${p.price}"
-          data-sale="${p.salePrice}"
-          data-retail="${p.retailPrice}"
-        >
-          <img src="${p.image}" alt="${p.name}" />
-          <figcaption>${p.name}</figcaption>
-          <figcaption style="font-size:0.8em; color:#66caff;">${p.sku}</figcaption>
-          <figcaption>
-            ${
-              p.salePrice > 0 && p.salePrice < p.retailPrice
-                ? `<span style="color:#bffcff;">$${p.salePrice.toFixed(2)}</span>
-                   <span style="text-decoration:line-through; color:#888; margin-left:4px;">$${p.retailPrice.toFixed(2)}</span>`
-                : `<span style="color:#bffcff;">$${p.retailPrice.toFixed(2)}</span>`
-            }
-          </figcaption>
-        </figure>`
-    )
-    .join("");
+  menu.innerHTML = ""; // clear previous items
+  const chunkSize = 10;
 
-  // inside renderProducts(), replace the existing .menu-item click binding:
-  document.querySelectorAll(".menu-item").forEach((item) => {
-    item.addEventListener("click", (ev) => {
-      const name   = item.dataset.name;
-      const sku    = item.dataset.sku;
-      const retail = parseFloat(item.dataset.retail || "0");
-      const sale   = parseFloat(item.dataset.sale   || "0");
+  // ⚡ Render in small chunks for speed
+  (function renderChunk(start = 0) {
+    const end = Math.min(start + chunkSize, normalized.length);
+    const frag = document.createDocumentFragment();
 
-      // unit price helper you already have:
-      const unitPrice = getActiveUnitPrice(sale, retail);
+    for (let i = start; i < end; i++) {
+      const p = normalized[i];
+      const fig = document.createElement("figure");
+      fig.className = "menu-item";
+      fig.dataset.sku = p.sku;
+      fig.dataset.name = p.name;
+      fig.dataset.price = p.price;
+      fig.dataset.sale = p.salePrice;
+      fig.dataset.retail = p.retailPrice;
 
-      // Default in Return Mode = RETURN (-1). Hold Shift to ADD (+1).
-      const isReturnMode = !!window.returnMode;
-      const wantsAdd = isReturnMode && ev.shiftKey;   // Shift = add/exchange
-      const qtyChange = isReturnMode
-        ? (wantsAdd ? +1 : -1)
-        : +1;
+      fig.innerHTML = `
+        <img src="${p.image}" alt="${p.name}" loading="lazy" />
+        <figcaption>${p.name}</figcaption>
+        <figcaption style="font-size:0.8em; color:#66caff;">${p.sku}</figcaption>
+        <figcaption>
+          ${
+            p.salePrice > 0 && p.salePrice < p.retailPrice
+              ? `<span style="color:#bffcff;">$${p.salePrice.toFixed(2)}</span>
+                 <span style="text-decoration:line-through; color:#888; margin-left:4px;">$${p.retailPrice.toFixed(2)}</span>`
+              : `<span style="color:#bffcff;">$${p.retailPrice.toFixed(2)}</span>`
+          }
+        </figcaption>
+      `;
 
-      if (typeof updateReceipt === "function") {
-        updateReceipt({ name, sku, price: unitPrice, qtyChange });
-        showToast(
-          `${name} ${qtyChange > 0 ? (isReturnMode ? "added (exchange)" : "added") : "returned"}.`
-        );
-      } else {
-        console.warn("⚠️ updateReceipt() missing — cannot modify receipt.");
-      }
-    });
-  });
+      // 🛒 Attach your click behavior inline (same as before)
+      fig.addEventListener("click", (ev) => {
+        const name = fig.dataset.name;
+        const sku = fig.dataset.sku;
+        const retail = parseFloat(fig.dataset.retail || "0");
+        const sale = parseFloat(fig.dataset.sale || "0");
+        const unitPrice = getActiveUnitPrice(sale, retail);
 
-  console.log(`✅ Rendered ${normalized.length} products.`);
+        const isReturnMode = !!window.returnMode;
+        const wantsAdd = isReturnMode && ev.shiftKey;
+        const qtyChange = isReturnMode ? (wantsAdd ? +1 : -1) : +1;
+
+        if (typeof updateReceipt === "function") {
+          updateReceipt({ name, sku, price: unitPrice, qtyChange });
+          showToast(
+            `${name} ${
+              qtyChange > 0
+                ? isReturnMode
+                  ? "added (exchange)"
+                  : "added"
+                : "returned"
+            }.`
+          );
+        } else {
+          console.warn("⚠️ updateReceipt() missing — cannot modify receipt.");
+        }
+      });
+
+      frag.appendChild(fig);
+    }
+
+    menu.appendChild(frag);
+
+    if (end < normalized.length) {
+      // schedule next chunk in background
+      requestIdleCallback(() => renderChunk(end));
+    } else {
+      console.log(`✅ Rendered all ${normalized.length} products.`);
+    }
+  })();
 }
-
 // ===========================================================
   // 🌱 FALLBACK PRODUCTS (Offline Backup)
   // ===========================================================
@@ -650,7 +710,19 @@ function renderProducts(products) {
     { name: "Tote Bag", sku: "TBA-001", price: 20.0, image: "https://raw.githubusercontent.com/komuna84/kinaya-pos-assets/main/TBA-001.png" },
   ];
 
+
 // ===========================================================
+// 🔁 RETURN MODE SESSION LIMIT (persistent across refreshes)
+// ===========================================================
+const leftOnce = sessionStorage.getItem("leftReturnMode") === "true";
+
+// 1️⃣ Block re-entry if you've already left once this browser session
+if (leftOnce && state === true) {
+  alert("⚠️ You can’t re-enter Return Mode after leaving it once. Please complete or restart your POS session.");
+  return;
+}
+
+  // ===========================================================
 // 🔁 RETURN MODE TOGGLER — Unified (Sale ↔ Return Mode)
 // ===========================================================
 function setReturnMode(state) {
@@ -1376,33 +1448,6 @@ closeBtn?.addEventListener("click", () => closePaypad(false));
     document.getElementById("change-amount").textContent = `$${change.toFixed(2)}`;
   }
 
-  // ===========================================================
-  // 🔹 HELPER — Toggle Submit Sale Button State
-  // ===========================================================
-  function toggleSubmitButton() {
-    const submitRow = document.getElementById("submit-row");
-    if (!submitRow) return;
-
-    const grandText =
-      document.getElementById("grandtotal-summary")?.textContent || "$0.00";
-    const grand = parseFloat(grandText.replace(/[^0-9.]/g, "")) || 0;
-    const paid = (window.cashMemory || 0) + (window.cardMemory || 0);
-
-    // Show when paid >= total and at least one item exists
-    const hasItems = document.querySelector("#receipt-details tr");
-    const canSubmit = hasItems && paid >= grand && grand > 0;
-
-    submitRow.classList.toggle("hidden", !canSubmit);
-    submitRow.style.opacity = canSubmit ? "1" : "0.3";
-    submitRow.style.pointerEvents = canSubmit ? "auto" : "none";
-
-    console.log(
-      `🔘 Submit button state → ${canSubmit ? "ENABLED" : "DISABLED"} | Paid=${paid.toFixed(
-        2
-      )} | Grand=${grand.toFixed(2)}`
-    );
-  }
-
 
   function showToast(message) {
   const toast = document.createElement("div");
@@ -1514,14 +1559,41 @@ closeBtn?.addEventListener("click", () => closePaypad(false));
   });
 })();
 
+
 // ===========================================================
-// 🔘 SMART SUBMIT BUTTON LOGIC (Keeps Calculator Button Visible)
+// 🧹 CLEAR BUTTON HANDLER — Full Page Refresh
+// ===========================================================
+const clearBtn = document.getElementById("clear-btn");
+if (clearBtn) {
+  clearBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.target.blur();
+    console.log("🔁 Refreshing POS page...");
+    showToast?.("Refreshing...");
+    setTimeout(() => location.reload(), 300);
+  });
+} else {
+  console.warn("⚠️ Clear button not found in DOM");
+}
+
+if (clearBtn) {
+  clearBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    if (!confirm("Are you sure you want to clear this order?")) return;
+    showToast?.("Refreshing...");
+    setTimeout(() => location.reload(), 300);
+  });
+}
+
+
+// ===========================================================
+// 🔘 SMART SUBMIT BUTTON LOGIC (Final Corrected)
 // ===========================================================
 function toggleSubmitButton() {
   const tableBody = document.getElementById("receipt-details");
   const emailInput = document.getElementById("customer-email");
-  const footerBtn = document.getElementById("submit-sale"); // 🧾 footer Confirm Sale button
-  const calcBtn = document.getElementById("open-paypad-btn"); // 💳 open calculator
+  const footerBtn = document.getElementById("submit-sale");
+  const calcBtn = document.getElementById("open-paypad-btn");
   const submitRow = document.getElementById("submit-row");
 
   if (!tableBody || !submitRow) return;
@@ -1531,127 +1603,51 @@ function toggleSubmitButton() {
   const total = parseFloat(
     document.getElementById("grandtotal-summary")?.textContent.replace(/[^0-9.-]/g, "") || 0
   );
-
-  const hasItems = tableBody.querySelectorAll("tr").length > 0;
-  const hasPayment = (cash + card) > 0;
   const email = (emailInput?.value || "").trim();
   const validEmail = email === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const isReturnMode = !!window.returnMode;
+  const hasItems = tableBody.querySelectorAll("tr").length > 0;
+  const paid = cash + card;
 
   // ===========================================================
-  // 🧭 Logic: Sales vs Returns
+  // 🧭 Logic: Determine readiness
   // ===========================================================
   let readyToSubmit = false;
 
   if (isReturnMode) {
-    // 🔴 RETURN MODE → allow submission for ANY valid return (refund or balance owed)
-    const refundOrBalance = total !== 0 && Math.abs(total) > 0.01;
-    readyToSubmit = hasItems && validEmail && refundOrBalance;
+    readyToSubmit = hasItems && validEmail && Math.abs(total) > 0.01;
   } else {
-    // 🟢 SALE MODE → allow submission for any nonzero total (positive = sale, negative = owed/refund)
-    const nonZeroMovement = total !== 0 && Math.abs(total) > 0.01;
-    readyToSubmit = hasItems && validEmail && nonZeroMovement;
+    const paymentOK = paid > 0 && (total <= 0 || paid >= total);
+    readyToSubmit = hasItems && validEmail && paymentOK;
   }
 
+  // ===========================================================
+  // 💳 Toggle Paypad Button (Calculator)
+  // ===========================================================
+  if (calcBtn) {
+    // Show Paypad only if there are items, not in return mode
+    calcBtn.style.display = (!isReturnMode && hasItems) ? "inline-flex" : "none";
+  }
 
   // ===========================================================
-// 💳 Show / Hide Buttons — based on email + payment conditions
-// ===========================================================
-if (calcBtn) {
-  // Only show Paypad if there are items and not in return mode
-  calcBtn.style.display = (!isReturnMode && hasItems) ? "inline-flex" : "none";
-}
+  // 🧾 Toggle Submit Sale Button
+  // ===========================================================
+  if (footerBtn) {
+    // Start hidden by default
+    footerBtn.style.display = readyToSubmit ? "inline-flex" : "none";
+    footerBtn.disabled = !readyToSubmit;
+  }
 
-if (footerBtn) {
-  // 🧭 New: Ready when email is filled AND payment matches/exceeds total
-  const emailFilled = email.length > 0 && validEmail;
-  const paymentSufficient =
-    (total > 0 && (cash + card) >= total) || // paid enough for sale
-    (total < 0); // negative = refund / return
+  // ===========================================================
+  // 🔹 Keep footer visible only when there are items
+  // ===========================================================
+  submitRow.style.display = hasItems ? "flex" : "none";
 
-  const readyToSubmit = hasItems && emailFilled && paymentSufficient;
-
-  footerBtn.style.display = readyToSubmit ? "inline-flex" : "none";
-  footerBtn.disabled = !readyToSubmit;
-}
-
-submitRow.style.display = hasItems ? "flex" : "none";
-
-console.log(
-  `🧾 Button state: ${isReturnMode ? "Return" : "Sale"} | ready=${readyToSubmit ? "✅" : "❌"} | total=${total} | items=${hasItems} | payment=${cash + card} | email=${email}`
-);
-
-
-}
-
-// ===========================================================
-// 🔘 SMART SUBMIT BUTTON LOGIC (Keeps Calculator Button Visible)
-// ===========================================================
-function toggleSubmitButton() {
-  const tableBody = document.getElementById("receipt-details");
-  const emailInput = document.getElementById("customer-email");
-  const footerBtn = document.getElementById("submit-sale"); // 🧾 footer Confirm Sale button
-  const calcBtn = document.getElementById("open-paypad-btn"); // 💳 open calculator
-  const submitRow = document.getElementById("submit-row");
-
-  if (!tableBody || !submitRow) return;
-
-  const cash = window.cashMemory || 0;
-  const card = window.cardMemory || 0;
-  const total = parseFloat(
-    document.getElementById("grandtotal-summary")?.textContent.replace(/[^0-9.-]/g, "") || 0
+  console.log(
+    `🧾 Button Check → Mode=${isReturnMode ? "Return" : "Sale"} | Ready=${readyToSubmit} | Items=${hasItems} | Paid=${paid} | Total=${total}`
   );
-
-  const hasItems = tableBody.querySelectorAll("tr").length > 0;
-  const hasPayment = (cash + card) > 0;
-  const email = (emailInput?.value || "").trim();
-  const validEmail = email === "" || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  const isReturnMode = !!window.returnMode;
-
-  // ===========================================================
-  // 🧭 Logic: Sales vs Returns
-  // ===========================================================
-  let readyToSubmit = false;
-
-  if (isReturnMode) {
-    // 🔴 RETURN MODE → allow submission for ANY valid return (refund or balance owed)
-    const refundOrBalance = total !== 0 && Math.abs(total) > 0.01;
-    readyToSubmit = hasItems && validEmail && refundOrBalance;
-  } else {
-    // 🟢 SALE MODE → allow submission for any nonzero total (positive = sale, negative = owed/refund)
-    const nonZeroMovement = total !== 0 && Math.abs(total) > 0.01;
-    readyToSubmit = hasItems && validEmail && nonZeroMovement;
-  }
-
-
-  // ===========================================================
-// 💳 Show / Hide Buttons — based on email + payment conditions
-// ===========================================================
-if (calcBtn) {
-  // Only show Paypad if there are items and not in return mode
-  calcBtn.style.display = (!isReturnMode && hasItems) ? "inline-flex" : "none";
 }
 
-if (footerBtn) {
-  // 🧭 New: Ready when email is filled AND payment matches/exceeds total
-  const emailFilled = email.length > 0 && validEmail;
-  const paymentSufficient =
-    (total > 0 && (cash + card) >= total) || // paid enough for sale
-    (total < 0); // negative = refund / return
-
-  const readyToSubmit = hasItems && emailFilled && paymentSufficient;
-
-  footerBtn.style.display = readyToSubmit ? "inline-flex" : "none";
-  footerBtn.disabled = !readyToSubmit;
-}
-
-submitRow.style.display = hasItems ? "flex" : "none";
-
-console.log(
-  `🧾 Button state: ${isReturnMode ? "Return" : "Sale"} | ready=${readyToSubmit ? "✅" : "❌"} | total=${total} | items=${hasItems} | payment=${cash + card} | email=${email}`
-);
-
-}
 
 // ===========================================================
 // 🧾 SUBMIT SALE — POST TO BACKEND (CORS-SAFE, AUTO-SYNC)
@@ -1797,8 +1793,9 @@ async function submitSale() {
     window.cashMemory = 0;
     window.cardMemory = 0;
 
-    resetOrder(false);
-    await loadProductCatalog();
+    await updateInvoiceNumber();
+    persistInvoiceDisplay();
+
 
 
     console.log("✅ Sale complete, UI cleared for next entry.");
@@ -1811,162 +1808,6 @@ async function submitSale() {
 // Bind event
 document.getElementById("submit-sale")?.addEventListener("click", submitSale);
 
-// ===========================================================
-// 🧹 TOOLBAR TRASH → FULL RESET
-// ===========================================================
-const trashBtn = document.getElementById("reset-order-btn");
-if (trashBtn) {
-  trashBtn.addEventListener("click", () => {
-    console.log("🗑️ Trash clicked — attempting reset...");
-    if (typeof resetOrder === "function") {
-      resetOrder(true);
-      toggleSubmitButton?.();
-      console.log("✅ POS cleared successfully.");
-    } else {
-      console.error("❌ resetOrder() missing or not global.");
-    }
-  });
-} else {
-  console.warn("⚠️ Trash button not found in DOM");
-}
-
-// ===========================================================
-// 🧹 CLEAR BUTTON HANDLER (Mobile/Desktop Safe)
-// ===========================================================
-const clearBtn = document.getElementById("clear-btn");
-if (clearBtn) {
-  clearBtn.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.target.blur(); // 🩵 removes stuck focus highlight on mobile
-    resetOrder(true);
-    showToast("Cleared all fields");
-  });
-}
-
-
-// ===========================================================
-// 🧹 FULL RESET (Safe After Invoice Lookup or Sale Completion)
-// ===========================================================
-function resetOrder(full = true) {
-  console.log("🧹 Performing full POS reset...");
-
-  // 🧾 Clear receipt table
-  const tableBody = document.getElementById("receipt-details");
-  if (tableBody) tableBody.innerHTML = "";
-
-  // 💸 Reset payment memory
-  window.cashMemory = 0;
-  window.cardMemory = 0;
-  window.cashDraft = "0";
-  window.cardDraft = "0";
-
-  // 💬 Reset text displays
-  const resetText = (id, val = "$0.00") => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = val;
-  };
-  [
-    "subtotal-summary",
-    "tax-summary",
-    "grandtotal-summary",
-    "amount-paid-display",
-    "change-amount",
-    "return-total",
-    "original-total",
-  ].forEach(id => resetText(id));
-
-  // 🧮 Reset labels + split info
-  const splitInfo = document.getElementById("split-info");
-  if (splitInfo) splitInfo.textContent = "None";
-
-  const balanceLabel = document.getElementById("balance-label");
-  const balanceAmount = document.getElementById("balance-amount");
-  if (balanceLabel) balanceLabel.textContent = "Even Exchange:";
-  if (balanceAmount) balanceAmount.textContent = "$0.00";
-
-  // 💬 Reset discount, return condition, and email
-  const discountInput = document.getElementById("discount-input");
-  const returnCondition = document.getElementById("return-condition");
-  const emailInput = document.getElementById("customer-email");
-  const emailToggle = document.getElementById("email-toggle");
-  if (discountInput) discountInput.value = "";
-  if (returnCondition) returnCondition.value = "";
-  if (emailInput) emailInput.value = "";
-  if (emailToggle) emailToggle.checked = true;
-
-  // 🔍 Reset invoice-related data
-  const invoiceSearchInput = document.getElementById("invoice-search-input");
-  const invoiceResult = document.getElementById("invoice-result");
-  const invoiceNumber = document.getElementById("invoice-number");
-  const originalInvoiceInput = document.getElementById("original-invoice");
-  const linkedInvoice = document.getElementById("linked-invoice-number");
-  const returnSummaryRow = document.getElementById("return-summary-row");
-
-  if (invoiceSearchInput) invoiceSearchInput.value = "";
-  if (invoiceResult) invoiceResult.innerHTML = "";
-  if (originalInvoiceInput) originalInvoiceInput.value = "";
-  if (linkedInvoice) linkedInvoice.textContent = "";
-  if (returnSummaryRow) returnSummaryRow.classList.add("hidden");
-  if (invoiceNumber) invoiceNumber.textContent = "Invoice #Loading...";
-
-  // 🔁 Disable Return Mode
-  if (typeof setReturnMode === "function") setReturnMode(false);
-
-  // 🧾 Refresh invoice number + totals
-    if (typeof updateInvoiceNumber === "function") updateInvoiceNumber();
-    if (typeof updateTotals === "function") updateTotals();
-
-    // 🔘 Reset and re-evaluate submit button
-    const submitRow = document.getElementById("submit-row");
-    if (submitRow) {
-      submitRow.classList.add("hidden"); // hide during reset
-      // recheck visibility after state rebuild
-      setTimeout(() => toggleSubmitButton?.(), 400);
-    }
-
-    // 🔓 Reset overlays + grid
-    resetOverlays();
-    console.log("✅ POS reset complete — all clear.");
-
-
-  // After page refresh or new sale start
-  setGridLock(false);
-
-  console.log("✅ POS reset complete — ready for next order.");
-
-  // 🟦 Optional: focus back to search
-  setTimeout(() => {
-    document.getElementById("invoice-search-input")?.focus();
-  }, 200);
-}
-window.resetOrder = resetOrder; // ✅ make it global
-
-// ===========================================================
-// 🔁 RESTART POS LOOP — clean re-init without page reload
-// ===========================================================
-async function restartPOS() {
-  console.log("🔁 Restarting Kinaya POS loop...");
-
-  try {
-    await updateInvoiceNumber();  // refresh invoice number
-    await loadProductCatalog();   // reload current product grid
-    setGridLock(false);           // ensure product grid is unlocked
-    toggleSubmitButton?.();       // 🟦 force submit button recheck
-    showToast("✨ Ready for new transaction");
-    console.log("✅ POS reinitialized successfully.");
-  } catch (err) {
-    console.error("⚠️ Failed to restart POS:", err);
-  }
-}
-window.restartPOS = restartPOS;
-
-
-// ===========================================================
-// 🚀 INIT
-// ===========================================================
-await updateInvoiceNumber(); // 🧾 show invoice number on load
-await loadProductCatalog();
-console.log("✅ Kinaya POS ready.");
 
 // // ===========================================================
 // // 🪟 PRODUCT MODAL (MOBILE + DESKTOP SAFE)
