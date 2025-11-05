@@ -5,7 +5,7 @@
 // aggregates metrics, renders charts, and updates your HTML dashboard.
 // ===========================================================
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   console.log("🌿 Kinaya Dashboard initializing...");
 
   // ===========================================================
@@ -17,25 +17,39 @@ document.addEventListener("DOMContentLoaded", () => {
   // ===========================================================
   // 🌿 AUTO-FILL CURRENT MONTH RANGE FOR DASHBOARD FILTERS
   // ===========================================================
-  document.addEventListener("DOMContentLoaded", () => {
-    const startDate = document.getElementById("start-date");
-    const endDate = document.getElementById("end-date");
-  
-    if (startDate && endDate) {
-      const now = new Date();
-  
-      // First day of current month
-      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-      // Last day of current month
-      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  
-      // Format to yyyy-mm-dd for <input type="date">
-      const fmt = (d) => d.toISOString().split("T")[0];
-  
-      startDate.value = fmt(firstDay);
-      endDate.value = fmt(lastDay);
-    }
-  });
+  const startDate = document.getElementById("start-date");
+  const endDate = document.getElementById("end-date");
+
+  if (startDate && endDate) {
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+    const fmt = (d) => d.toISOString().split("T")[0];
+    startDate.value = fmt(firstDay);
+    endDate.value = fmt(lastDay);
+
+    console.log(`📅 Date range auto-set: ${startDate.value} → ${endDate.value}`);
+  }
+
+  // ===========================================================
+  // 🌿 DASHBOARD CONTROL ELEMENTS
+  // ===========================================================
+  const startInput = document.getElementById("start-date");
+  const endInput = document.getElementById("end-date");
+  const refreshBtn = document.getElementById("refresh-btn");
+  const compareToggle = document.getElementById("compare-toggle");
+
+  // ===========================================================
+  // ✅ INITIALIZE DASHBOARD AFTER DATES SET
+  // ===========================================================
+  if (typeof loadDashboard === "function") {
+    await new Promise((r) => setTimeout(r, 100)); // small wait to ensure inputs render
+    loadDashboard();
+    console.log("✅ Dashboard initialized with current month.");
+  }
+});
+
 
   // Dashboard control elements
   const startInput = document.getElementById("start-date");
