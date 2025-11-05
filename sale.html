@@ -43,7 +43,7 @@
 
   <!-- ===== HEADER ===== -->
   <header class="pos-header">
-    <h1>Kinaya Rising POS</h1>
+    <h1>Purchase Order</h1>
     <p class="subtitle">Nos vortoaj fu wa kinayo. May our words bring understanding.</p>
     <div id="return-mode-banner" class="return-banner">🔴 RETURN MODE ACTIVE</div>
   </header>
@@ -191,10 +191,10 @@
       </div>
 
       <!-- ✅ Submit Button -->
-      <div id="submit-row" class="submit-row">
-        <button id="submit-sale" class="submit-sale-btn">Confirm Sale</button>
-      </div>
-    </div>
+<div id="submit-row" class="submit-row" style="display:none;">
+  <button id="submit-sale" class="submit-sale-btn" disabled>Confirm Sale</button>
+</div>
+
 
     <div class="receipt-footer">Thank You For Your Support!</div>
 
@@ -206,7 +206,7 @@
       <button id="card-btn" class="toolbar-btn" title="Card Payment">
         <i class="fa-solid fa-credit-card"></i>
       </button>
-      <button id="reset-order-btn" class="toolbar-btn" title="Clear Order">
+      <button id="clear-btn" class="toolbar-btn" title="Clear Order">
         <i class="fa-solid fa-trash"></i>
       </button>
       <button id="toggle-return-main" class="toolbar-btn" title="Toggle Return Mode">
