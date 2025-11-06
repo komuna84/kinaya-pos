@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const tableBody = document.querySelector("#expense-table tbody");
   const saveBtn = document.getElementById("save-expense-btn");
+  const clearBtn = document.getElementById("clear-expense-btn");
 
 
   // ===========================================================
