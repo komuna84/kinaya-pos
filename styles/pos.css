@@ -867,6 +867,27 @@ Prevents page scroll only on large screens; mobile unaffected
     border-radius: 0; /* edge-to-edge clean look */
   }
 }
+/* ============================================================
+📱 MOBILE SCROLL STABILITY FIX — Prevent Product Grid Jerk
+============================================================ */
+@media (max-width: 768px) {
+  html, body {
+    height: 100%;
+    overflow-x: hidden;
+  }
+
+  main.pos-container,
+  .menu-payment,
+  .menu {
+    overflow-anchor: none; /* ✅ prevents micro scroll jumps on tap */
+    overscroll-behavior: contain; /* ✅ blocks bounce-scroll effects */
+  }
+
+  .menu {
+    scroll-behavior: smooth;
+  }
+}
+
 
 
 
