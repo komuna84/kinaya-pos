@@ -12,7 +12,84 @@ document.addEventListener("DOMContentLoaded", async () => {
   const SHEET_API =
     "https://script.google.com/macros/s/AKfycbxDzflmDmWiP8qzTUKhKdsdWSL_ZOaRnA8sRrmJ0Qj8yPXm1hya6dWvq-BoJW25NntLLA/exec"; // 🔹 Replace if redeployed
 
-  // ---------- CORE ELEMENTS ----------
+
+// ===========================================================
+// ⚡ FAST CATALOG LOADER — Cache + Dedup + Background Refresh
+// ===========================================================
+async function loadProductCatalog(force = false) {
+  try {
+    if (!force) {
+      const cached = localStorage.getItem("kinayaCatalog");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        renderProducts(parsed);
+        console.log("⚡ Loaded catalog instantly from cache");
+        fetchCatalogAndUpdateCache(); // background refresh
+        return;
+      }
+    }
+    await fetchCatalogAndUpdateCache();
+  } catch (err) {
+    console.error("❌ Catalog load failed:", err);
+    renderProducts(fallbackProducts);
+  }
+}
+
+async function fetchCatalogAndUpdateCache() {
+  const res = await fetch(`${SHEET_API}?mode=pos`);
+  const json = await res.json();
+  const raw =
+    json.data || json.records || json.values || json.products || json.items || json;
+
+  const normalized = raw.map((r) => {
+    const clean = {};
+    for (const k in r) clean[k.trim().toLowerCase()] = r[k];
+    return {
+      sku: clean["sku"] || "",
+      name: clean["product title"] || "Unnamed Product",
+      image:
+        clean["image link"] ||
+        clean["image"] ||
+        clean["image url"] ||
+        "https://raw.githubusercontent.com/komuna84/kinaya-pos-assets/main/default.png",
+      retailPrice: parseFloat(clean["retail price"] || 0),
+      discountPrice: parseFloat(clean["sale price"] || 0),
+      cost: parseFloat(clean["unit cost"] || 0),
+      stock: parseFloat(clean["in stock"] || 0),
+      timestamp: new Date(clean["timestamp"] || 0).getTime() || 0,
+      vendor: clean["vendor"] || "",
+      description: clean["description"] || "",
+      status: clean["status"] || "Active",
+    };
+  });
+
+  const latestOnly = Object.values(
+    normalized.reduce((acc, item) => {
+      const existing = acc[item.sku];
+      if (!existing || item.timestamp > existing.timestamp) acc[item.sku] = item;
+      return acc;
+    }, {})
+  );
+
+
+  console.log(`✅ Found ${latestOnly.length} latest products`);
+  localStorage.setItem("kinayaCatalog", JSON.stringify(latestOnly));
+  renderProducts(latestOnly);
+}
+
+
+// ===========================================================
+// ⚡ START PRELOAD — do this AFTER defining the above functions
+// ===========================================================
+const productPromise = loadProductCatalog();
+
+document.addEventListener("DOMContentLoaded", async () => {
+  await productPromise;
+  console.log("⚡ Products ready");
+});
+
+
+// ---------- CORE ELEMENTS ----------
   const menu = document.getElementById("menu");
   const form = document.getElementById("add-inventory-form");
   form.addEventListener("input", () => {
@@ -56,97 +133,21 @@ form.addEventListener("keydown", (e) => {
 });
 
 // ===========================================================
-// 🔁 LOAD PRODUCT CATALOG (deduplicates to newest version)
-// ===========================================================
-async function loadProductCatalog() {
-  try {
-    const res = await fetch(`${SHEET_API}?mode=pos`);
-    const json = await res.json();
-
-    const raw =
-      json.data || json.records || json.values || json.products || json.items || json;
-
-    // 🧩 Normalize sheet headers → consistent JS keys
-    const normalized = raw.map((r) => {
-      const clean = {};
-      for (const k in r) clean[k.trim().toLowerCase()] = r[k];
-      return {
-  sku: clean["sku"] || clean["Sku"] || "",
-  stableSku: clean["stable sku"] || clean["Stable Sku"] || "",
-  name: clean["product title"] || clean["title"] || clean["Product Title"] || "Unnamed Product",
-  image:
-    clean["image link"] ||
-    clean["image"] ||
-    clean["image url"] ||
-    "https://raw.githubusercontent.com/komuna84/kinaya-pos-assets/main/default.png",
-
-  retailPrice: parseFloat(clean["retail price"] || clean["Retail Price"] || 0),
-  cost: parseFloat(
-  clean["unit price"] ||
-  clean["UnitPrice"] ||
-  clean["wholesale"] ||
-  clean["Wholesale"] ||
-  0
-),
-
-  stock: parseFloat(clean["in stock"] || clean["In Stock"] || 0),
-  bulkQuantity: parseFloat(clean["bulk quantity"]) || 0,
-  bulkCost: parseFloat(clean["bulk cost ($)"]) || 0,
-  profitMargin: parseFloat(clean["profit margin"] || clean["Profit Margin"] || 0),
-  unitsInSet: clean["units in set"] || clean["Units in Set"] || "1",
-  materials: clean["materials"] || clean["Materials"] || "",
-  vendor: clean["vendor"] || clean["Vendor"] || "",
-  description: clean["description"] || clean["Description"] || "",
-  keywords: clean["keywords"] || clean["Keywords"] || "",
-  status: clean["status"] || clean["Status"] || "Active",
-
-  timestamp: new Date(clean["timestamp"] || clean["Timestamp"] || 0).getTime() || 0,
-};
-    });
-
-    // 🌿 Keep only the most recent entry per SKU
-    const latestOnly = Object.values(
-      normalized.reduce((acc, item) => {
-        const existing = acc[item.sku];
-        if (!existing || item.timestamp > existing.timestamp) {
-          acc[item.sku] = item;
-        }
-        return acc;
-      }, {})
-    );
-
-    console.log(
-      `✅ Found ${latestOnly.length} latest products (deduplicated from ${normalized.length})`
-    );
-
-    window.productList = latestOnly; // ✅ make available globally for dropdowns
-    populateStableSkuDropdown(latestOnly); // ✅ refresh Stable SKU dropdown
-
-    // ✅ Render the deduped product list
-    renderProducts(latestOnly);
-  } catch (err) {
-    console.error("❌ Failed to load or deduplicate catalog:", err);
-    renderProducts(fallbackProducts);
-  }
-
-}
-
-// ===========================================================
 // 🛍️ RENDER PRODUCTS — Grid + Click to Populate Form (Inventory)
 // ===========================================================
-function renderProducts(products) {
+function renderProducts(products = []) {
   const menu = document.getElementById("menu");
   if (!menu) return;
 
-  // 🔹 Build product grid
+  // 🔹 Build product grid (inventory-focused)
   menu.innerHTML = products
     .map(
       (p) => `
         <figure class="menu-item" data-sku="${p.sku}">
-          <img src="${p.image}" alt="${p.name}" />
+          <img src="${p.image}" alt="${p.name}" loading="lazy" />
           <figcaption>${p.name}</figcaption>
           <figcaption style="font-size:0.8em; color:#66caff;">${p.sku}</figcaption>
-          <figcaption style="color:#bffcff;">$${p.retailPrice.toFixed(2)}</figcaption>
+          <figcaption style="color:#bffcff;">$${(p.retailPrice || 0).toFixed(2)}</figcaption>
         </figure>`
     )
     .join("");
@@ -157,64 +158,81 @@ function renderProducts(products) {
       const sku = item.dataset.sku;
       const product = products.find((p) => p.sku === sku);
       if (!product) return;
+
       isExistingProduct = true;
       formChanged = false;
       updateSaveButtonLabel();
 
       const fields = [
-  ["sku", product.sku],
-  ["stable-sku", product.stableSku || ""],
-  ["title", product.name || ""],
-  ["image", product.image || ""],
-  ["status", product.status || ""],
-  ["vendor", product.vendor || ""],
-  ["description", product.description || ""],
-  ["keywords", product.keywords || ""],
-  ["materials", product.materials || ""],
-  ["price", product.retailPrice?.toFixed(2) || ""],
-  ["unit-cost", product.cost?.toFixed(2) || ""],
-  ["profit-margin", product.profitMargin?.toFixed(2) || ""],
-  ["bulk-quantity", product.bulkQuantity || ""],
-  ["bulk-cost", product.bulkCost?.toFixed(2) || ""],
-  ["in-stock", product.stock || 0],
-];
+        ["sku", product.sku],
+        ["stable-sku", product.stableSku || ""],
+        ["title", product.name || ""],
+        ["image", product.image || ""],
+        ["status", product.status || ""],
+        ["vendor", product.vendor || ""],
+        ["description", product.description || ""],
+        ["keywords", product.keywords || ""],
+        ["materials", product.materials || ""],
+        ["price", product.retailPrice?.toFixed(2) || ""],
+        ["unit-cost", product.cost?.toFixed(2) || ""],
+        ["profit-margin", product.profitMargin?.toFixed(2) || ""],
+        ["bulk-quantity", product.bulkQuantity || ""],
+        ["bulk-cost", product.bulkCost?.toFixed(2) || ""],
+        ["in-stock", product.stock || 0],
+      ];
 
+      // ✅ Populate all matching inputs
       fields.forEach(([id, val]) => {
-      const el = document.getElementById(id);
-      if (!el) return;
+        const el = document.getElementById(id);
+        if (!el) return;
 
-      // If it's a numeric field, format nicely
-      if (["price", "unit-cost", "profit-margin"].includes(id)) {
-        el.value = val ? parseFloat(val).toFixed(2) : "";
-      } else {
-        el.value = val ?? "";
-      }
-    });
-
-// 🔹 Auto-calculate Profit Margin for new products
-const cost = parseFloat(document.getElementById("unit-cost")?.value || 0);
-const retail = parseFloat(document.getElementById("price")?.value || 0);
-const profitInput = document.getElementById("profit-margin");
-
-if (!profitInput.value || profitInput.value === "0.00") {
-  const margin = retail - cost;
-  profitInput.value = margin > 0 ? margin.toFixed(2) : "0.00";
-}
-
-
-      // Optional scroll + highlight
-      document.querySelector("header")?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
+        // Format numeric inputs
+        if (["price", "unit-cost", "profit-margin"].includes(id)) {
+          el.value = val ? parseFloat(val).toFixed(2) : "";
+        } else {
+          el.value = val ?? "";
+        }
       });
 
-      currentProduct = product;
-      console.log(`📦 Loaded product into form: ${product.name}`);
+      // 🔹 Auto-calculate Profit Margin if blank
+      const cost = parseFloat(document.getElementById("unit-cost")?.value || 0);
+      const retail = parseFloat(document.getElementById("price")?.value || 0);
+      const profitInput = document.getElementById("profit-margin");
+
+      if (!profitInput.value || profitInput.value === "0.00") {
+        const margin = retail - cost;
+        profitInput.value = margin > 0 ? margin.toFixed(2) : "0.00";
+      }
+
+      setTimeout(() => {
+        const headerOffset = 80;
+        const elementPosition = 0; // top of page
+        const offsetPosition = elementPosition - headerOffset;
+
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth"
+        });
+      }, 50);
+
     });
   });
 
-  console.log(`✅ Rendered ${products.length} products.`);
+  console.log(`✅ Rendered ${products.length} products in inventory view.`);
 }
+
+// ===========================================================
+  // 🌱 FALLBACK PRODUCTS (Offline Backup)
+  // ===========================================================
+  const fallbackProducts = [
+    { name: "Book — AoL Part 1", sku: "B0F8NFSWXW", price: 14.98, image: "https://raw.githubusercontent.com/komuna84/kinaya-pos-assets/main/B0F8NFSWXW.png" },
+    { name: "Bookmarks", sku: "BKM-001", price: 2.0, image: "https://raw.githubusercontent.com/komuna84/kinaya-pos-assets/main/BKM-001.png" },
+    { name: "Buttons (individual)", sku: "Button-001", price: 5.0, image: "https://raw.githubusercontent.com/komuna84/kinaya-pos-assets/main/Button-001.png" },
+    { name: "Buttons (5 pack)", sku: "Button-001-5pk", price: 15.0, image: "https://raw.githubusercontent.com/komuna84/kinaya-pos-assets/main/Button-001-5pk.png" },
+    { name: "Coaster", sku: "Cos-001", price: 10.0, image: "https://raw.githubusercontent.com/komuna84/kinaya-pos-assets/main/Cos-001.png" },
+    { name: "Journal", sku: "Jou-001", price: 14.0, image: "https://raw.githubusercontent.com/komuna84/kinaya-pos-assets/main/Jou-001.png" },
+    { name: "Tote Bag", sku: "TBA-001", price: 20.0, image: "https://raw.githubusercontent.com/komuna84/kinaya-pos-assets/main/TBA-001.png" },
+  ];
 
 // ===========================================================
 // 🏷️ LOAD + MANAGE VENDOR DROPDOWN
@@ -325,19 +343,6 @@ function updateSaveButtonLabel() {
     btn.classList.add("primary-btn");
   }
 }
-
-  // ===========================================================
-  // 🌱 FALLBACK PRODUCTS (Offline Backup)
-  // ===========================================================
-  const fallbackProducts = [
-    { name: "Book — AoL Part 1", sku: "B0F8NFSWXW", price: 14.98, image: "https://raw.githubusercontent.com/komuna84/kinaya-pos-assets/main/B0F8NFSWXW.png" },
-    { name: "Bookmarks", sku: "BKM-001", price: 2.0, image: "https://raw.githubusercontent.com/komuna84/kinaya-pos-assets/main/BKM-001.png" },
-    { name: "Buttons (individual)", sku: "Button-001", price: 5.0, image: "https://raw.githubusercontent.com/komuna84/kinaya-pos-assets/main/Button-001.png" },
-    { name: "Buttons (5 pack)", sku: "Button-001-5pk", price: 15.0, image: "https://raw.githubusercontent.com/komuna84/kinaya-pos-assets/main/Button-001-5pk.png" },
-    { name: "Coaster", sku: "Cos-001", price: 10.0, image: "https://raw.githubusercontent.com/komuna84/kinaya-pos-assets/main/Cos-001.png" },
-    { name: "Journal", sku: "Jou-001", price: 14.0, image: "https://raw.githubusercontent.com/komuna84/kinaya-pos-assets/main/Jou-001.png" },
-    { name: "Tote Bag", sku: "TBA-001", price: 20.0, image: "https://raw.githubusercontent.com/komuna84/kinaya-pos-assets/main/TBA-001.png" },
-  ];
 
 // ===========================================================
 // 🌿 LIVE PROFIT + UNIT COST CALCULATOR — smooth typing
