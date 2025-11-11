@@ -376,19 +376,137 @@ input[type="date"]:hover::-webkit-calendar-picker-indicator {
   filter: invert(1);
 }
 
-/* ============================================================
-🌿 MOBILE FIX — Prevent Dashboard Bottom Overlap
-Ensures charts & panels stay above bottom nav on mobile
-============================================================ */
+/* 🌿 Mobile Dashboard Formatting */
 @media (max-width: 768px) {
-  main.dashboard {
-    padding-bottom: calc(7rem + env(safe-area-inset-bottom)) !important;
+  .stats-section p strong,
+  .stats-section div strong {
+    display: block;                  /* Move bold label to its own line */
+    margin-bottom: 0.25rem;
   }
 
-  /* For extra cushion on smaller phones */
-  @media (max-width: 400px) {
-    main.dashboard {
-      padding-bottom: calc(8rem + env(safe-area-inset-bottom)) !important;
-    }
+  .stats-section p,
+  .stats-section div {
+    text-align: left !important;     /* Left align text for mobile readability */
+    white-space: normal !important;  /* Allow wrapping */
+    word-break: break-word;          /* Break long text safely */
   }
 }
+
+/* ============================================================
+🌿 KINAYA DASHBOARD — Metric Alignment (Safe for Multi-line)
+============================================================ */
+.metric {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap; /* allow wrapping for multi-line labels */
+  padding: 0.25rem 0;
+  font-family: "Roboto", sans-serif;
+  line-height: 1.2;
+}
+
+/* Labels (left side) */
+.metric span,
+.metric h4 {
+  flex: 1 1 60%;
+  text-align: left;
+  font-weight: 400;
+  color: #a7e1ee;
+  word-break: break-word;
+}
+
+/* Values (right side) */
+.metric strong,
+.metric p {
+  flex: 0 0 auto;
+  text-align: right;
+  font-weight: 700;
+  color: #bffcff;
+  text-shadow: 0 0 8px rgba(0,198,255,0.4);
+}
+
+/* Optional tweak: make multi-line labels breathe a little */
+.metric h4 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+/* ============================================================
+🌿 CHANNEL PERFORMANCE STYLES
+============================================================ */
+.channel-banner {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 1rem 2rem;
+  margin-bottom: 1.5rem;
+  border-radius: 12px;
+  background: radial-gradient(circle at center, rgba(0,198,255,0.15), rgba(0,198,255,0.05));
+  border: 1px solid rgba(0,198,255,0.25);
+  box-shadow: 0 0 15px rgba(0,198,255,0.15);
+  font-family: "Audiowide", sans-serif;
+}
+
+.channel-box {
+  text-align: center;
+  color: #bffcff;
+  flex: 1;
+}
+
+.channel-box h3 {
+  margin: 0 0 0.4rem;
+  color: #bffcff;
+  text-shadow: 0 0 8px rgba(0,198,255,0.7);
+}
+
+.channel-box.total h3 {
+  color: #fff5cc;
+  text-shadow: 0 0 8px rgba(255,200,80,0.7);
+}
+
+.channel-toggle {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.channel-toggle button {
+  background: rgba(0,198,255,0.2);
+  border: 1px solid #00c6ff;
+  border-radius: 10px;
+  padding: 0.6rem 1.5rem;
+  color: #bffcff;
+  font-family: "Audiowide", sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.channel-toggle button:hover {
+  background: rgba(0,198,255,0.35);
+  box-shadow: 0 0 10px rgba(0,198,255,0.3);
+}
+
+.channel-details {
+  margin-bottom: 2rem;
+  overflow-x: auto;
+}
+
+.channel-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: #a7e1ee;
+  font-size: 0.9rem;
+}
+
+.channel-table th, .channel-table td {
+  border: 1px solid rgba(0,198,255,0.15);
+  padding: 0.6rem 1rem;
+  text-align: center;
+}
+
+.channel-table th {
+  background: rgba(0,198,255,0.15);
+  color: #bffcff;
+  text-shadow: 0 0 5px rgba(0,198,255,0.4);
+}
+
+
