@@ -48,23 +48,85 @@
     <p class="subtitle">Unified overview of your sales, inventory, and performance</p>
   </header>
 
-  <!-- ===== CONTROLS ===== -->
-  <section class="dashboard-controls">
+    <!-- ===== CONTROLS ===== -->
+    <section class="dashboard-controls">
 
-    <label>Range:</label>
-    <input type="date" id="start-date" class="date"/>
-    <span>to</span>
-    <input type="date" id="end-date" />
+      <label>Range:</label>
+      <input type="date" id="start-date" class="date"/>
+      <span>to</span>
+      <input type="date" id="end-date" />
 
-    <label>Compare:
-      <label class="switch">
-        <input type="checkbox" id="compare-toggle" class="date"/>
-        <span class="slider"></span>
+      <label>Compare:
+        <label class="switch">
+          <input type="checkbox" id="compare-toggle" class="date"/>
+          <span class="slider"></span>
+        </label>
       </label>
-    </label>
 
-    <button id="refresh-btn" class="small-btn glow">🔄 Refresh</button>
-  </section>
+      <button id="refresh-btn" class="small-btn glow">🔄 Refresh</button>
+      <button id="sync-printful" class="small-btn">🪶 Sync Printful</button>
+      <button id="sync-amazon" class="small-btn">📘 Sync Amazon</button>
+
+    </section>
+
+    <!-- ===========================================================
+    🌿 CHANNEL PERFORMANCE SUMMARY
+    =========================================================== -->
+    <section id="channel-summary" class="channel-banner">
+      <div class="channel-box">
+        <h3>💳 </br>POS</h3>
+        <p>Gross: <strong id="pos-gross">$0.00</strong></p>
+        <p>Net: <strong id="pos-net">$0.00</strong></p>
+      </div>
+      <div class="channel-box">
+        <h3>🧵 </br>Printful</h3>
+        <p>Gross: <strong id="printful-gross">$0.00</strong></p>
+        <p>Net: <strong id="printful-net">$0.00</strong></p>
+      </div>
+      <div class="channel-box">
+        <h3>📚 </br>Amazon</h3>
+        <p>Gross: <strong id="amazon-gross">$0.00</strong></p>
+        <p>Net: <strong id="amazon-net">$0.00</strong></p>
+      </div>
+      <div class="channel-box total">
+        <h3>💰 </br>Total</h3>
+        <p>Gross: <strong id="total-gross">$0.00</strong></p>
+        <p>Net: <strong id="total-net">$0.00</strong></p>
+      </div>
+    </section>
+
+    <!-- ===========================================================
+    🌿 TOGGLE BUTTON FOR DETAILED VIEW
+    =========================================================== -->
+    <div class="channel-toggle">
+      <button id="toggle-channel-details">📊 View Channel Details</button>
+    </div>
+
+    <!-- ===========================================================
+    🌿 EXPANDABLE CHANNEL DETAILS TABLE
+    =========================================================== -->
+    <div id="channel-details" class="channel-details" hidden>
+      <table class="channel-table">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>POS</th>
+            <th>Printful</th>
+            <th>Amazon</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+         <tr><td>Gross Sales</td><td id="pos-gross-detail">$0</td><td id="printful-gross-detail">$0</td><td id="amazon-gross-detail">$0</td><td id="total-gross-detail">$0</td></tr>
+        <tr><td>Net Sales</td><td id="pos-net-detail">$0</td><td id="printful-net-detail">$0</td><td id="amazon-net-detail">$0</td><td id="total-net-detail">$0</td></tr>
+        <tr><td>Cost of Goods</td><td id="pos-cost-detail">$0</td><td id="printful-cost-detail">$0</td><td id="amazon-cost-detail">$0</td><td id="total-cost-detail">$0</td></tr>
+        <tr><td>Profit Margin</td><td id="pos-margin-detail">0%</td><td id="printful-margin-detail">0%</td><td id="amazon-margin-detail">0%</td><td id="total-margin-detail">0%</td></tr>
+        <tr><td>Orders</td><td id="pos-orders-detail">0</td><td id="printful-orders-detail">0</td><td id="amazon-orders-detail">0</td><td id="total-orders-detail">0</td></tr>
+        <tr><td>Avg Order Value</td><td id="pos-avg-detail">$0</td><td id="printful-avg-detail">$0</td><td id="amazon-avg-detail">$0</td><td id="total-avg-detail">$0</td></tr>
+        </tbody>
+      </table>
+    </div>
+
 
   <!-- ===== MAIN DASHBOARD ===== -->
   <main role="main" class="dashboard">
@@ -126,9 +188,10 @@
   
     <div class="metric"><span>Total Units In Stock</span><strong id="inv-total-units">0</strong></div>
     <div class="metric"><span>Total Stock Value</span><strong id="inv-stock-value">$0.00</strong></div>
+    <div class="metric"><span>Total SKUs</span><strong id="total-skus">0</strong></div>
     <div class="metric"><span>Average Cost per SKU</span><strong id="inv-avg-cost">$0.00</strong></div>
-    <div class="metric"><span>Reorder Alerts</span><strong id="reorder-alerts">0</strong></div>
     <div class="metric"><span>Top-Selling Products</span><strong id="top-products">–</strong></div>
+    <div class="metric"><span>Low Stock Count</span><strong id="inv-low-stock">0</strong></div>
     <div class="metric"><span>Low Stock Items (≤5)</span><strong id="low-stock-products">–</strong></div>
     <!-- <div class="metric"><span>Low Stock Skus</span><strong id="reorder-alerts">0</strong></div> -->
 
