@@ -26,7 +26,7 @@ const devLog = (...args) => { if (DEBUG_MODE) console.log(...args); };
 
   // ---------- CONFIG ----------
   const SHEET_API =
-    "https://script.google.com/macros/s/AKfycbxDzflmDmWiP8qzTUKhKdsdWSL_ZOaRnA8sRrmJ0Qj8yPXm1hya6dWvq-BoJW25NntLLA/exec"; // 🔹 Replace if redeployed
+    "https://script.google.com/macros/s/AKfycbwgWEV43YURmnstV5g-qCjc4VF6tSgzH7lhcspjSaF-gcqczvJY8dIKcP025-yREPZE6Q/exec"; // 🔹 Replace if redeployed
 
 // ===========================================================
 // ⚡ FAST CATALOG LOADER — Cache + Dedup + Background Refresh
@@ -242,7 +242,7 @@ function persistInvoiceDisplay() {
 async function fetchOriginalInvoiceData(invoiceId) {
   try {
     const SHEET_API =
-       "https://script.google.com/macros/s/AKfycbxDzflmDmWiP8qzTUKhKdsdWSL_ZOaRnA8sRrmJ0Qj8yPXm1hya6dWvq-BoJW25NntLLA/exec"; // 🔹 Replace if redeployed
+       "https://script.google.com/macros/s/AKfycbwgWEV43YURmnstV5g-qCjc4VF6tSgzH7lhcspjSaF-gcqczvJY8dIKcP025-yREPZE6Q/exec"; // 🔹 Replace if redeployed
 
     const res = await fetch(`${SHEET_API}?mode=invoice&id=${invoiceId}`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -1681,7 +1681,6 @@ async function submitSale() {
 
     // ---------- Map table rows ----------
     const rows = Array.from(tableBody.querySelectorAll("tr"))
-      // only send new or return lines, not old dimmed originals
       .filter(row => !row.classList.contains("original-item"))
       .map(row => {
         const name = row.children[0]?.textContent || "";
@@ -1691,6 +1690,11 @@ async function submitSale() {
         const tax = +(subtotal * 0.07).toFixed(2);
         const total = +(subtotal + tax).toFixed(2);
         const sku = row.dataset?.sku || "";
+        const grandTotal = window.returnMode ? -Math.abs(subtotal + tax) : subtotal + tax;
+
+        // ✅ Always ensure invoice prefix "INV-"
+        const rawInv = window.nextInvoiceNumber || 1001;
+        const invoiceNum = rawInv.toString().startsWith("INV-") ? rawInv : `INV-${rawInv}`;
 
         return {
           Date: date,
@@ -1698,12 +1702,13 @@ async function submitSale() {
           "Stable Sku": sku.split("-")[0],
           "Product Title": name,
           Quantity: qty,
-          Price: price,                        // single clean price field
+          Price: price,
           Subtotal: subtotal,
           Tax: tax,
           Total: window.returnMode ? -Math.abs(total) : total,
+          "Grand Total": grandTotal.toFixed(2),
           Discount: discountPercent,
-          "Invoice #": window.nextInvoiceNumber || "TEMP",
+          "Invoice #": invoiceNum,   // ✅ always INV-####
           Email: email,
           Subscribe: subscribe,
           Payment: paymentType,
@@ -1717,96 +1722,150 @@ async function submitSale() {
             "",
           OriginalInvoice: originalInvoice || "",
           "Transaction Type": window.returnMode ? "Return" : "Sale",
-          Mode: "saleEntry"
+          Mode: "saleEntry",
         };
+
       });
 
     if (!rows.length) {
       alert("🧾 Add at least one product before submitting!");
       return;
-      // After submitting a sale or return
-      setGridLock(true);
     }
 
-    // ============================================================
-    // 🧾 POST-MAPPING: Add mode + correct transaction info
-    // ============================================================
-    rows.forEach((r) => {
-      // Always mark the mode for backend routing
-      r.Mode = "saleEntry";
+    // ===========================================================
+    // 🚀 POST TO BACKEND
+    // ===========================================================
+    setGridLock(true);
+    showToast("⏳ Processing sale...");
 
-      // Grand total: negative for returns
-      const total = parseFloat(r.Subtotal || 0) * 1.07; // include tax if needed
-      r["Grand Total"] = window.returnMode
-        ? -Math.abs(total.toFixed(2))
-        : total.toFixed(2);
-
-      // Transaction type based on return mode
-      r["Transaction Type"] = window.returnMode ? "Return" : "Sale";
-    });
-
-    console.log("POST →", SHEET_API, rows);
-  
-
-    // ---------- Send to backend ----------
     const res = await fetch(SHEET_API, {
       method: "POST",
       mode: "cors",
       headers: { "Content-Type": "text/plain" },
-      body: JSON.stringify(rows),
+      body: JSON.stringify(rows)
     });
 
     const text = await res.text();
     const json = (() => { try { return JSON.parse(text); } catch { return { raw: text }; } })();
+    console.log("Backend response:", json);
 
     if (!res.ok || !json.success) {
+      showToast("⚠️ Sale failed: " + (json.error || res.statusText));
       console.error("POST failed:", res.status, json);
-      alert(`⚠️ Sync failed (${json.error || res.status}). Check console.`);
+      setGridLock(false);
       return;
     }
 
-    console.log("✅ Backend response:", json);
-    alert(json.message || "✅ Sale recorded successfully!");
-    updateInvoiceNumber();
+    // ===========================================================
+// ✅ SUCCESS HANDLING
+// ===========================================================
+showToast("✅ Sale recorded & synced!");
 
-    // ---------- Reset UI ----------
-    document.getElementById("receipt-details").innerHTML = "";
-    document.getElementById("submit-row")?.classList.add("hidden");
-    document.getElementById("amount-paid-display").textContent = "$0.00";
-    document.getElementById("change-amount").textContent = "$0.00";
-    document.getElementById("split-info").textContent = "None";
-    if (emailEl) emailEl.value = "";
-    if (discountInput) discountInput.value = "";
-    if (originalInvoiceInput) originalInvoiceInput.value = "";
-    document.getElementById("return-condition-row")?.classList.add("hidden");
+// ✅ If this was a return, show the summary.
+// Otherwise, hide it entirely.
+if (window.returnMode) {
+  const invoiceId = window.nextInvoiceNumber || originalInvoice || "TEMP";
+  if (typeof showReturnSummary === "function") showReturnSummary(invoiceId);
+} else {
+  const banner = document.getElementById("return-mode-banner");
+  const summary = document.getElementById("return-summary-row");
+  if (banner) banner.style.display = "none";
+  if (summary) summary.style.display = "none";
+}
 
-    // ✅ Only call showReturnSummary if it actually exists
-    if (typeof showReturnSummary === "function") {
-      const invoiceId = window.nextInvoiceNumber || originalInvoice || "TEMP";
-      showReturnSummary(invoiceId);
-    }
+// ✅ Reset return mode flag (only after conditional)
+window.returnMode = false;
 
-    // ✅ Recalculate totals safely
-    if (typeof updateTotals === "function") updateTotals();
+// ✅ Clear payment memory and calculator displays
+window.cashMemory = 0;
+window.cardMemory = 0;
+window.cashDraft = "0";
+window.cardDraft = "0";
 
-    // ✅ Reset memory + refresh UI
-    window.cashMemory = 0;
-    window.cardMemory = 0;
+const padDisplay = document.getElementById("paypad-display");
+const padOwed = document.getElementById("paypad-owed");
+const padGiven = document.getElementById("paypad-given");
+const padChange = document.getElementById("paypad-change");
 
-    await updateInvoiceNumber();
-    persistInvoiceDisplay();
+if (padDisplay) padDisplay.textContent = "$0.00";
+if (padOwed) padOwed.textContent = "Amount Owed: $0.00";
+if (padGiven) padGiven.textContent = "Cash Given: $0.00";
+if (padChange) padChange.textContent = "Change Due: $0.00";
+
+// ✅ Clear receipt + form fields
+document.getElementById("receipt-details").innerHTML = "";
+document.getElementById("submit-row")?.classList.add("hidden");
+document.getElementById("amount-paid-display").textContent = "$0.00";
+document.getElementById("change-amount").textContent = "$0.00";
+document.getElementById("split-info").textContent = "None";
+if (emailEl) emailEl.value = "";
+if (discountInput) discountInput.value = "";
+if (originalInvoiceInput) originalInvoiceInput.value = "";
+
+// ✅ Get next invoice number automatically
+await updateInvoiceNumber();
+persistInvoiceDisplay();
+
+// ✅ Unlock product grid and finish
+setGridLock(false);
+
+// ✅ Force PayPad + UI Reset for Next Sale
+window.cashMemory = 0;
+window.cardMemory = 0;
+window.cashDraft = "0";
+window.cardDraft = "0";
+
+// Clear PayPad display fields
+["paypad-display", "paypad-owed", "paypad-given", "paypad-change"].forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent =
+    id === "paypad-owed" ? "Amount Owed: $0.00" :
+    id === "paypad-given" ? "Cash Given: $0.00" :
+    id === "paypad-change" ? "Change Due: $0.00" :
+    "$0.00";
+});
+
+// Clear receipt + form fields
+document.getElementById("receipt-details").innerHTML = "";
+document.getElementById("submit-row")?.classList.add("hidden");
+document.getElementById("amount-paid-display").textContent = "$0.00";
+document.getElementById("change-amount").textContent = "$0.00";
+document.getElementById("split-info").textContent = "None";
+if (emailEl) emailEl.value = "";
+if (discountInput) discountInput.value = "";
+if (originalInvoiceInput) originalInvoiceInput.value = "";
+document.getElementById("return-condition-row")?.classList.add("hidden");
+
+// Hide return summary if not in return mode
+if (window.returnMode && typeof showReturnSummary === "function") {
+  const invoiceId = window.nextInvoiceNumber || originalInvoice || "TEMP";
+  showReturnSummary(invoiceId);
+} else {
+  document.getElementById("return-summary-row")?.classList.add("hidden");
+}
+
+// ✅ Increment invoice number manually (safety if backend doesn't return)
+const currentNum = window.nextInvoiceNumber || "INV-1001";
+const numOnly = parseInt((currentNum.match(/\d+/) || [1001])[0], 10);
+window.nextInvoiceNumber = `INV-${numOnly + 1}`;
+persistInvoiceDisplay();
+
+showToast(`✅ Sale complete — Ready for ${window.nextInvoiceNumber}`);
+console.log(`✅ Sale complete — UI cleared. Next invoice: ${window.nextInvoiceNumber}`);
 
 
-
-    console.log("✅ Sale complete, UI cleared for next entry.");
+    console.log("✅ Sale complete — UI cleared for next entry.");
   } catch (err) {
     console.error("❌ Error posting sale:", err);
-    alert("⚠️ Could not sync sale. Check console for details.");
+    showToast("⚠️ Could not sync sale. Check console for details.");
+    setGridLock(false);
   }
 }
 
 // Bind event
 document.getElementById("submit-sale")?.addEventListener("click", submitSale);
+
 
 
 // // ===========================================================
