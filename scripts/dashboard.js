@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // 🔗 CONFIGURATION
   // ===========================================================
   const API_URL =
-    "https://script.google.com/macros/s/AKfycbxDzflmDmWiP8qzTUKhKdsdWSL_ZOaRnA8sRrmJ0Qj8yPXm1hya6dWvq-BoJW25NntLLA/exec"; // 🔹 Replace if redeployed
+    "https://script.google.com/macros/s/AKfycbwgWEV43YURmnstV5g-qCjc4VF6tSgzH7lhcspjSaF-gcqczvJY8dIKcP025-yREPZE6Q/exec"; // 🔹 Replace if redeployed
 
   // ===========================================================
   // 🌿 AUTO-FILL CURRENT MONTH RANGE FOR DASHBOARD FILTERS
@@ -39,6 +39,63 @@ document.addEventListener("DOMContentLoaded", async () => {
   const endInput = document.getElementById("end-date");
   const refreshBtn = document.getElementById("refresh-btn");
   const compareToggle = document.getElementById("compare-toggle");
+
+  // ===========================================================
+  // 🔄 SYNC BUTTONS (Printful + Amazon)
+  // ===========================================================
+  const printfulBtn = document.getElementById("sync-printful");
+  const amazonBtn = document.getElementById("sync-amazon");
+
+  // 🪶 Sync Printful Orders
+  async function syncPrintful() {
+    showToast("⏳ Syncing Printful orders...");
+    try {
+      const res = await fetch(`${API_URL}?mode=printfulSync`);
+      const json = await res.json();
+      if (json.success) {
+        showToast(`✅ Printful: ${json.message || "Sync complete"}`);
+        console.log("🪶 Printful Sync Result:", json);
+        // Optionally refresh dashboard
+        await loadDashboard();
+      } else {
+        showToast("⚠️ Printful sync failed.");
+        console.error(json.error || json);
+      }
+    } catch (err) {
+      console.error("❌ Printful sync error:", err);
+      showToast("❌ Printful sync failed — check console");
+    }
+  }
+
+  // 📘 Sync Amazon (now active)
+  async function syncAmazon() {
+    showToast("🔄 Syncing Amazon orders...");
+    try {
+      const res = await fetch(`${API_URL}?mode=amazonSync`);
+      const json = await res.json();
+
+      if (json.success) {
+        showToast(`✅ Amazon: ${json.message || "Sync complete"}`);
+        console.log("🪶 Amazon Sync Result:", json);
+        // Refresh dashboard automatically
+        await loadDashboard();
+      } else {
+        showToast("⚠️ Amazon sync failed.");
+        console.error(json.error || json);
+      }
+    } catch (err) {
+      console.error("❌ Amazon sync error:", err);
+      showToast("❌ Amazon sync failed — check console for details");
+    }
+  }
+
+
+  // Attach to buttons
+  if (printfulBtn) printfulBtn.addEventListener("click", syncPrintful);
+  if (amazonBtn) amazonBtn.addEventListener("click", syncAmazon);
+
+  await loadDashboard();
+  console.log("🔄 Dashboard auto-refreshed after Printful sync");
 
 
   // ===========================================================
@@ -90,151 +147,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       return null;
     }
   }
-
-// ===========================================================
-// 📦 INVENTORY BAR CHART — Retail vs Unit Price (Labeled)
-// ===========================================================
-async function drawInventoryMetrics() {
-  try {
-    const res = await fetch(`${API_URL}?mode=pos`);
-    const json = await res.json();
-    const products = json.data || [];
-    if (!Array.isArray(products) || products.length === 0) return;
-
-    // --- Summary metrics ---
-    const totalUnits = products.reduce(
-      (s, p) => s + (parseFloat(p["In Stock"]) || 0),
-      0
-    );
-
-    const totalValue = products.reduce((s, p) => {
-      const stock = parseFloat(p["In Stock"]) || 0;
-      const unit = parseFloat(p["Unit Price"]) || 0;
-      return s + stock * unit;
-    }, 0);
-
-    const avgCost = totalUnits ? totalValue / totalUnits : 0;
-    const lowStock = products.filter(
-      (p) => (parseFloat(p["In Stock"]) || 0) <= 5
-    ).length;
-
-    // --- Assign summary numbers to dashboard cards ---
-    assign("inv-total-units", totalUnits);
-    assign("inv-stock-value", `$${totalValue.toFixed(2)}`);
-    assign("inv-avg-cost", `$${avgCost.toFixed(2)}`);
-    assign("inv-low-stock", lowStock);
-
-    // ===========================================================
-    // 🌿 SELL-THROUGH RATE (NEW)
-    // ===========================================================
-    // Attempt to calculate using available product fields
-    const unitsReceived = products.reduce(
-      (sum, p) => sum + (parseFloat(p["Received"]) || 0),
-      0
-    );
-    const unitsSold = products.reduce(
-      (sum, p) => sum + (parseFloat(p["Units Sold"]) || 0),
-      0
-    );
-
-    const sellThroughRate =
-      unitsReceived > 0
-        ? ((unitsSold / unitsReceived) * 100).toFixed(1) + "%"
-        : "0%";
-
-    assign("sell-through-rate", sellThroughRate);
-
-    console.log(
-      `📊 Sell-Through Rate: ${sellThroughRate} (${unitsSold} sold / ${unitsReceived} received)`
-    );
-
-    // ===========================================================
-    // 🎨 CHART RENDERING — Retail vs Unit Price
-    // ===========================================================
-    const ctx = document.getElementById("inventory-bar-chart");
-    if (!ctx) return;
-
-    new Chart(ctx, {
-      type: "bar",
-      data: {
-        labels: products.map((p) => p["Product Title"] || p["Sku"]),
-        datasets: [
-          {
-            label: "Retail Value (In Stock × Retail Price)",
-            data: products.map(
-              (p) =>
-                (parseFloat(p["In Stock"]) || 0) *
-                (parseFloat(p["Retail Price"]) || 0)
-            ),
-            backgroundColor: "rgba(0,198,255,0.6)",
-          },
-          {
-            label: "Unit Value (In Stock × Unit Price)",
-            data: products.map(
-              (p) =>
-                (parseFloat(p["In Stock"]) || 0) *
-                (parseFloat(p["Unit Price"]) || 0)
-            ),
-            backgroundColor: "rgba(255,180,80,0.6)",
-          },
-        ],
-      },
-      options: {
-        plugins: {
-          legend: {
-            labels: { color: "#A7E1EE", font: { family: "Audiowide" } },
-          },
-          tooltip: {
-            callbacks: {
-              title: (context) => context[0].label,
-              label: (context) => {
-                const p = products[context.dataIndex];
-                const stock = parseFloat(p["In Stock"]) || 0;
-                const retail = parseFloat(p["Retail Price"]) || 0;
-                const unit = parseFloat(p["Unit Price"]) || 0;
-                return [
-                  `In Stock: ${stock}`,
-                  `Retail Price: $${retail.toFixed(2)}`,
-                  `Unit Price: $${unit.toFixed(2)}`,
-                  `Retail Value: $${(stock * retail).toFixed(2)}`,
-                  `Unit Value: $${(stock * unit).toFixed(2)}`,
-                ];
-              },
-            },
-          },
-          datalabels: {
-            color: "#A7E1EE",
-            anchor: "end",
-            align: "end",
-            font: { family: "Audiowide", size: 9 },
-            formatter: (value, ctx) => {
-              const p = products[ctx.dataIndex];
-              const retail = parseFloat(p["Retail Price"]) || 0;
-              const unit = parseFloat(p["Unit Price"]) || 0;
-              return `Retail: $${retail.toFixed(2)}\nUnit: $${unit.toFixed(2)}`;
-            },
-          },
-        },
-        scales: {
-          x: {
-            ticks: {
-              color: "#A7E1EE",
-              autoSkip: false,
-              maxRotation: 60,
-              minRotation: 45,
-              font: { size: 10 },
-            },
-          },
-          y: { beginAtZero: true, ticks: { color: "#A7E1EE" } },
-        },
-      },
-      plugins: [ChartDataLabels],
-    });
-  } catch (err) {
-    console.error("❌ Inventory metrics failed:", err);
-  }
-}
-
 
 // ===========================================================
 // 🧾 RENDER INVENTORY SUMMARY CARDS (for mobile + desktop)
@@ -298,7 +210,13 @@ async function drawInventoryMetrics() {
     const ctx = document.getElementById("inventory-bar-chart");
     if (!ctx) return;
 
-    new Chart(ctx, {
+    // 🧹 If a chart already exists, destroy it first
+    if (window.inventoryChart) {
+      window.inventoryChart.destroy();
+    }
+
+    // ✅ Create a new chart and store it globally
+    window.inventoryChart = new Chart(ctx, {
       type: "bar",
       data: {
         labels: products.map((p) => p["Product Title"] || p["Sku"]),
@@ -369,13 +287,30 @@ function updateMetrics(m = {}) {
   const rec  = m.reconciliation     || {};
   const cust = m.customerInsights   || {};
 
+
+  // ===========================================================
+  // 🌿 TOGGLE VISIBILITY OF CHANNEL DETAILS
+  // ===========================================================
+  document.getElementById("toggle-channel-details")?.addEventListener("click", () => {
+    const details = document.getElementById("channel-details");
+    const isHidden = details.hasAttribute("hidden");
+    if (isHidden) {
+      details.removeAttribute("hidden");
+      document.getElementById("toggle-channel-details").textContent = "📉 Hide Channel Details";
+    } else {
+      details.setAttribute("hidden", "");
+      document.getElementById("toggle-channel-details").textContent = "📊 View Channel Details";
+    }
+  });
+
+
   // ===========================================================
   // 🧾 SALES & PRODUCT PERFORMANCE
   // ===========================================================
   assign("total-revenue", `$${(m.totalRevenue || 0).toFixed(2)}`);
   assign("gross-profit", `$${(m.grossProfit || 0).toFixed(2)}`);
   assign("net-profit", `$${(m.netProfit || 0).toFixed(2)}`);
-  assign("account-net-profit", `$${(m.netProfit || 0).toFixed(2)}`);
+  //assign("account-net-profit", `$${(m.netProfit || 0).toFixed(2)}`);
   assign("avg-transaction", `$${(m.avgTransactionValue || 0).toFixed(2)}`);
   assign("units-sold", m.unitsSold || 0);
   assign("tax-collected", `$${(m.taxCollected || 0).toFixed(2)}`);
@@ -547,6 +482,50 @@ function drawSalesTrend(records = []) {
   });
 }
 
+// ✅ Safe assign helper
+function assign(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = value;
+  else console.warn(`⚠️ Element #${id} not found`);
+}
+
+// ===========================================================
+// 🌿 UPDATE CHANNEL DETAILS — POS / Printful / Amazon / Total
+// ===========================================================
+function updateChannelSections(metrics) {
+  const summary = metrics.channelSummary || metrics || {};
+  const pos = summary.pos || {};
+  const printful = summary.printful || {};
+  const amazon = summary.amazon || {};
+  const total = summary.total || {};
+
+  // --- Banner values above the table ---
+  assign("pos-gross", `$${(pos.gross || 0).toFixed(2)}`);
+  assign("pos-net", `$${(pos.net || 0).toFixed(2)}`);
+  assign("printful-gross", `$${(printful.gross || 0).toFixed(2)}`);
+  assign("printful-net", `$${(printful.net || 0).toFixed(2)}`);
+  assign("amazon-gross", `$${(amazon.gross || 0).toFixed(2)}`);
+  assign("amazon-net", `$${(amazon.net || 0).toFixed(2)}`);
+  assign("total-gross", `$${(total.gross || 0).toFixed(2)}`);
+  assign("total-net", `$${(total.net || 0).toFixed(2)}`);
+
+  // --- Table detail updater ---
+  const updateDetail = (prefix, obj) => {
+    assign(`${prefix}-gross-detail`, `$${(obj.gross || 0).toFixed(2)}`);
+    assign(`${prefix}-net-detail`, `$${(obj.net || 0).toFixed(2)}`);
+    assign(`${prefix}-cost-detail`, `$${(obj.cost || 0).toFixed(2)}`);
+    assign(`${prefix}-margin-detail`, `${(obj.margin || 0).toFixed(1)}%`);
+    assign(`${prefix}-orders-detail`, obj.orders || 0);
+    assign(`${prefix}-avg-detail`, `$${(obj.avgOrder || 0).toFixed(2)}`);
+  };
+
+  updateDetail("pos", pos);
+  updateDetail("printful", printful);
+  updateDetail("amazon", amazon);
+  updateDetail("total", total);
+}
+
+
 // ===========================================================
 // 🚀 MAIN DASHBOARD LOADER — Pulls fresh data from backend
 // ===========================================================
@@ -556,22 +535,68 @@ async function loadDashboard() {
   console.log(`📊 Loading dashboard data from ${start} to ${end}...`);
 
   const data = await fetchDashboardData(start, end);
-  if (!data || !data.metrics) return;
 
-  // ✅ Feed metrics as before
-  updateMetrics(data.metrics);
+  if (!data || !data.metrics) {
+    console.warn("⚠️ Backend returned:", data);
+    showToast("⚠️ No data returned from backend.");
+    return;
+  }
 
-  // ✅ Now compute Subscription Rate from full records
-  computeSubscriptionRate(data.records || []);
+  const metrics = data.metrics;
+  const records = metrics.records || [];
 
-  // ✅ Continue with charts
-  drawSalesTrend(data.records);
+  // ===========================================================
+  // 🔹 Compute Channel Summary (POS / Printful / Amazon / Total)
+  // ===========================================================
+  const getSum = (arr, key) =>
+    arr.reduce((a, b) => a + (parseFloat(b[key]) || 0), 0);
+
+  const byChannel = {
+    pos: records.filter(r => (r.Channel || "").toLowerCase() === "pos"),
+    printful: records.filter(r => (r.Channel || "").toLowerCase() === "printful"),
+    amazon: records.filter(r => (r.Channel || "").toLowerCase() === "amazon"),
+  };
+
+  const posGross = getSum(byChannel.pos, "Grand Total");
+  const printfulGross = getSum(byChannel.printful, "Grand Total");
+  const amazonGross = getSum(byChannel.amazon, "Grand Total");
+
+  const posNet = getSum(byChannel.pos, "Net") || posGross;
+  const printfulNet = getSum(byChannel.printful, "Net") || printfulGross;
+  const amazonNet = getSum(byChannel.amazon, "Net") || amazonGross;
+
+  metrics.channelSummary = {
+    pos: { gross: posGross, net: posNet },
+    printful: { gross: printfulGross, net: printfulNet },
+    amazon: { gross: amazonGross, net: amazonNet },
+    total: {
+      gross: posGross + printfulGross + amazonGross,
+      net: posNet + printfulNet + amazonNet,
+    },
+  };
+
+  console.log("✅ Channel summary ready:", metrics.channelSummary);
+
+  // ✅ Feed metrics to panels
+  updateMetrics(metrics);
+
+  // ✅ Update channel summary + details
+  if (typeof updateChannelSections === "function") {
+    updateChannelSections(metrics);
+  } else {
+    console.warn("⚠️ updateChannelSections() not defined.");
+  }
+
+  // ✅ Compute customer + chart data safely
+  computeSubscriptionRate(records);
+  drawSalesTrend(records);
+
   await drawInventoryMetrics();
   await drawProductAnalytics();
 
-
   showToast("📈 Dashboard refreshed");
 }
+
 
 // ===========================================================
 // 💌 SUBSCRIPTION RATE CALCULATOR — Uses raw sales records
@@ -632,7 +657,7 @@ function computeSubscriptionRate(records = []) {
     // ===========================================================
     // 🌿 EMAIL REPORT BUTTON HANDLERS
     // ===========================================================
-    const API_URL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec"; // <-- replace with your Apps Script web app URL
+    const API_URL = "https://script.google.com/macros/s/AKfycbwgWEV43YURmnstV5g-qCjc4VF6tSgzH7lhcspjSaF-gcqczvJY8dIKcP025-yREPZE6Q/exec"; // <-- replace with your Apps Script web app URL
 
     async function triggerEmailReport(reportType, buttonEl) {
       try {
