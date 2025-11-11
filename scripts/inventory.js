@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // ---------- CONFIG ----------
   const SHEET_API =
-    "https://script.google.com/macros/s/AKfycbxDzflmDmWiP8qzTUKhKdsdWSL_ZOaRnA8sRrmJ0Qj8yPXm1hya6dWvq-BoJW25NntLLA/exec"; // 🔹 Replace if redeployed
+    "https://script.google.com/macros/s/AKfycbwgWEV43YURmnstV5g-qCjc4VF6tSgzH7lhcspjSaF-gcqczvJY8dIKcP025-yREPZE6Q/exec"; // 🔹 Replace if redeployed
 
 
 // ===========================================================
@@ -44,25 +44,43 @@ async function fetchCatalogAndUpdateCache() {
   const normalized = raw.map((r) => {
     const clean = {};
     for (const k in r) clean[k.trim().toLowerCase()] = r[k];
+
+    // unified safe getter
+    const get = (...keys) => {
+      for (const k of keys) {
+        if (clean[k] !== undefined && clean[k] !== "") return clean[k];
+      }
+      return "";
+    };
+
     return {
-      sku: clean["sku"] || "",
-      name: clean["product title"] || "Unnamed Product",
+      sku: get("sku"),
+      stableSku: get("stable sku", "stablesku", "base sku"),
+      name: get("product title", "name", "title") || "Unnamed Product",
       image:
-        clean["image link"] ||
-        clean["image"] ||
-        clean["image url"] ||
+        get("image link", "image", "image url") ||
         "https://raw.githubusercontent.com/komuna84/kinaya-pos-assets/main/default.png",
-      retailPrice: parseFloat(clean["retail price"] || 0),
-      discountPrice: parseFloat(clean["sale price"] || 0),
-      cost: parseFloat(clean["unit cost"] || 0),
-      stock: parseFloat(clean["in stock"] || 0),
-      timestamp: new Date(clean["timestamp"] || 0).getTime() || 0,
-      vendor: clean["vendor"] || "",
-      description: clean["description"] || "",
-      status: clean["status"] || "Active",
+      retailPrice: parseFloat(get("retail price", "retail price ($)", "price")) || 0,
+      discountPrice: parseFloat(get("sale price", "discount price")) || 0,
+      cost:
+        parseFloat(get("unit cost", "unit cost ($)", "cost", "unit price")) ||
+        0,
+      bulkQuantity: parseFloat(get("bulk quantity", "bulk quantity purchased")) || 0,
+      bulkCost:
+        parseFloat(get("bulk cost", "total bulk cost", "bulk cost ($)")) || 0,
+      profitMargin:
+        parseFloat(get("profit margin", "profit margin ($)", "margin")) || 0,
+      stock: parseFloat(get("in stock", "stock", "inventory")) || 0,
+      vendor: get("vendor", "supplier"),
+      materials: get("materials", "material"),
+      keywords: get("keywords", "tags", "search terms"),
+      description: get("description", "details"),
+      status: get("status") || "Active",
+      timestamp: new Date(get("timestamp", "last updated")).getTime() || 0,
     };
   });
 
+  // ✅ keep only latest entry per SKU
   const latestOnly = Object.values(
     normalized.reduce((acc, item) => {
       const existing = acc[item.sku];
@@ -71,11 +89,11 @@ async function fetchCatalogAndUpdateCache() {
     }, {})
   );
 
-
   console.log(`✅ Found ${latestOnly.length} latest products`);
   localStorage.setItem("kinayaCatalog", JSON.stringify(latestOnly));
   renderProducts(latestOnly);
 }
+
 
 
 // ===========================================================
@@ -192,6 +210,28 @@ function renderProducts(products = []) {
         } else {
           el.value = val ?? "";
         }
+
+        // 🧩 Auto-select the correct Stable SKU in dropdown
+const stableSkuEl = document.getElementById("stable-sku");
+if (stableSkuEl && product.stableSku) {
+  console.log("🧩 Stable SKU found:", product.stableSku); // debug log
+
+  const found = Array.from(stableSkuEl.options).find(
+    opt => opt.value === product.stableSku
+  );
+
+  if (found) {
+    stableSkuEl.value = product.stableSku;
+  } else {
+    // add dynamically if not listed
+    const opt = document.createElement("option");
+    opt.value = product.stableSku;
+    opt.textContent = `${product.stableSku} — (linked)`;
+    stableSkuEl.appendChild(opt);
+    stableSkuEl.value = product.stableSku;
+  }
+}
+
       });
 
       // 🔹 Auto-calculate Profit Margin if blank
@@ -317,7 +357,7 @@ function populateStableSkuDropdown(products) {
     if (p.sku) {
       const opt = document.createElement("option");
       opt.value = p.sku;
-      opt.textContent = `${p.sku} — ${p.name}`;
+      opt.textContent = `${p.name} (${p.sku})`;
       stableSkuSelect.appendChild(opt);
     }
   });
@@ -400,7 +440,7 @@ updateSaveButtonLabel();
 async function saveProduct() {
   // 🔹 Your live deployed web app URL
   const SHEET_API =
-    "https://script.google.com/macros/s/AKfycbxDzflmDmWiP8qzTUKhKdsdWSL_ZOaRnA8sRrmJ0Qj8yPXm1hya6dWvq-BoJW25NntLLA/exec"; // 🔹 Replace if redeployed
+    "https://script.google.com/macros/s/AKfycbwgWEV43YURmnstV5g-qCjc4VF6tSgzH7lhcspjSaF-gcqczvJY8dIKcP025-yREPZE6Q/exec"; // 🔹 Replace if redeployed
 
   const data = {
     Mode: "inventoryEntry",
@@ -597,5 +637,11 @@ function showToast(message, isSuccess = true) {
 // 🌿 INIT
 // ===========================================================
 await loadProductCatalog();
+
+// 🧩 Populate Stable SKU dropdown after catalog is loaded
+const cachedCatalog = JSON.parse(localStorage.getItem("kinayaCatalog") || "[]");
+populateStableSkuDropdown(cachedCatalog);
+
 await loadVendorDropdown();
 });
+
