@@ -10,12 +10,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   // ⚙️ CONFIGURATION + CORE ELEMENTS
   // ===========================================================
   const SHEET_API =
-    "https://script.google.com/macros/s/AKfycbxDzflmDmWiP8qzTUKhKdsdWSL_ZOaRnA8sRrmJ0Qj8yPXm1hya6dWvq-BoJW25NntLLA/exec"; // 🔹 Replace if redeployed
+    "https://script.google.com/macros/s/AKfycbwgWEV43YURmnstV5g-qCjc4VF6tSgzH7lhcspjSaF-gcqczvJY8dIKcP025-yREPZE6Q/exec"; // 🔹 Replace if redeployed
 
   const tableBody = document.querySelector("#expense-table tbody");
   const saveBtn = document.getElementById("save-expense-btn");
   const clearBtn = document.getElementById("clear-expense-btn");
-
 
   // ===========================================================
   // 🧾 FORM ELEMENTS
@@ -93,48 +92,99 @@ updateExpenseTotal(true);
   }
 
 // ===========================================================
-// 💾 SAVE EXPENSE — CORS SAFE + EXP-ID + AUTO RESET
+// 💾 SAVE EXPENSE — AUTO ID + CORS SAFE + RESET
 // ===========================================================
+async function getNextExpenseId() {
+  const SHEET_API =
+    "https://script.google.com/macros/s/AKfycbwgWEV43YURmnstV5g-qCjc4VF6tSgzH7lhcspjSaF-gcqczvJY8dIKcP025-yREPZE6Q/exec"; // 🔹 Replace if redeployed
+
+  try {
+    const res = await fetch(`${SHEET_API}?mode=expenses`);
+    const json = await res.json();
+    const rows = json.data || [];
+    if (!rows.length) return "EXP-001";
+
+    const last = rows[rows.length - 1];
+    const lastNum = String(last["ID"] || "").replace(/[^\d]/g, "");
+    const nextNum = (parseInt(lastNum, 10) || 0) + 1;
+    return `EXP-${String(nextNum).padStart(3, "0")}`;
+  } catch (err) {
+    console.error("❌ Failed to get next expense ID:", err);
+    return "EXP-001";
+  }
+}
+
 async function saveExpense() {
   const SHEET_API =
-    "https://script.google.com/macros/s/AKfycbw3lgHk_DldA6zdUYsek6FTO64qtSEnE86nOdW5xNxWZbhiDHAvS53jtk6zuuf5tjJOkw/exec"; // 🔹 Replace if redeployed
+    "https://script.google.com/macros/s/AKfycbwgWEV43YURmnstV5g-qCjc4VF6tSgzH7lhcspjSaF-gcqczvJY8dIKcP025-yREPZE6Q/exec"; // 🔹 Replace if redeployed
 
-  const data = {
-    Mode: "expenseEntry",
-    "Expense ID": window.nextExpenseId || "",
-    Date: document.getElementById("date")?.value || new Date().toLocaleDateString("en-CA"),
-    Category: document.getElementById("category")?.value.trim(),
-    Description: document.getElementById("description")?.value.trim(),
-    Vendor: document.getElementById("vendor")?.value.trim(),
-    InvoiceAmount: parseFloat(document.getElementById("invoice-amount")?.value) || 0,
-    Tax: parseFloat(document.getElementById("tax-amount")?.value) || 0,
-    Shipping: parseFloat(document.getElementById("shipping")?.value) || 0,
-    Total: parseFloat(document.getElementById("total")?.value) || 0,
-    PaymentMethod: document.getElementById("payment-method")?.value.trim(),
-    TaxDeductible: document.getElementById("tax-deductible")?.value || "No",
-    Paid: document.getElementById("paid")?.value || "",
-    Received: document.getElementById("received")?.value || "",
-    "Invoice/PO": document.getElementById("invoice-po")?.value.trim(),
-  };
+  try {
+    // 🔹 1. Generate the next Expense ID
+    const nextExpenseId = await getNextExpenseId();
 
-  console.log("🧾 Saving expense:", data);
+    // 🔹 2. Build payload (must match sheet headers exactly)
+    const data = {
+      Mode: "expenseEntry",
+      ID: nextExpenseId,
+      Date: document.getElementById("date")?.value || new Date().toLocaleDateString("en-CA"),
+      Category: document.getElementById("category")?.value.trim(),
+      Description: document.getElementById("description")?.value.trim(),
+      Vendor: document.getElementById("vendor")?.value.trim(),
+      "Invoice Amount": parseFloat(document.getElementById("invoice-amount")?.value) || 0,
+      Shipping: parseFloat(document.getElementById("shipping")?.value) || 0,
+      Tax: parseFloat(document.getElementById("tax-amount")?.value) || 0,
+      Total: parseFloat(document.getElementById("total")?.value) || 0,
+      "Payment Method": document.getElementById("payment-method")?.value.trim(),
+      "Paid (Y/N)": document.getElementById("paid")?.value || "No",
+      "Received (Y/N)": document.getElementById("received")?.value || "No",
+      "Invoice/PO #": document.getElementById("invoice-po")?.value.trim(),
+      "Tax Deductible (Y/N)": document.getElementById("tax-deductible")?.value || "No",
+    };
 
-  const res = await fetch(SHEET_API, {
-    method: "POST",
-    mode: "cors",
-    headers: { "Content-Type": "text/plain" },
-    body: JSON.stringify([data]),
-  });
+    console.table(data);
 
-  const text = await res.text();
-  const json = (() => { try { return JSON.parse(text); } catch { return { raw: text }; } })();
-  if (!res.ok || !json.success) throw new Error(json.error || res.statusText);
+    // 🔹 3. POST to Sheet
+    const res = await fetch(SHEET_API, {
+      method: "POST",
+      mode: "cors",
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify([data]),
+    });
 
-  console.log("✅ Expense saved:", json);
-  showToast(json.message || "✅ Expense added successfully!");
-  document.querySelector("form")?.reset();
+    const text = await res.text();
+    const json = (() => {
+      try {
+        return JSON.parse(text);
+      } catch {
+        return { raw: text };
+      }
+    })();
+
+    if (!res.ok || !json.success)
+      throw new Error(json.error || res.statusText);
+
+    console.log("✅ Expense saved:", json);
+    showToast(`✅ ${nextExpenseId} added successfully!`);
+
+    // 🔹 Automatically clear the form after a successful submit
+    clearForm();
+
+    // 🔹 Refresh expense table
+    loadExpenses();
+
+  } catch (err) {
+    console.error("❌ Save failed:", err);
+    showToast("❌ Failed to save expense. Check console for details.");
+  }
 }
-  
+
+// ===========================================================
+// 🖱️ SAVE BUTTON HANDLER
+// ===========================================================
+saveBtn?.addEventListener("click", async () => {
+  await saveExpense();
+});
+
 // ===========================================================
 // 🧹 CLEAR FORM — Expense Log Reset
 // ===========================================================
@@ -160,6 +210,7 @@ function clearForm() {
     if (el) {
       if (el.type === "checkbox") el.checked = false;
       else el.value = "";
+      if (el.tagName === "SELECT") el.selectedIndex = 0;
     }
   });
 
@@ -169,9 +220,13 @@ function clearForm() {
 
   console.log("🧹 Expense form cleared.");
   showToast?.("🧹 Form cleared! Ready for new entry.");
+
+  // Optional: auto-focus first field after clear
+  document.getElementById("date")?.focus();
 }
 
 clearBtn?.addEventListener("click", clearForm);
+
 
 
   // ===========================================================
@@ -223,7 +278,13 @@ clearBtn?.addEventListener("click", clearForm);
     received: r["Received"] || r["Received (Y/N)"] || "",
   }));
 
-  const sorted = normalized.sort((a, b) => new Date(b.date) - new Date(a.date));
+  // 🔹 Sort by numeric part of ID (EXP-001 → EXP-002 → EXP-003)
+const sorted = normalized.sort((a, b) => {
+  const numA = parseInt(String(a.id || "").replace(/[^\d]/g, ""), 10) || 0;
+  const numB = parseInt(String(b.id || "").replace(/[^\d]/g, ""), 10) || 0;
+  return numA - numB; // ascending
+});
+
 
   tableBody.innerHTML = sorted
     .map(
@@ -298,6 +359,47 @@ clearBtn?.addEventListener("click", clearForm);
       searchInput.dispatchEvent(new Event("input"));
     });
   }
+
+// ===========================================================
+// ✨ TOAST MESSAGE HELPER
+// ===========================================================
+function showToast(message) {
+  const toast = document.createElement("div");
+  toast.innerText = message;
+  toast.style.position = "fixed";
+  toast.style.bottom = "30px";
+  toast.style.left = "50%";
+  toast.style.transform = "translateX(-50%)";
+  toast.style.background = "rgba(0, 198, 255, 0.15)";
+  toast.style.border = "1px solid rgba(0, 198, 255, 0.5)";
+  toast.style.color = "#A7E1EE";
+  toast.style.padding = "10px 16px";
+  toast.style.borderRadius = "10px";
+  toast.style.zIndex = "9999";
+  toast.style.fontFamily = "Roboto, sans-serif";
+  toast.style.backdropFilter = "blur(8px)";
+  toast.style.boxShadow = "0 0 10px rgba(0,198,255,0.3)";
+  toast.style.transition = "opacity 0.3s ease";
+  document.body.appendChild(toast);
+
+  setTimeout(() => (toast.style.opacity = "0"), 2500);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+// ===========================================================
+// 🗓️ DATE FORMATTER — Clean ISO → YYYY-MM-DD
+// ===========================================================
+function formatDate(value) {
+  if (!value) return "";
+  try {
+    const d = new Date(value);
+    if (isNaN(d)) return value; // fallback if it's already plain text
+    return d.toISOString().split("T")[0]; // "2025-11-09"
+  } catch {
+    return value;
+  }
+}
+
 
   // ===========================================================
   // 🚀 INITIALIZE PAGE
